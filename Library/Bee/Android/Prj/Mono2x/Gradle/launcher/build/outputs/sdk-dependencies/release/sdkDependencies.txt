@@ -1,0 +1,28 @@
+# List of SDK dependencies of this app, this information is also included in an encrypted form in the APK.
+# For more information visit: https://d.android.com/r/tools/dependency-metadata
+
+library {
+  digests {
+    sha256: "\350\355\252\335\003-\f0d\314\204\252c`^\213eE\371\223\300a\024\207{\341E\264\fvWz"
+  }
+}
+library {
+  digests {
+    sha256: "QK\266\346b\371=\265\327*sIj\322M\216.\230V\f*\216\342yj\363S\372z\321\337\254"
+  }
+}
+module_dependencies {
+  module_name: "base"
+  dependency_index: 0
+  dependency_index: 1
+}
+repositories {
+  maven_repo {
+    url: "https://dl.google.com/dl/android/maven2/"
+  }
+}
+repositories {
+  maven_repo {
+    url: "https://repo.maven.apache.org/maven2/"
+  }
+}
