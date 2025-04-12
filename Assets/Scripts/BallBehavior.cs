@@ -1,26 +1,30 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class BallBehavior : MonoBehaviour
 {
-    public float possessionDistance = 0.4f; // Distance within which a player can possess the ball
-    public float kickForce = 6.0f; // Base force applied when kicking the ball
-    public float dribbleSpeed = 10f; // Speed of the ball when dribbling
-    public float possessionCooldown = 3f; // Time in seconds before a player can repossess the ball
-    public float verticalForceMultiplier = 2.0f; // Multiplier for vertical force to create a parabolic trajectory
+    public float possessionDistance = 0.4f;
+    public float kickForce = 5.0f;
+    public float dribbleSpeed = 10f;
+    public float possessionCooldown = 3f;
+    public float verticalForceMultiplier = 2.0f;
 
     private Camera mainCamera;
     private Rigidbody rb;
-    private Transform currentPlayer; // Reference to the current player possessing the ball
+    private Transform currentPlayer;
     private bool isPossessed = false;
-    private float lastKickTime = -Mathf.Infinity; // Track the last time the ball was kicked
+    private bool isDragging = false;
+    private float lastKickTime = -Mathf.Infinity;
     private Vector2 touchStartPos;
     private Vector2 touchEndPos;
+
+    public List<Transform> allyPlayers; // List of ally players
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         mainCamera = Camera.main;
-        rb.collisionDetectionMode = CollisionDetectionMode.Continuous; // Improve collision handling
+        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
     }
 
     void Update()
@@ -34,56 +38,51 @@ public class BallBehavior : MonoBehaviour
             CheckForPossession();
         }
 
-        // Handle touch input for kicking
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
-            if (touch.phase == TouchPhase.Began)
+            switch (touch.phase)
             {
-                touchStartPos = touch.position;
-            }
-            else if (touch.phase == TouchPhase.Ended)
-            {
-                touchEndPos = touch.position;
-                if (isPossessed && IsTouchOnPitch(touchStartPos) && IsTouchOnPitch(touchEndPos))
-                {
-                    // Only kick if the touch ends on a "pitch" object
-                    KickBall();
-                }
+                case TouchPhase.Began:
+                    touchStartPos = touch.position;
+                    isDragging = false;
+                    break;
+
+                case TouchPhase.Moved:
+                    isDragging = true;
+                    break;
+
+                case TouchPhase.Ended:
+                    touchEndPos = touch.position;
+                    if (isPossessed && IsCurrentPlayerAnAlly() && !isDragging && touchStartPos == touchEndPos) {
+                        KickBall();
+                    }
+                    break;
+                case TouchPhase.Canceled:
+                    break;
             }
         }
     }
 
-    private bool IsTouchOnPitch(Vector2 touchPosition)
+    private bool IsCurrentPlayerAnAlly()
     {
-        Ray ray = mainCamera.ScreenPointToRay(touchPosition);
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
-        {
-            if (hit.transform.CompareTag("Pitch"))
-            {
-                Debug.Log("Hit object: " + hit.collider.name);
-                return true;
-            }
-        }
-        return false;
+        // Check if the current player possessing the ball is in the list of ally players
+        return allyPlayers.Contains(currentPlayer);
     }
 
     private void HandlePossession()
     {
         if (currentPlayer == null) return;
 
-        // Keep the ball at the player's feet, maintaining the current y position
         Vector3 targetPosition = currentPlayer.position + currentPlayer.forward * 0.5f;
         targetPosition.x += 0.1f;
-        targetPosition.y = transform.position.y; // Maintain the current y position
+        targetPosition.y = transform.position.y;
         targetPosition.z -= 0.2f;
         transform.position = Vector3.Lerp(transform.position, targetPosition, dribbleSpeed * Time.deltaTime);
     }
 
     private void CheckForPossession()
     {
-        // Check if the ball can be possessed by any player
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, possessionDistance);
         foreach (var hitCollider in hitColliders)
         {
@@ -91,11 +90,10 @@ public class BallBehavior : MonoBehaviour
             {
                 currentPlayer = hitCollider.transform;
                 isPossessed = true;
-                rb.isKinematic = true; // Disable physics immediately when possessed
+                rb.isKinematic = true;
 
-                // Immediately adjust the ball's position to be in front of the player
                 Vector3 immediatePosition = currentPlayer.position + currentPlayer.forward * 0.5f;
-                immediatePosition.y = transform.position.y; // Maintain the current y position
+                immediatePosition.y = transform.position.y;
                 transform.position = immediatePosition;
 
                 break;
@@ -106,35 +104,41 @@ public class BallBehavior : MonoBehaviour
     private void KickBall()
     {
         isPossessed = false;
-        rb.isKinematic = false; // Re-enable physics
+        rb.isKinematic = false;
 
-        // Convert touch end position to world coordinates
+        // Get the target position from the touch position
         Vector3 targetPosition = GetWorldPositionFromTouch(touchEndPos);
 
-        // Calculate the initial velocity required to reach the target position
-        Vector3 initialVelocity = CalculateInitialVelocity(transform.position, targetPosition, 1.0f); // 1.0f is the time to reach the target
+        // Calculate the time to target based on distance and desired speed
+        float distance = Vector3.Distance(transform.position, targetPosition);
+        float timeToTarget = distance / kickForce; // Adjust kickForce to control speed
 
-        // Apply the calculated initial velocity to the ball, scaled by kickForce
-        rb.velocity = initialVelocity * kickForce;
-        lastKickTime = Time.time; // Record the time of the kick
+        // Calculate the initial velocity needed to reach the target
+        Vector3 initialVelocity = CalculateInitialVelocity(transform.position, targetPosition, timeToTarget);
+
+        // Apply the calculated velocity to the ball
+        rb.velocity = initialVelocity;
+
+        // Record the time of the kick
+        lastKickTime = Time.time;
     }
 
     private Vector3 CalculateInitialVelocity(Vector3 startPosition, Vector3 targetPosition, float timeToTarget)
     {
-        // Calculate the displacement
         Vector3 displacement = targetPosition - startPosition;
-
-        // Calculate the horizontal velocity
         Vector3 horizontalDisplacement = new Vector3(displacement.x, 0, displacement.z);
         Vector3 horizontalVelocity = horizontalDisplacement / timeToTarget;
 
-        // Calculate the vertical velocity with a multiplier for parabolic trajectory
-        float verticalVelocity = (displacement.y / timeToTarget) + (0.5f * Mathf.Abs(Physics.gravity.y) * timeToTarget * verticalForceMultiplier);
+        // Calculate the maximum height the ball should reach
+        float maxHeight = 1.0f; // The maximum height you want the ball to reach
 
-        // Combine horizontal and vertical velocities
-        Vector3 initialVelocity = horizontalVelocity + Vector3.up * verticalVelocity;
+        // Calculate the vertical velocity needed to reach the maximum height
+        float verticalVelocity = Mathf.Sqrt(2 * Mathf.Abs(Physics.gravity.y) * (maxHeight - startPosition.y));
 
-        return initialVelocity;
+        // Ensure the vertical velocity is positive and adjusted for the time to target
+        verticalVelocity = Mathf.Min(verticalVelocity, (displacement.y / timeToTarget) + (0.5f * Mathf.Abs(Physics.gravity.y) * timeToTarget * verticalForceMultiplier));
+
+        return horizontalVelocity + Vector3.up * verticalVelocity;
     }
 
     private Vector3 GetWorldPositionFromTouch(Vector2 touchPosition)
@@ -143,23 +147,21 @@ public class BallBehavior : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit))
         {
-            return hit.point; // Return the point where the ray hits an object
+            return hit.point;
         }
-        return Vector3.zero; // Return a default value if nothing is hit
+        return Vector3.zero;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        // If the ball collides with a player while free, it can be possessed again
         if (!isPossessed && collision.transform.CompareTag("Player") && Time.time > lastKickTime + possessionCooldown)
         {
             currentPlayer = collision.transform;
             isPossessed = true;
             rb.isKinematic = true;
 
-            // Immediately adjust the ball's position to be in front of the player
             Vector3 immediatePosition = currentPlayer.position + currentPlayer.forward * 0.5f;
-            immediatePosition.y = transform.position.y; // Maintain the current y position
+            immediatePosition.y = transform.position.y;
             transform.position = immediatePosition;
         }
     }

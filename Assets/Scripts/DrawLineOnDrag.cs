@@ -10,12 +10,11 @@ public class DrawLineOnDrag : MonoBehaviour
     private int currentPointIndex = 0;
     private bool isMoving = false;
 
-    public float moveSpeed = 1f; // Speed at which the character moves along the line
-    public float maxLineLength = 6f; // Maximum length of the line
-    public LayerMask ignoreLayer; // Layer to ignore in raycast
-    public Transform playerChildWithCollider; // Assign the child object with the collider in the Inspector
+    public float moveSpeed = 1f;
+    public float maxLineLength = 6f;
+    public LayerMask ignoreLayer;
+    public Transform playerChildWithCollider;
 
-    // Assign these in the Inspector
     public BoxCollider boundTop;
     public BoxCollider boundBottom;
     public BoxCollider boundLeft;
@@ -40,15 +39,15 @@ public class DrawLineOnDrag : MonoBehaviour
                     if (IsTouchingCharacter(touch.position))
                     {
                         isDragging = true;
-                        lineRenderer.positionCount = 0; // Reset line
-                        linePoints.Clear(); // Clear previous points
+                        lineRenderer.positionCount = 0;
+                        linePoints.Clear();
                     }
                     break;
 
                 case TouchPhase.Moved:
                     if (isDragging)
                     {
-                        touchPosition.y = 0; // Adjust to keep the line on the ground plane
+                        touchPosition.y = 0;
                         if (CanAddPoint(touchPosition) && IsWithinBounds(touchPosition))
                         {
                             lineRenderer.positionCount++;
@@ -83,7 +82,6 @@ public class DrawLineOnDrag : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, ~ignoreLayer))
         {
-            // Check if the hit object is the specific child with the collider
             return hit.collider.gameObject == playerChildWithCollider.gameObject;
         }
         return false;
@@ -102,7 +100,6 @@ public class DrawLineOnDrag : MonoBehaviour
             currentLength += Vector3.Distance(linePoints[i], linePoints[i + 1]);
         }
 
-        // Add the distance from the last point to the new point
         currentLength += Vector3.Distance(linePoints[linePoints.Count - 1], newPoint);
 
         return currentLength <= maxLineLength;
@@ -110,7 +107,7 @@ public class DrawLineOnDrag : MonoBehaviour
 
     private bool IsWithinBounds(Vector3 point)
     {
-        float bottomOffset = 0.5f; // Adjust this value as needed
+        float bottomOffset = 0.5f;
 
         return point.x >= boundLeft.bounds.min.x && point.x <= boundRight.bounds.max.x &&
                point.z >= (boundBottom.bounds.min.z + bottomOffset) && point.z <= boundTop.bounds.max.z;
@@ -127,7 +124,6 @@ public class DrawLineOnDrag : MonoBehaviour
 
             if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
             {
-                // Remove the point from the line
                 linePoints.RemoveAt(currentPointIndex);
                 lineRenderer.positionCount = linePoints.Count;
                 lineRenderer.SetPositions(linePoints.ToArray());
@@ -135,7 +131,7 @@ public class DrawLineOnDrag : MonoBehaviour
         }
         else
         {
-            isMoving = false; // Stop moving when the end of the line is reached
+            isMoving = false;
         }
     }
 }
