@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6840228469205287805}
   - component: {fileID: 1296286090994406984}
   - component: {fileID: 6459689442005166128}
+  - component: {fileID: 298896159515212001}
   m_Layer: 6
   m_Name: Opp
   m_TagString: Player
@@ -211,6 +212,33 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.32, y: 0.64000016, z: 0.20000005}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &298896159515212001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 68784767611044830}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a3364437eb4fe4babb2dd6981eb6f99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: 
+  playerName: 
+  gender: 
+  type: 
+  position: 
+  hp: 0
+  sp: 0
+  kick: 0
+  body: 0
+  control: 0
+  guard: 0
+  speed: 0
+  stamina: 0
+  courage: 0
+  freedom: 0
 --- !u!1 &7900325642900484538
 GameObject:
   m_ObjectHideFlags: 0

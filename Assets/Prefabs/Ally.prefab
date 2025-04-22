@@ -149,6 +149,7 @@ GameObject:
   - component: {fileID: 2240819543781236569}
   - component: {fileID: 2987738248031052575}
   - component: {fileID: 257023030392555945}
+  - component: {fileID: 1820447550172888761}
   m_Layer: 6
   m_Name: Ally
   m_TagString: Player
@@ -277,7 +278,7 @@ LineRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.1
+        value: 0.05
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -371,6 +372,33 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.32, y: 0.64000016, z: 0.20000005}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1820447550172888761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3339710088147659802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a3364437eb4fe4babb2dd6981eb6f99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: 
+  playerName: 
+  gender: 
+  type: 
+  position: 
+  hp: 0
+  sp: 0
+  kick: 0
+  body: 0
+  control: 0
+  guard: 0
+  speed: 0
+  stamina: 0
+  courage: 0
+  freedom: 0
 --- !u!1 &8041545995393481555
 GameObject:
   m_ObjectHideFlags: 0

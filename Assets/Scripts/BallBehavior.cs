@@ -1,13 +1,17 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.UI;
+using System.Collections;
 
 public class BallBehavior : MonoBehaviour
 {
-    public float possessionDistance = 0.4f;
-    public float kickForce = 5.0f;
+    public float possessionDistance = 0.2f;
+    public float kickForce = 4.0f;
     public float dribbleSpeed = 10f;
     public float possessionCooldown = 3f;
     public float verticalForceMultiplier = 2.0f;
+    public Image crosshairImage;
+    public float crosshairDisplayDuration = 0.2f;
 
     private Camera mainCamera;
     private Rigidbody rb;
@@ -17,6 +21,7 @@ public class BallBehavior : MonoBehaviour
     private float lastKickTime = -Mathf.Infinity;
     private Vector2 touchStartPos;
     private Vector2 touchEndPos;
+    private Coroutine hideCrosshairCoroutine;
 
     public List<Transform> allyPlayers; // List of ally players
 
@@ -51,14 +56,21 @@ public class BallBehavior : MonoBehaviour
                 case TouchPhase.Moved:
                     isDragging = true;
                     break;
-
                 case TouchPhase.Ended:
                     touchEndPos = touch.position;
                     if (isPossessed && IsCurrentPlayerAnAlly() && !isDragging && touchStartPos == touchEndPos) {
+                        crosshairImage.transform.position = touchEndPos;
+                        crosshairImage.enabled = true;
                         KickBall();
                     }
+                    if (hideCrosshairCoroutine != null)
+                    {
+                        StopCoroutine(hideCrosshairCoroutine);
+                    }
+                    hideCrosshairCoroutine = StartCoroutine(HideCrosshairAfterDelay());
                     break;
                 case TouchPhase.Canceled:
+                    hideCrosshairCoroutine = StartCoroutine(HideCrosshairAfterDelay());
                     break;
             }
         }
@@ -106,50 +118,28 @@ public class BallBehavior : MonoBehaviour
         isPossessed = false;
         rb.isKinematic = false;
 
-        // Get the target position from the touch position
-        Vector3 targetPosition = GetWorldPositionFromTouch(touchEndPos);
+        // Convert the touch position to a world position
+        // Use the camera's position to determine the correct plane
+        Vector3 touchPosition = mainCamera.ScreenToWorldPoint(new Vector3(touchEndPos.x, touchEndPos.y, mainCamera.nearClipPlane));
 
-        // Calculate the time to target based on distance and desired speed
-        float distance = Vector3.Distance(transform.position, targetPosition);
-        float timeToTarget = distance / kickForce; // Adjust kickForce to control speed
+        // Calculate the direction from the ball to the touch position on the x-z plane
+        Vector3 direction = (touchPosition - transform.position).normalized;
 
-        // Calculate the initial velocity needed to reach the target
-        Vector3 initialVelocity = CalculateInitialVelocity(transform.position, targetPosition, timeToTarget);
+        // Ensure the direction's y-component is set to allow vertical movement
+        // If you want to limit the vertical movement, you can clamp the y-component
+        direction.y = Mathf.Clamp(direction.y, -1.0f, 1.0f); // Adjust the clamp values as needed
 
-        // Apply the calculated velocity to the ball
-        rb.velocity = initialVelocity;
+        // Debugging: Log the calculated positions and direction
+        Debug.Log($"Touch World Position: {touchPosition}, Ball Position: {transform.position}, Direction: {direction}");
+
+        // Visualize the direction in the scene view
+        Debug.DrawLine(transform.position, transform.position + direction * 2, Color.red, 5.0f); // Duration set to 5 seconds
+
+        // Apply a force in the direction of the touch position
+        rb.AddForce(direction * kickForce, ForceMode.Impulse);
 
         // Record the time of the kick
         lastKickTime = Time.time;
-    }
-
-    private Vector3 CalculateInitialVelocity(Vector3 startPosition, Vector3 targetPosition, float timeToTarget)
-    {
-        Vector3 displacement = targetPosition - startPosition;
-        Vector3 horizontalDisplacement = new Vector3(displacement.x, 0, displacement.z);
-        Vector3 horizontalVelocity = horizontalDisplacement / timeToTarget;
-
-        // Calculate the maximum height the ball should reach
-        float maxHeight = 1.0f; // The maximum height you want the ball to reach
-
-        // Calculate the vertical velocity needed to reach the maximum height
-        float verticalVelocity = Mathf.Sqrt(2 * Mathf.Abs(Physics.gravity.y) * (maxHeight - startPosition.y));
-
-        // Ensure the vertical velocity is positive and adjusted for the time to target
-        verticalVelocity = Mathf.Min(verticalVelocity, (displacement.y / timeToTarget) + (0.5f * Mathf.Abs(Physics.gravity.y) * timeToTarget * verticalForceMultiplier));
-
-        return horizontalVelocity + Vector3.up * verticalVelocity;
-    }
-
-    private Vector3 GetWorldPositionFromTouch(Vector2 touchPosition)
-    {
-        Ray ray = Camera.main.ScreenPointToRay(touchPosition);
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
-        {
-            return hit.point;
-        }
-        return Vector3.zero;
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -164,5 +154,12 @@ public class BallBehavior : MonoBehaviour
             immediatePosition.y = transform.position.y;
             transform.position = immediatePosition;
         }
+    }
+
+    private IEnumerator HideCrosshairAfterDelay()
+    {
+        // Wait for the specified duration
+        yield return new WaitForSeconds(crosshairDisplayDuration);
+        crosshairImage.enabled = false;
     }
 }
