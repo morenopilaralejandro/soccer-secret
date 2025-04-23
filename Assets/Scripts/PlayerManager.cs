@@ -58,76 +58,60 @@ public class PlayerManager : MonoBehaviour
             // Set player stats here, e.g., player.GetComponent<Player>().Initialize(playerData);
         }
     }
-    /*
-    void InitializeExistingPlayers()
-    {
-        foreach (GameObject playerObject in GameObject.FindGameObjectsWithTag("Player"))
-        {
-            string playerName = playerObject.name; // Assuming the GameObject's name is the player's name
-            PlayerData playerData = GetPlayerDataByName(playerName);
-
-            if (playerData != null)
-            {
-                // Initialize the player GameObject with the data
-                SpriteRenderer spriteRenderer = playerObject.GetComponent<SpriteRenderer>();
-                if (spriteRenderer != null)
-                {
-                    Sprite playerSprite = Resources.Load<Sprite>("Sprites/Player" + "player");
-                    if (playerSprite != null)
-                    {
-                        spriteRenderer.sprite = playerSprite;
-                    }
-                    else
-                    {
-                        Debug.LogWarning("Sprite not found for player: " + playerData.playerName);
-                    }
-                }
-
-                // Set other player stats here, e.g., playerObject.GetComponent<Player>().Initialize(playerData);
-            }
-        }
-    }
-    */
 
     void InitializeAlly()
     {
         string[] ids = {"001", "002", "003", "004"};
-
+        string wearId = "w001";
         for (int i = 0; i < playerAllyObjects.Length; i++)
         {
             GameObject playerObject = playerAllyObjects[i];      
             PlayerData playerData = GetPlayerDataById(ids[i]);
-            InitializePlayer(playerObject, playerData, true);
+            InitializePlayer(playerObject, playerData, wearId);
         }
     }
 
     void InitializeOpp()
     {
         string[] ids = {"005", "006", "007", "008"};
-
+        string wearId = "w002";
         for (int i = 0; i < playerAllyObjects.Length; i++)
         {
             GameObject playerObject = playerOppObjects[i];      
             PlayerData playerData = GetPlayerDataById(ids[i]);
-            InitializePlayer(playerObject, playerData, false);
+            InitializePlayer(playerObject, playerData, wearId);
         }
     }
 
-    public void InitializePlayer(GameObject playerObject, PlayerData playerData, bool isAlly)
+    public void InitializePlayer(GameObject playerObject, PlayerData playerData, string wearId)
     {
         if (playerData != null)
         {
-            SpriteRenderer spriteRenderer = playerObject.GetComponent<SpriteRenderer>();
-            if (spriteRenderer != null)
+            SpriteRenderer playerSpriteRenderer = playerObject.GetComponent<SpriteRenderer>();
+            if (playerSpriteRenderer != null)
             {
                 Sprite playerSprite = Resources.Load<Sprite>("Player/" + "player");
                 if (playerSprite != null)
                 {
-                    spriteRenderer.sprite = playerSprite;
+                    playerSpriteRenderer.sprite = playerSprite;
                 }
                 else
                 {
                     Debug.LogWarning("Sprite not found for player: " + playerData.playerName);
+                }
+            }
+            Transform wearTransform = playerObject.transform.GetChild(0);
+            SpriteRenderer wearSpriteRenderer = wearTransform.GetComponent<SpriteRenderer>();
+            if (wearSpriteRenderer != null)
+            {
+                Sprite wearSprite = Resources.Load<Sprite>("Wear/" + wearId);
+                if (wearSprite != null)
+                {
+                    wearSpriteRenderer.sprite = wearSprite;
+                }
+                else
+                {
+                    Debug.LogWarning("Sprite not found for wear: " + wearId);
                 }
             }
             playerObject.GetComponent<Player>().Initialize(playerData);
