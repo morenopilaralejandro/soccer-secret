@@ -80,6 +80,7 @@ public class PlayerManager : MonoBehaviour
             GameObject playerObject = playerOppObjects[i];      
             PlayerData playerData = GetPlayerDataById(ids[i]);
             InitializePlayer(playerObject, playerData, wearId);
+            playerObject.GetComponent<Player>().isAlly = false;
         }
     }
 

@@ -69,7 +69,13 @@ public class DrawLineOnDrag : MonoBehaviour
             }
         }
 
-        if (isMoving)
+        if (GetComponent<Player>().isStunned)
+        {
+            // Optionally, you could play a stun animation or effects here
+            return; // Don't process movement
+        }
+
+        if (isMoving && !GameManager.Instance.IsGameFrozen)
         {
             MoveAlongLine();
         }

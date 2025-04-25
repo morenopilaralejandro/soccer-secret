@@ -1,21 +1,21 @@
 using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.UI;
 using System.Collections;
+using UnityEngine.UI;
 
 public class BallBehavior : MonoBehaviour
 {
     public float possessionDistance = 0.2f;
     public float kickForce = 4.0f;
     public float dribbleSpeed = 10f;
-    public float possessionCooldown = 3f;
+    public float possessionCooldown = 0.3f;
     public float verticalForceMultiplier = 2.0f;
     public Image crosshairImage;
     public float crosshairDisplayDuration = 0.2f;
 
     private Camera mainCamera;
     private Rigidbody rb;
-    private Transform currentPlayer;
+    private GameObject currentPlayer;
     private bool isPossessed = false;
     private bool isDragging = false;
     private float lastKickTime = -Mathf.Infinity;
@@ -23,7 +23,8 @@ public class BallBehavior : MonoBehaviour
     private Vector2 touchEndPos;
     private Coroutine hideCrosshairCoroutine;
 
-    public List<Transform> allyPlayers; // List of ally players
+    public List<GameObject> allyPlayers;
+    public List<GameObject> oppPlayers;
 
     void Start()
     {
@@ -52,13 +53,12 @@ public class BallBehavior : MonoBehaviour
                     touchStartPos = touch.position;
                     isDragging = false;
                     break;
-
                 case TouchPhase.Moved:
                     isDragging = true;
                     break;
                 case TouchPhase.Ended:
                     touchEndPos = touch.position;
-                    if (isPossessed && IsCurrentPlayerAnAlly() && !isDragging && touchStartPos == touchEndPos) {
+                    if (isPossessed && IsCurrentPlayerAnAlly() && !isDragging && touchStartPos == touchEndPos && !GameManager.Instance.IsGameFrozen) {
                         crosshairImage.transform.position = touchEndPos;
                         crosshairImage.enabled = true;
                         KickBall();
@@ -86,7 +86,7 @@ public class BallBehavior : MonoBehaviour
     {
         if (currentPlayer == null) return;
 
-        Vector3 targetPosition = currentPlayer.position + currentPlayer.forward * 0.5f;
+        Vector3 targetPosition = currentPlayer.transform.position + currentPlayer.transform.forward * 0.5f;
         targetPosition.x += 0.1f;
         targetPosition.y = transform.position.y;
         targetPosition.z -= 0.2f;
@@ -100,11 +100,11 @@ public class BallBehavior : MonoBehaviour
         {
             if (hitCollider.CompareTag("Player") && Time.time > lastKickTime + possessionCooldown)
             {
-                currentPlayer = hitCollider.transform;
+                currentPlayer = hitCollider.gameObject;
                 isPossessed = true;
                 rb.isKinematic = true;
 
-                Vector3 immediatePosition = currentPlayer.position + currentPlayer.forward * 0.5f;
+                Vector3 immediatePosition = currentPlayer.transform.position + currentPlayer.transform.forward * 0.5f;
                 immediatePosition.y = transform.position.y;
                 transform.position = immediatePosition;
 
@@ -146,13 +146,41 @@ public class BallBehavior : MonoBehaviour
     {
         if (!isPossessed && collision.transform.CompareTag("Player") && Time.time > lastKickTime + possessionCooldown)
         {
-            currentPlayer = collision.transform;
+            currentPlayer = collision.gameObject;
             isPossessed = true;
             rb.isKinematic = true;
 
-            Vector3 immediatePosition = currentPlayer.position + currentPlayer.forward * 0.5f;
+            Vector3 immediatePosition = currentPlayer.transform.position + currentPlayer.transform.forward * 0.5f;
             immediatePosition.y = transform.position.y;
             transform.position = immediatePosition;
+        }
+    }
+
+    private void OnTriggerEnter(Collider otherPlayer)
+    {
+        Debug.Log("OnTriggerEnter");
+
+        if (!isPossessed) return;
+
+        // Get the tag of the other collider
+        string otherPlayerTag = otherPlayer.tag;
+
+        // Get the tag of the current player in possession (from their child collider)
+        string currentPlayerTag = null;
+        foreach (Transform child in currentPlayer.transform)
+        {
+            if (child.CompareTag("Ally") || child.CompareTag("Opp"))
+            {
+                currentPlayerTag = child.tag;
+                break;
+            }
+        }
+        Debug.Log(currentPlayerTag + ", " + otherPlayerTag);
+        // If tags are different and both are either "Ally" or "Opp"
+        if (currentPlayerTag != null && (otherPlayerTag == "Ally" || otherPlayerTag == "Opp") && currentPlayerTag != otherPlayerTag)
+        {            
+            GameManager.Instance.FreezeGame();
+            GameManager.Instance.HandleDuel(currentPlayer, otherPlayer.transform.root.gameObject, 0);
         }
     }
 
