@@ -56,7 +56,7 @@ public class Player : MonoBehaviour
         colliders = GetComponentsInChildren<Collider>(true);
     }
 
-    public IEnumerator Stun(float duration)
+    public IEnumerator Stun()
     {
         /*
             if (isStunned)
@@ -67,7 +67,7 @@ public class Player : MonoBehaviour
 
             player.StartCoroutine(player.Stun(3f));
         */
-
+        float duration = 3f;
         isStunned = true;
         SetAllCollidersEnabled(false);
         StartCoroutine(BlinkEffect(duration));

@@ -108,16 +108,16 @@ public class GameManager : MonoBehaviour
         switch (command)
         {
             case "blockStrength":
-                damage = player.body + player.guard * 0.05f + player.stamina * 0.02f;
+                damage = player.body + player.guard * 0.05f + player.stamina * 0.02f + player.courage;
                 break;
             case "blockTechnique":
-                damage = player.body + player.guard * 0.05f + player.control * 0.02f;
+                damage = player.body + player.guard * 0.05f + player.control * 0.02f + player.courage;
                 break;
             case "dribbleStrength":
-                damage = player.control + player.body * 0.05f + player.stamina * 0.02f;
+                damage = player.control + player.body * 0.05f + player.stamina * 0.02f + player.courage;
                 break;
             case "dribbleTechnique":
-                damage = player.control + player.body * 0.05f + player.speed * 0.02f;
+                damage = player.control + player.body * 0.05f + player.speed * 0.02f + player.courage;
                 break;
             default:
                 Debug.LogWarning("Unknown command: " + command);
