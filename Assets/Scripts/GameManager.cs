@@ -4,13 +4,7 @@ using System.Collections.Generic;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-    public bool IsGameFrozen { get; private set; } = false;
-    public GameObject OffPlayer { get; set; }
-    public GameObject DefPlayer { get; set; }
-    public bool OffPlayerIsAlly { get; set; }
-    public int DuelType { get; set; }
-    public int Command { get; set; }
-    public string SecretId { get; set; }
+    public bool IsMovementFrozen { get; private set; } = false;
 
     public List<GameObject> allyPlayers;
     public List<GameObject> oppPlayers;    
@@ -18,6 +12,13 @@ public class GameManager : MonoBehaviour
     public Transform ball; // Transform of the ball
     public Transform[] initialPlayerPositions; // Array to store initial player positions
     public Vector3 initialBallPosition; // Vector3 to store initial ball position
+
+    private GameObject[] duelPlayers = new GameObject[2];
+    private int duelType;
+    private int[] duelAction = new int[2];
+    private int[] duelCommand = new int[2];
+    private string[] duelSecret = new string[2];
+    private float[] duelDamage = new float[2];
 
     private void Awake()
     {
@@ -64,55 +65,107 @@ public class GameManager : MonoBehaviour
 
     public void FreezeGame()
     {
-        IsGameFrozen = true;
+        IsMovementFrozen = true;
         // Show your UI here, e.g.:
         // UIManager.Instance.ShowFreezePanel();
     }
 
     public void UnfreezeGame()
     {
-        IsGameFrozen = false;
+        IsMovementFrozen = false;
         // Hide your UI here, e.g.:
         // UIManager.Instance.HideFreezePanel();
     }
 
-    public void HandleDuel(GameObject offPlayer, GameObject defPlayer, int duelType)
+    public void HandleDuel(GameObject player0, GameObject player1, int duelTypeParam)
     {
         /* 0 field 1 shoot*/
         GameManager.Instance.FreezeGame();
-
-        OffPlayer = offPlayer;
-        DefPlayer = defPlayer;
-        DuelType = duelType;
-        OffPlayerIsAlly = OffPlayer.GetComponent<Player>().isAlly;
+        duelType = duelTypeParam;
+        duelPlayers[0] = player0;
+        duelPlayers[1] = player1;
+        duelAction[0] = 0;
+        duelAction[1] = 1;
         
-        switch (duelType)
-        {
-            case 0:
-                if (OffPlayerIsAlly) {
-                    //ui dribble
 
-                } else {
-                    //uiblock
+        for (int i = 0; i < duelPlayers.Length; i++) {
+            if (duelPlayers[i].GetComponent<Player>().isAi) 
+            {
+                duelCommand[i] = 1;
+                duelSecret[i] = null;
+            } else {
+                UIManager.Instance.DuelPlayerIndex = i;
+                switch (duelType)
+                {
+                    case 0:
+                        if (duelAction[i] == 0) 
+                        {
+                            //ui dribble
+
+                        } else {
+                            //ui block
+                        }
+                        break;
+                    default:
+                        Debug.LogWarning("Unknown duelType: " + duelType);
+                        break;
                 }
-                break;
-            default:
-                Debug.LogWarning("Unknown duelType: " + duelType);
-                break;
+            }
         }
 
         UIManager.Instance.ShowPanelBottom();
     }
 
-    public void ExecuteDuel(int command, string secretId)
+    public void ExecuteDuel(int duelPlayerIndex, int command, string secret)
     {
-        Command = command;
-        SecretId = secretId;
+        duelCommand[duelPlayerIndex] = command;
+        duelSecret[duelPlayerIndex] = secret;
+        int duelWinnerIndex = 1;        
+        bool isSecret = false;
 
-        float OffDamage = DamageCalc(OffPlayer, DuelType, 0, Command, SecretId);
+        for (int i = 0; i < duelPlayers.Length; i++) 
+        {
+            duelDamage[i] = DamageCalc(duelPlayers[i], duelType, duelAction[i], duelCommand[i], duelSecret[i]);
+            if (duelCommand[i] == 0) 
+            {
+                isSecret = true;
+            }
+        }
+
+        //check effectiveness
+        if (isSecret) 
+        {
+            
+        } else {
+            if (TypeManager.Instance.IsPlayerEffective(duelPlayers[0], duelPlayers[1])) {
+                duelDamage[0] *= 2; 
+            } else {
+                if (TypeManager.Instance.IsPlayerEffective(duelPlayers[1], duelPlayers[0])) {
+                    duelDamage[1] *= 2; 
+                }
+            } 
+        }
+
+        if (duelDamage[0] > duelDamage[1]) 
+        {
+            duelWinnerIndex = 0;
+        } else {
+            duelWinnerIndex = 1;
+        }
+
+        for (int i = 0; i < duelPlayers.Length; i++) 
+        {
+            Debug.Log(duelDamage[i]);
+            if (i == duelWinnerIndex) 
+            {
+                //give ball
+            } else {
+                StartCoroutine(duelPlayers[i].GetComponent<Player>().Stun());
+            }
+        }
     }
 
-    public float DamageCalc(GameObject playerObject, int duelType, int action, int command, string secretId)
+    public float DamageCalc(GameObject playerObject, int duelType, int action, int command, string secret)
     {
         /*
             duelType: 
@@ -127,6 +180,7 @@ public class GameManager : MonoBehaviour
                 2 technique
         */
         string formulaId = "" + duelType + action + command;
+        Debug.Log("formulaId: " + formulaId);
 
 
         Player player = playerObject.GetComponent<Player>();
@@ -137,7 +191,7 @@ public class GameManager : MonoBehaviour
         }
 
         float damage = 0f;
-        if (secretId == null) {
+        if (secret == null) {
             switch (formulaId)
             {
                 case "001":
@@ -156,14 +210,13 @@ public class GameManager : MonoBehaviour
                     /*block technique*/
                     damage = player.body + player.guard * 0.05f + player.control * 0.02f + player.courage;
                     break;
-
                 default:
                     Debug.LogWarning("Unknown formulaId: " + formulaId);
                     break;
             }
         } else
         {
-
+            //calculate secret power and check stab
         }
         return damage;
     }

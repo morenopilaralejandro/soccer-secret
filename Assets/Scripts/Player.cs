@@ -1,12 +1,13 @@
 using UnityEngine;
 using System.Collections;
+using System;
 
 public class Player : MonoBehaviour
 {
     public string id;
     public string playerName;
     public string gender;
-    public string type;
+    public Type type;
     public string position;
     public bool isAlly;
     public bool isAi;
@@ -31,7 +32,17 @@ public class Player : MonoBehaviour
         id = playerData.id;
         playerName = playerData.playerName;
         gender = playerData.gender;
-        type = playerData.type;
+
+        string typeString = playerData.type;
+        Type auxType;
+        bool isValidType = Enum.TryParse(typeString, true, out auxType); // case-insensitive parse
+        if (isValidType)
+        {
+            type = auxType;
+        } else {
+            type = Type.Fire;
+        }
+
         position = playerData.position;
         isAlly = true;
         isAi = false;

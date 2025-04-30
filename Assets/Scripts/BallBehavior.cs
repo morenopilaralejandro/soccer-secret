@@ -58,7 +58,9 @@ public class BallBehavior : MonoBehaviour
                     break;
                 case TouchPhase.Ended:
                     touchEndPos = touch.position;
-                    if (isPossessed && IsCurrentPlayerAnAlly() && !isDragging && touchStartPos == touchEndPos && !GameManager.Instance.IsGameFrozen) {
+                    if (isPossessed && IsCurrentPlayerAnAlly() 
+                            && !isDragging && touchStartPos == touchEndPos 
+                            && !GameManager.Instance.IsMovementFrozen) {
                         crosshairImage.transform.position = touchEndPos;
                         crosshairImage.enabled = true;
                         KickBall();

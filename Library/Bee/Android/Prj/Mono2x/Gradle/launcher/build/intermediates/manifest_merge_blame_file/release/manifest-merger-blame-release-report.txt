@@ -1,181 +1,177 @@
 1<?xml version="1.0" encoding="utf-8"?>
 2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-3    package="com.DefaultCompany.Myproject"
+3    package="com.AlejandroMoreno.SoccerSecretTrainingGrounds"
 4    android:installLocation="preferExternal"
 5    android:versionCode="1"
 6    android:versionName="1.0.2" >
 7
 8    <uses-sdk
 9        android:minSdkVersion="22"
-9-->/home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml
+9-->/home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml
 10        android:targetSdkVersion="34" />
-10-->/home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml
+10-->/home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml
 11
 12    <supports-screens
-12-->/home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:4:3-163
+12-->/home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:4:3-163
 13        android:anyDensity="true"
-13-->/home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:4:135-160
+13-->/home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:4:135-160
 14        android:largeScreens="true"
-14-->/home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:4:78-105
+14-->/home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:4:78-105
 15        android:normalScreens="true"
-15-->/home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:4:49-77
+15-->/home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:4:49-77
 16        android:smallScreens="true"
-16-->/home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:4:21-48
+16-->/home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:4:21-48
 17        android:xlargeScreens="true" />
-17-->/home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:4:106-134
+17-->/home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:4:106-134
 18
-19    <uses-permission android:name="android.permission.INTERNET" />
-19-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:10:5-67
-19-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:10:22-64
-20
-21    <uses-feature android:glEsVersion="0x00030000" />
-21-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:12:5-54
-21-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:12:19-51
-22    <uses-feature
-22-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:13:5-15:36
-23        android:name="android.hardware.vulkan.version"
-23-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:9-55
-24        android:required="false" />
-24-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:15:9-33
-25    <uses-feature
-25-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:16:5-18:36
-26        android:name="android.hardware.touchscreen"
-26-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:17:9-52
-27        android:required="false" />
-27-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:9-33
-28    <uses-feature
-28-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:19:5-21:36
-29        android:name="android.hardware.touchscreen.multitouch"
-29-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:20:9-63
-30        android:required="false" />
-30-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:21:9-33
-31    <uses-feature
-31-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:22:5-24:36
-32        android:name="android.hardware.touchscreen.multitouch.distinct"
-32-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:23:9-72
-33        android:required="false" />
-33-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:24:9-33
+19    <uses-feature android:glEsVersion="0x00030000" />
+19-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:10:5-54
+19-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:10:19-51
+20    <uses-feature
+20-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:11:5-13:36
+21        android:name="android.hardware.vulkan.version"
+21-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:12:9-55
+22        android:required="false" />
+22-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:13:9-33
+23    <uses-feature
+23-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:5-16:36
+24        android:name="android.hardware.touchscreen"
+24-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:15:9-52
+25        android:required="false" />
+25-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:16:9-33
+26    <uses-feature
+26-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:17:5-19:36
+27        android:name="android.hardware.touchscreen.multitouch"
+27-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:9-63
+28        android:required="false" />
+28-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:19:9-33
+29    <uses-feature
+29-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:20:5-22:36
+30        android:name="android.hardware.touchscreen.multitouch.distinct"
+30-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:21:9-72
+31        android:required="false" />
+31-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:22:9-33
+32
+33    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+33-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:9:5-77
+33-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:9:22-74
 34
-35    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-35-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:9:5-77
-35-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:9:22-74
-36
-37    <application
-37-->/home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:3:3-83
-38        android:extractNativeLibs="true"
-38-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:26:18-50
-39        android:icon="@mipmap/app_icon"
-39-->/home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:3:49-80
-40        android:label="@string/app_name" >
-40-->/home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:3:16-48
-41        <meta-data
-41-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:9-29:33
-42            android:name="unity.splash-mode"
-42-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:28:13-45
-43            android:value="0" />
-43-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:29:13-30
-44        <meta-data
-44-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:30:9-32:36
-45            android:name="unity.splash-enable"
-45-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:31:13-47
-46            android:value="True" />
-46-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:32:13-33
-47        <meta-data
-47-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:33:9-35:36
-48            android:name="unity.launch-fullscreen"
-48-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:34:13-51
-49            android:value="True" />
-49-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:35:13-33
-50        <meta-data
-50-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:36:9-38:36
-51            android:name="unity.render-outside-safearea"
-51-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:37:13-57
-52            android:value="True" />
-52-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:38:13-33
-53        <meta-data
-53-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:39:9-41:50
-54            android:name="notch.config"
-54-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:40:13-40
-55            android:value="portrait|landscape" />
-55-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:41:13-47
-56        <meta-data
-56-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:42:9-44:36
-57            android:name="unity.auto-report-fully-drawn"
-57-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:43:13-57
-58            android:value="true" />
-58-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:44:13-33
-59
-60        <activity
-60-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:46:9-67:20
-61            android:name="com.unity3d.player.UnityPlayerActivity"
-61-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:47:13-66
-62            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale|layoutDirection|density"
-62-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:48:13-194
-63            android:exported="true"
-63-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:49:13-36
-64            android:hardwareAccelerated="false"
-64-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:50:13-48
-65            android:launchMode="singleTask"
-65-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:51:13-44
-66            android:resizeableActivity="false"
-66-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:52:13-47
-67            android:screenOrientation="portrait"
-67-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:53:13-49
-68            android:theme="@style/UnityThemeSelector" >
-68-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:54:13-54
-69            <intent-filter>
-69-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:55:13-59:29
-70                <category android:name="android.intent.category.LAUNCHER" />
-70-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:56:17-77
-70-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:56:27-74
-71
-72                <action android:name="android.intent.action.MAIN" />
-72-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:58:17-69
-72-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:58:25-66
-73            </intent-filter>
-74
-75            <meta-data
-75-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:61:13-63:40
-76                android:name="unityplayer.UnityActivity"
-76-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:62:17-57
-77                android:value="true" />
-77-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:63:17-37
-78            <meta-data
-78-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:64:13-66:40
-79                android:name="notch_support"
-79-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:65:17-45
-80                android:value="true" />
-80-->[:unityLibrary] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:66:17-37
-81        </activity>
-82
-83        <receiver
-83-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:12:9-14:40
-84            android:name="com.unity.androidnotifications.UnityNotificationManager"
-84-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:13:13-83
-85            android:exported="false" />
-85-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:13-37
-86        <receiver
-86-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:15:9-22:20
-87            android:name="com.unity.androidnotifications.UnityNotificationRestartReceiver"
-87-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:16:13-91
-88            android:enabled="false"
-88-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:17:13-36
-89            android:exported="false" >
-89-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:13-37
-90            <intent-filter>
-90-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:19:13-21:29
-91                <action android:name="android.intent.action.BOOT_COMPLETED" />
-91-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:20:17-79
-91-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:20:25-76
-92            </intent-filter>
-93        </receiver>
-94
-95        <meta-data
-95-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:24:9-26:33
-96            android:name="com.unity.androidnotifications.exact_scheduling"
-96-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:25:13-75
-97            android:value="0" />
-97-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccersecret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:26:13-30
-98    </application>
-99
-100</manifest>
+35    <application
+35-->/home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:3:3-83
+36        android:extractNativeLibs="true"
+36-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:24:18-50
+37        android:icon="@mipmap/app_icon"
+37-->/home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:3:49-80
+38        android:label="@string/app_name" >
+38-->/home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/launcher/src/main/AndroidManifest.xml:3:16-48
+39        <meta-data
+39-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:25:9-27:33
+40            android:name="unity.splash-mode"
+40-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:26:13-45
+41            android:value="0" />
+41-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:13-30
+42        <meta-data
+42-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:28:9-30:36
+43            android:name="unity.splash-enable"
+43-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:29:13-47
+44            android:value="True" />
+44-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:30:13-33
+45        <meta-data
+45-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:31:9-33:36
+46            android:name="unity.launch-fullscreen"
+46-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:32:13-51
+47            android:value="True" />
+47-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:33:13-33
+48        <meta-data
+48-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:34:9-36:36
+49            android:name="unity.render-outside-safearea"
+49-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:35:13-57
+50            android:value="True" />
+50-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:36:13-33
+51        <meta-data
+51-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:37:9-39:50
+52            android:name="notch.config"
+52-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:38:13-40
+53            android:value="portrait|landscape" />
+53-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:39:13-47
+54        <meta-data
+54-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:40:9-42:36
+55            android:name="unity.auto-report-fully-drawn"
+55-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:41:13-57
+56            android:value="true" />
+56-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:42:13-33
+57
+58        <activity
+58-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:44:9-65:20
+59            android:name="com.unity3d.player.UnityPlayerActivity"
+59-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:45:13-66
+60            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale|layoutDirection|density"
+60-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:46:13-194
+61            android:exported="true"
+61-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:47:13-36
+62            android:hardwareAccelerated="false"
+62-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:48:13-48
+63            android:launchMode="singleTask"
+63-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:49:13-44
+64            android:resizeableActivity="false"
+64-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:50:13-47
+65            android:screenOrientation="portrait"
+65-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:51:13-49
+66            android:theme="@style/UnityThemeSelector" >
+66-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:52:13-54
+67            <intent-filter>
+67-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:53:13-57:29
+68                <category android:name="android.intent.category.LAUNCHER" />
+68-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:54:17-77
+68-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:54:27-74
+69
+70                <action android:name="android.intent.action.MAIN" />
+70-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:56:17-69
+70-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:56:25-66
+71            </intent-filter>
+72
+73            <meta-data
+73-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:59:13-61:40
+74                android:name="unityplayer.UnityActivity"
+74-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:60:17-57
+75                android:value="true" />
+75-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:61:17-37
+76            <meta-data
+76-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:62:13-64:40
+77                android:name="notch_support"
+77-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:63:17-45
+78                android:value="true" />
+78-->[:unityLibrary] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/build/intermediates/merged_manifest/release/AndroidManifest.xml:64:17-37
+79        </activity>
+80
+81        <receiver
+81-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:12:9-14:40
+82            android:name="com.unity.androidnotifications.UnityNotificationManager"
+82-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:13:13-83
+83            android:exported="false" />
+83-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:13-37
+84        <receiver
+84-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:15:9-22:20
+85            android:name="com.unity.androidnotifications.UnityNotificationRestartReceiver"
+85-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:16:13-91
+86            android:enabled="false"
+86-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:17:13-36
+87            android:exported="false" >
+87-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:13-37
+88            <intent-filter>
+88-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:19:13-21:29
+89                <action android:name="android.intent.action.BOOT_COMPLETED" />
+89-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:20:17-79
+89-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:20:25-76
+90            </intent-filter>
+91        </receiver>
+92
+93        <meta-data
+93-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:24:9-26:33
+94            android:name="com.unity.androidnotifications.exact_scheduling"
+94-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:25:13-75
+95            android:value="0" />
+95-->[:unityLibrary:mobilenotifications.androidlib] /home/alejandro/soccer-secret/Library/Bee/Android/Prj/Mono2x/Gradle/unityLibrary/mobilenotifications.androidlib/build/intermediates/merged_manifest/release/AndroidManifest.xml:26:13-30
+96    </application>
+97
+98</manifest>

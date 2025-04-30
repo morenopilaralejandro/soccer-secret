@@ -2,11 +2,13 @@ using UnityEngine;
 
 public class UIManager : MonoBehaviour
 {
-    // Assign this in the Inspector or with Find/other methods
-    [SerializeField] private GameObject panelBottom;
-
     // Singleton instance (optional, for easy accessibility)
     public static UIManager Instance { get; private set; }
+    public int DuelPlayerIndex { get; set; }
+    public string secretCat { get; set; }
+
+    // Assign this in the Inspector or with Find/other methods
+    public GameObject panelBottom;
 
     private void Awake()
     {
@@ -40,6 +42,6 @@ public class UIManager : MonoBehaviour
     public void OnCommand1Tapped()
     {
         Debug.Log("Command1 tapped!");
-        // Handle your logic here
+        GameManager.Instance.ExecuteDuel(DuelPlayerIndex, 1, null);
     }
 }
