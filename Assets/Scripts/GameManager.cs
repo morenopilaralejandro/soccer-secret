@@ -7,6 +7,10 @@ public class GameManager : MonoBehaviour
     public bool IsGameFrozen { get; private set; } = false;
     public GameObject OffPlayer { get; set; }
     public GameObject DefPlayer { get; set; }
+    public bool OffPlayerIsAlly { get; set; }
+    public int DuelType { get; set; }
+    public int Command { get; set; }
+    public string SecretId { get; set; }
 
     public List<GameObject> allyPlayers;
     public List<GameObject> oppPlayers;    
@@ -75,15 +79,19 @@ public class GameManager : MonoBehaviour
     public void HandleDuel(GameObject offPlayer, GameObject defPlayer, int duelType)
     {
         /* 0 field 1 shoot*/
+        GameManager.Instance.FreezeGame();
+
         OffPlayer = offPlayer;
         DefPlayer = defPlayer;
-        bool offPlayerIsAlly = OffPlayer.GetComponent<Player>().isAlly;
-
+        DuelType = duelType;
+        OffPlayerIsAlly = OffPlayer.GetComponent<Player>().isAlly;
+        
         switch (duelType)
         {
             case 0:
-                if (offPlayerIsAlly) {
+                if (OffPlayerIsAlly) {
                     //ui dribble
+
                 } else {
                     //uiblock
                 }
@@ -93,10 +101,34 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
+        UIManager.Instance.ShowPanelBottom();
     }
 
-    public float DamageCalc(GameObject playerObject, string command)
+    public void ExecuteDuel(int command, string secretId)
     {
+        Command = command;
+        SecretId = secretId;
+
+        float OffDamage = DamageCalc(OffPlayer, DuelType, 0, Command, SecretId);
+    }
+
+    public float DamageCalc(GameObject playerObject, int duelType, int action, int command, string secretId)
+    {
+        /*
+            duelType: 
+                0 field
+                1 goal
+            action:
+                0 off
+                1 def
+            command:
+                0 secret
+                1 strength
+                2 technique
+        */
+        string formulaId = "" + duelType + action + command;
+
+
         Player player = playerObject.GetComponent<Player>();
         if (player == null)
         {
@@ -105,23 +137,33 @@ public class GameManager : MonoBehaviour
         }
 
         float damage = 0f;
-        switch (command)
+        if (secretId == null) {
+            switch (formulaId)
+            {
+                case "001":
+                    /*dribble strength*/
+                    damage = player.control + player.body * 0.05f + player.stamina * 0.02f + player.courage;
+                    break;
+                case "002":
+                    /*dribble technique*/
+                    damage = player.control + player.body * 0.05f + player.speed * 0.02f + player.courage;
+                    break;
+                case "011":
+                    /*block strength*/
+                    damage = player.body + player.guard * 0.05f + player.stamina * 0.02f + player.courage;
+                    break;
+                case "012":
+                    /*block technique*/
+                    damage = player.body + player.guard * 0.05f + player.control * 0.02f + player.courage;
+                    break;
+
+                default:
+                    Debug.LogWarning("Unknown formulaId: " + formulaId);
+                    break;
+            }
+        } else
         {
-            case "blockStrength":
-                damage = player.body + player.guard * 0.05f + player.stamina * 0.02f + player.courage;
-                break;
-            case "blockTechnique":
-                damage = player.body + player.guard * 0.05f + player.control * 0.02f + player.courage;
-                break;
-            case "dribbleStrength":
-                damage = player.control + player.body * 0.05f + player.stamina * 0.02f + player.courage;
-                break;
-            case "dribbleTechnique":
-                damage = player.control + player.body * 0.05f + player.speed * 0.02f + player.courage;
-                break;
-            default:
-                Debug.LogWarning("Unknown command: " + command);
-                break;
+
         }
         return damage;
     }

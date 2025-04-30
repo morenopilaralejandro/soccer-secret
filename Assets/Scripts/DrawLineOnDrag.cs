@@ -3,14 +3,21 @@ using System.Collections.Generic;
 
 public class DrawLineOnDrag : MonoBehaviour
 {
+    private Player player;
     private LineRenderer lineRenderer;
     private bool isDragging = false;
     private Camera mainCamera;
     private List<Vector3> linePoints = new List<Vector3>();
     private int currentPointIndex = 0;
     private bool isMoving = false;
+    private float hpThreshold1 = 30;
+    private float hpThreshold2 = 30;
+    private float speedBase = 0.2f;
+    private float speedMultiplier = 0.02f;
+    private float speedDebuff = 1f;
+    private float speedDebuff1 = 0.5f;
+    private float speedDebuff2 = 0.2f;
 
-    public float moveSpeed = 1f;
     public float maxLineLength = 6f;
     public LayerMask ignoreLayer;
     public Transform playerChildWithCollider;
@@ -23,6 +30,7 @@ public class DrawLineOnDrag : MonoBehaviour
     void Start()
     {
         lineRenderer = GetComponent<LineRenderer>();
+        player = GetComponent<Player>();
         mainCamera = Camera.main;
     }
 
@@ -69,7 +77,7 @@ public class DrawLineOnDrag : MonoBehaviour
             }
         }
 
-        if (GetComponent<Player>().isStunned)
+        if (player.isStunned)
         {
             // Optionally, you could play a stun animation or effects here
             return; // Don't process movement
@@ -77,6 +85,15 @@ public class DrawLineOnDrag : MonoBehaviour
 
         if (isMoving && !GameManager.Instance.IsGameFrozen)
         {
+            if (player.hp <= hpThreshold1) {
+                speedDebuff = speedDebuff1;   
+            } else {
+                if (player.hp <= hpThreshold2) {
+                    speedDebuff = speedDebuff2;   
+                } else {
+                    speedDebuff = 1f;
+                }
+            }
             MoveAlongLine();
         }
     }
@@ -124,8 +141,11 @@ public class DrawLineOnDrag : MonoBehaviour
         if (currentPointIndex < linePoints.Count)
         {
             Vector3 targetPosition = linePoints[currentPointIndex];
-            Vector3 newPosition = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
-
+            //Vector3 newPosition = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
+            float speedCalc = (player.speed * speedMultiplier + speedBase) * speedDebuff * Time.deltaTime;
+            Debug.Log("speedCalc:" + speedCalc);
+            Debug.Log("speedDebuff:" + speedDebuff);
+            Vector3 newPosition = Vector3.MoveTowards(transform.position, targetPosition, speedCalc);
             transform.position = newPosition;
 
             if (Vector3.Distance(transform.position, targetPosition) < 0.1f)

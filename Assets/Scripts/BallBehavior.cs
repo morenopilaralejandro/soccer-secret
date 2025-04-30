@@ -179,7 +179,6 @@ public class BallBehavior : MonoBehaviour
         // If tags are different and both are either "Ally" or "Opp"
         if (currentPlayerTag != null && (otherPlayerTag == "Ally" || otherPlayerTag == "Opp") && currentPlayerTag != otherPlayerTag)
         {            
-            GameManager.Instance.FreezeGame();
             GameManager.Instance.HandleDuel(currentPlayer, otherPlayer.transform.root.gameObject, 0);
         }
     }

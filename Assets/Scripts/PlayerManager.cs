@@ -81,6 +81,7 @@ public class PlayerManager : MonoBehaviour
             PlayerData playerData = GetPlayerDataById(ids[i]);
             InitializePlayer(playerObject, playerData, wearId);
             playerObject.GetComponent<Player>().isAlly = false;
+            playerObject.GetComponent<Player>().isAi = true;
         }
     }
 

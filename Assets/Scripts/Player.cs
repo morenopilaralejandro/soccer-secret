@@ -9,6 +9,7 @@ public class Player : MonoBehaviour
     public string type;
     public string position;
     public bool isAlly;
+    public bool isAi;
     public bool isStunned;
     public int hpMax;
     public int hp;
@@ -33,6 +34,7 @@ public class Player : MonoBehaviour
         type = playerData.type;
         position = playerData.position;
         isAlly = true;
+        isAi = false;
         isStunned = false;
         hpMax = playerData.hp;
         hp = playerData.hp;
