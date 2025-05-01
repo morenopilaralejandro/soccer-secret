@@ -6,7 +6,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     public bool IsMovementFrozen { get; private set; } = false;
-    public bool IsTimeRunning { get; private set; } = true;
+    public bool IsTimeFrozen { get; private set; } = false;
 
     public List<GameObject> allyPlayers;
     public List<GameObject> oppPlayers;    
@@ -49,7 +49,7 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        if (IsTimeRunning)
+        if (!IsTimeFrozen)
         {
             if (timeRemaining > 0)
             {
@@ -59,7 +59,7 @@ public class GameManager : MonoBehaviour
             else
             {
                 // Time is up
-                IsTimeRunning = false;
+                IsTimeFrozen = true;
                 timeRemaining = 0;
                 UpdateTimerDisplay(timeRemaining);
                 // Optionally: Trigger end-of-timer event here
@@ -100,6 +100,7 @@ public class GameManager : MonoBehaviour
     public void FreezeGame()
     {
         IsMovementFrozen = true;
+        IsTimeFrozen = true;
         // Show your UI here, e.g.:
         // UIManager.Instance.ShowFreezePanel();
     }
@@ -107,6 +108,7 @@ public class GameManager : MonoBehaviour
     public void UnfreezeGame()
     {
         IsMovementFrozen = false;
+        IsTimeFrozen = false;
         // Hide your UI here, e.g.:
         // UIManager.Instance.HideFreezePanel();
     }

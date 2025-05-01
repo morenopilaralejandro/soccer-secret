@@ -31,9 +31,9 @@ public class PlayerManager : MonoBehaviour
             {
                 id = values[0],
                 playerName = values[1],
-                gender = values[2],
+                gndr = values[2],
                 type = values[3],
-                position = values[4],
+                posi = values[4],
                 hp = int.Parse(values[5]),
                 sp = int.Parse(values[6]),
                 kick = int.Parse(values[7]),
@@ -89,19 +89,14 @@ public class PlayerManager : MonoBehaviour
     {
         if (playerData != null)
         {
+            playerObject.GetComponent<Player>().Initialize(playerData);
+
             SpriteRenderer playerSpriteRenderer = playerObject.GetComponent<SpriteRenderer>();
             if (playerSpriteRenderer != null)
             {
-                Sprite playerSprite = Resources.Load<Sprite>("Player/" + "player");
-                if (playerSprite != null)
-                {
-                    playerSpriteRenderer.sprite = playerSprite;
-                }
-                else
-                {
-                    Debug.LogWarning("Sprite not found for player: " + playerData.playerName);
-                }
+                playerSpriteRenderer.sprite = playerObject.GetComponent<Player>().spritePlayer;
             }
+
             Transform wearTransform = playerObject.transform.GetChild(0);
             SpriteRenderer wearSpriteRenderer = wearTransform.GetComponent<SpriteRenderer>();
             if (wearSpriteRenderer != null)
@@ -116,7 +111,7 @@ public class PlayerManager : MonoBehaviour
                     Debug.LogWarning("Sprite not found for wear: " + wearId);
                 }
             }
-            playerObject.GetComponent<Player>().Initialize(playerData);
+
         }
     }
 

@@ -7,9 +7,9 @@ public class PlayerData
 {
     public string id;
     public string playerName;
-    public string gender;
+    public string gndr;
     public string type;
-    public string position;
+    public string posi;
     public int hp;
     public int sp;
     public int kick;
