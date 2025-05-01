@@ -85,10 +85,10 @@ public class DrawLineOnDrag : MonoBehaviour
 
         if (isMoving && !GameManager.Instance.IsMovementFrozen)
         {
-            if (player.hp <= hpThreshold1) {
+            if (player.currHp <= hpThreshold1) {
                 speedDebuff = speedDebuff1;   
             } else {
-                if (player.hp <= hpThreshold2) {
+                if (player.currHp <= hpThreshold2) {
                     speedDebuff = speedDebuff2;   
                 } else {
                     speedDebuff = 1f;
@@ -141,7 +141,7 @@ public class DrawLineOnDrag : MonoBehaviour
         if (currentPointIndex < linePoints.Count)
         {
             Vector3 targetPosition = linePoints[currentPointIndex];
-            float speedCalc = (player.speed * speedMultiplier + speedBase) * speedDebuff * Time.deltaTime;
+            float speedCalc = (player.currSpeed * speedMultiplier + speedBase) * speedDebuff * Time.deltaTime;
             //Debug.Log("speedCalc:" + speedCalc);
             //Debug.Log("speedDebuff:" + speedDebuff);
             Vector3 newPosition = Vector3.MoveTowards(transform.position, targetPosition, speedCalc);

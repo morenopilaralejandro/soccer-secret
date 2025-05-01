@@ -9,6 +9,7 @@ public class UIManager : MonoBehaviour
 
     // Assign this in the Inspector or with Find/other methods
     public GameObject panelBottom;
+    public GameObject buttonInfo;
 
     private void Awake()
     {
@@ -23,18 +24,14 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void ShowPanelBottom()
+    // Toggle method
+    public void SetDuelUiMainVisible(bool visible)
     {
-        panelBottom.SetActive(true);
+        panelBottom.SetActive(visible);
+        buttonInfo.SetActive(visible);
     }
 
-    public void HidePanelBottom()
-    {
-        panelBottom.SetActive(false);
-    }
-
-    // Optionally, a toggle method
-    public void SetPanelBottomVisible(bool visible)
+    public void SetDuelUiExtraVisible(bool visible)
     {
         panelBottom.SetActive(visible);
     }

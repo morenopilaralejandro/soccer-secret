@@ -16,8 +16,6 @@ ScriptsOnlyBuild:
     - UnityEngine.AdaptivePerformance.Google.Android.GoogleAndroidProviderSettings
     Unity.AdaptivePerformance.Samsung.Android.dll:
     - UnityEngine.AdaptivePerformance.Samsung.Android.SamsungAndroidProviderSettings
-    Unity.AdaptivePerformance.Simulator.Editor.dll:
-    - UnityEditor.AdaptivePerformance.Simulator.Editor.SimulatorProviderSettings
     Unity.AdaptivePerformance.dll:
     - UnityEngine.AdaptivePerformance.AdaptivePerformanceGeneralSettings
     - UnityEngine.AdaptivePerformance.AdaptivePerformanceManagerSettings
@@ -90,6 +88,9 @@ ScriptsOnlyBuild:
   - assembly: Assembly-CSharp
     fullTypeName: UIManager
     methodName: OnCommand1Tapped
+  - assembly: Assembly-CSharp
+    fullTypeName: UIManager
+    methodName: OnCommand1Tapped
   sceneClasses:
     Assets/Scenes/Battle.unity:
     - Class: 1
@@ -127,43 +128,43 @@ ScriptsOnlyBuild:
     - Class: 108
       Script: {instanceID: 0}
     - Class: 114
-      Script: {instanceID: 16730}
+      Script: {instanceID: 16652}
     - Class: 114
-      Script: {instanceID: 17224}
+      Script: {instanceID: 16654}
     - Class: 114
-      Script: {instanceID: 17388}
+      Script: {instanceID: 16656}
     - Class: 114
-      Script: {instanceID: 17900}
+      Script: {instanceID: 16728}
     - Class: 114
-      Script: {instanceID: 18054}
+      Script: {instanceID: 17330}
     - Class: 114
-      Script: {instanceID: 18126}
+      Script: {instanceID: 17784}
     - Class: 114
-      Script: {instanceID: 18436}
+      Script: {instanceID: 17998}
     - Class: 114
-      Script: {instanceID: 18468}
+      Script: {instanceID: 18308}
     - Class: 114
-      Script: {instanceID: 18900}
+      Script: {instanceID: 19346}
     - Class: 114
-      Script: {instanceID: 19290}
+      Script: {instanceID: 19616}
     - Class: 114
-      Script: {instanceID: 19648}
+      Script: {instanceID: 20354}
     - Class: 114
-      Script: {instanceID: 19946}
+      Script: {instanceID: 20926}
     - Class: 114
-      Script: {instanceID: 20760}
+      Script: {instanceID: 21086}
     - Class: 114
-      Script: {instanceID: 21264}
+      Script: {instanceID: 21436}
     - Class: 114
-      Script: {instanceID: 21390}
+      Script: {instanceID: 21740}
     - Class: 114
-      Script: {instanceID: 21570}
+      Script: {instanceID: 23332}
     - Class: 114
-      Script: {instanceID: 21960}
+      Script: {instanceID: 23338}
     - Class: 114
-      Script: {instanceID: 22310}
+      Script: {instanceID: 23346}
     - Class: 114
-      Script: {instanceID: 38296}
+      Script: {instanceID: 23350}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 120
@@ -189,6 +190,24 @@ ScriptsOnlyBuild:
     - Class: 224
       Script: {instanceID: 0}
   scriptHashData:
+  - hash:
+      serializedVersion: 2
+      Hash: 1c56a8dedae9dd052a53f28baf5dee90
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: DrawLineOnDrag
+  - hash:
+      serializedVersion: 2
+      Hash: 31b50daae9ace2ed91231eace580f81a
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: Player
+  - hash:
+      serializedVersion: 2
+      Hash: 2910bd8eb3c41314f29804c06818914b
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: GameManager
   - hash:
       serializedVersion: 2
       Hash: f235b66bbaad891803c9d777dfd67956
@@ -267,12 +286,6 @@ ScriptsOnlyBuild:
     assemblyName: Unity.Notifications.Android
     namespaceName: Unity.Notifications.Android
     className: AndroidReceivedNotificationMainThreadDispatcher
-  - hash:
-      serializedVersion: 2
-      Hash: cbadd7b23a57faefffab56395e0680bf
-    assemblyName: Assembly-CSharp
-    namespaceName: 
-    className: Player
   - hash:
       serializedVersion: 2
       Hash: b12640dfdb5966813e9dd838893e6c4a
@@ -365,12 +378,6 @@ ScriptsOnlyBuild:
     className: AdaptiveSorting
   - hash:
       serializedVersion: 2
-      Hash: a2f1955b0763c7d897e780b9977905a4
-    assemblyName: Assembly-CSharp
-    namespaceName: 
-    className: PlayerManager
-  - hash:
-      serializedVersion: 2
       Hash: fce9b835d1e8b08e7ecea8da19f21986
     assemblyName: Unity.VisualScripting.Core
     namespaceName: Unity.VisualScripting
@@ -447,12 +454,6 @@ ScriptsOnlyBuild:
     assemblyName: Unity.VisualScripting.Core
     namespaceName: Unity.VisualScripting
     className: UnityOnDropdownValueChangedMessageListener
-  - hash:
-      serializedVersion: 2
-      Hash: bb6f1e3ac993b396aabaec47ffeec108
-    assemblyName: Assembly-CSharp
-    namespaceName: 
-    className: BallBehavior
   - hash:
       serializedVersion: 2
       Hash: a1ac4c50e55874de16eee3db71aa9784
@@ -545,12 +546,6 @@ ScriptsOnlyBuild:
     className: BaseInput
   - hash:
       serializedVersion: 2
-      Hash: ad9a5de027fcc46976a12acfd0918bc8
-    assemblyName: Assembly-CSharp
-    namespaceName: 
-    className: GameManager
-  - hash:
-      serializedVersion: 2
       Hash: e6f8333cc8a800e2866870a5ef7efc35
     assemblyName: Unity.VisualScripting.Core
     namespaceName: Unity.VisualScripting
@@ -603,12 +598,6 @@ ScriptsOnlyBuild:
     assemblyName: Unity.VisualScripting.Core
     namespaceName: Unity.VisualScripting
     className: UnityOnPointerExitMessageListener
-  - hash:
-      serializedVersion: 2
-      Hash: 1c56a8dedae9dd052a53f28baf5dee90
-    assemblyName: Assembly-CSharp
-    namespaceName: 
-    className: DrawLineOnDrag
   - hash:
       serializedVersion: 2
       Hash: b0c8a1b11b1433071a20fd6e4c73a5f3
@@ -879,12 +868,6 @@ ScriptsOnlyBuild:
     assemblyName: Unity.VisualScripting.State
     namespaceName: Unity.VisualScripting
     className: StateGraphAsset
-  - hash:
-      serializedVersion: 2
-      Hash: e61888d1ea9f6eeeb7aebca29d756a88
-    assemblyName: Assembly-CSharp
-    namespaceName: 
-    className: UIManager
   - hash:
       serializedVersion: 2
       Hash: 540882762544409cc4530e60db00e951
@@ -1221,6 +1204,24 @@ ScriptsOnlyBuild:
     assemblyName: Assembly-CSharp
     namespaceName: 
     className: TypeManager
+  - hash:
+      serializedVersion: 2
+      Hash: c3c1e626fb1fd4db08b7a179e019ec4f
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: UIManager
+  - hash:
+      serializedVersion: 2
+      Hash: bb6f1e3ac993b396aabaec47ffeec108
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: BallBehavior
+  - hash:
+      serializedVersion: 2
+      Hash: a2f1955b0763c7d897e780b9977905a4
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: PlayerManager
   platform: 13
   scenePathNames:
   - Assets/Scenes/Battle.unity

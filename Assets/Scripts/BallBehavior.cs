@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class BallBehavior : MonoBehaviour
 {
@@ -47,6 +48,9 @@ public class BallBehavior : MonoBehaviour
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
+            if (EventSystem.current.IsPointerOverGameObject(touch.fingerId))
+                return;
+
             switch (touch.phase)
             {
                 case TouchPhase.Began:

@@ -1,10 +1,12 @@
 using UnityEngine;
 using System.Collections.Generic;
+using TMPro; // Needed for TextMeshProUGUI
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     public bool IsMovementFrozen { get; private set; } = false;
+    public bool IsTimeRunning { get; private set; } = true;
 
     public List<GameObject> allyPlayers;
     public List<GameObject> oppPlayers;    
@@ -12,6 +14,8 @@ public class GameManager : MonoBehaviour
     public Transform ball; // Transform of the ball
     public Transform[] initialPlayerPositions; // Array to store initial player positions
     public Vector3 initialBallPosition; // Vector3 to store initial ball position
+    public float timeRemaining = 180f; // 3 minutes
+    public TextMeshProUGUI timerText;
 
     private GameObject[] duelPlayers = new GameObject[2];
     private int duelType;
@@ -33,11 +37,41 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        UpdateTimerDisplay(timeRemaining);
+
         // Store initial positions
         StoreInitialPositions();
 
         // Reset positions at the start of the game
         ResetPositions();
+    }
+
+
+    void Update()
+    {
+        if (IsTimeRunning)
+        {
+            if (timeRemaining > 0)
+            {
+                timeRemaining -= Time.deltaTime;
+                UpdateTimerDisplay(timeRemaining);
+            }
+            else
+            {
+                // Time is up
+                IsTimeRunning = false;
+                timeRemaining = 0;
+                UpdateTimerDisplay(timeRemaining);
+                // Optionally: Trigger end-of-timer event here
+            }
+        }
+    }
+
+    void UpdateTimerDisplay(float seconds)
+    {
+        int minutes = Mathf.FloorToInt(seconds / 60f);
+        int secs = Mathf.FloorToInt(seconds % 60f);
+        timerText.text = string.Format("{0:00}:{1:00}", minutes, secs);
     }
 
     void StoreInitialPositions()
@@ -113,7 +147,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        UIManager.Instance.ShowPanelBottom();
+        UIManager.Instance.SetDuelUiMainVisible(true);
     }
 
     public void ExecuteDuel(int duelPlayerIndex, int command, string secret)
@@ -163,6 +197,9 @@ public class GameManager : MonoBehaviour
                 StartCoroutine(duelPlayers[i].GetComponent<Player>().Stun());
             }
         }
+
+        UIManager.Instance.SetDuelUiMainVisible(false);
+        UnfreezeGame();
     }
 
     public float DamageCalc(GameObject playerObject, int duelType, int action, int command, string secret)
@@ -195,20 +232,20 @@ public class GameManager : MonoBehaviour
             switch (formulaId)
             {
                 case "001":
-                    /*dribble strength*/
-                    damage = player.control + player.body * 0.05f + player.stamina * 0.02f + player.courage;
+                    /*dribble Phys*/
+                    damage = player.currControl + player.currBody * 0.05f + player.currStamina * 0.02f + player.currCourage;
                     break;
                 case "002":
-                    /*dribble technique*/
-                    damage = player.control + player.body * 0.05f + player.speed * 0.02f + player.courage;
+                    /*dribble Skill*/
+                    damage = player.currControl + player.currBody * 0.05f + player.currSpeed * 0.02f + player.currCourage;
                     break;
                 case "011":
-                    /*block strength*/
-                    damage = player.body + player.guard * 0.05f + player.stamina * 0.02f + player.courage;
+                    /*block Phys*/
+                    damage = player.currBody + player.currGuard * 0.05f + player.currStamina * 0.02f + player.currCourage;
                     break;
                 case "012":
-                    /*block technique*/
-                    damage = player.body + player.guard * 0.05f + player.control * 0.02f + player.courage;
+                    /*block Skill*/
+                    damage = player.currBody + player.currGuard * 0.05f + player.currControl * 0.02f + player.currCourage;
                     break;
                 default:
                     Debug.LogWarning("Unknown formulaId: " + formulaId);
