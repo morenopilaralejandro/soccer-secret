@@ -5,11 +5,11 @@ using UnityEngine;
 [System.Serializable]
 public class PlayerData
 {
-    public string id;
+    public string playerId;
     public string playerName;
-    public string gndr;
-    public string type;
-    public string posi;
+    public string gender;
+    public string element;
+    public string position;
     public int hp;
     public int sp;
     public int kick;

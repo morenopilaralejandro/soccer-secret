@@ -6,9 +6,11 @@ using TMPro;
 
 public class PlayerCardUI : MonoBehaviour
 {
-    public Image PlayerCard;
-    public Image imagePortrait;
-    public TMP_Text textName;
+    [SerializeField] private Image playerCard;
+    [SerializeField] private Image imagePortrait;
+    [SerializeField] private Image imageElement;
+    [SerializeField] private Image imageGender;
+    [SerializeField] private TMP_Text textName;
 
 
     // Start is called before the first frame update
@@ -26,20 +28,17 @@ public class PlayerCardUI : MonoBehaviour
     public void SetPlayer(Player player)
     {
         //add the two card components to the game manager and set the player there
-        PlayerCard.color = TypeManager.Instance.GetPosiColor(player.posi);
+        /*
+            public PlayerCardUI playerCardUIPrefab;
+            PlayerCardUI playerCardUI = Instantiate(playerCardUIPrefab, someParentTransform);
+            playerCardUI.SetPlayer(newPlayer);
+        */
+        playerCard.color = ElementManager.Instance.GetPositionColor(player.Position);
         if (player != null)
         {
-            textName.text = player.playerName;
-
-            if (player.spritePortrait != null)
-            {
-                imagePortrait.sprite = player.spritePortrait;
-                imagePortrait.enabled = true;
-            }
-            else
-            {
-                imagePortrait.enabled = false;
-            }
+            textName.text = player.PlayerName;
+            imagePortrait.sprite = player.SpritePortrait;
+            imageElement.sprite = ElementManager.Instance.GetElementIcon(player.Element);
         }
         else
         {

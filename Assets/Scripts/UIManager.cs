@@ -8,8 +8,9 @@ public class UIManager : MonoBehaviour
     public string secretCat { get; set; }
 
     // Assign this in the Inspector or with Find/other methods
-    public GameObject panelBottom;
-    public GameObject buttonInfo;
+    [SerializeField] private GameObject panelBottom;
+    [SerializeField] private GameObject panelExtra;
+    [SerializeField] private GameObject buttonInfo;
 
     private void Awake()
     {
@@ -29,16 +30,31 @@ public class UIManager : MonoBehaviour
     {
         panelBottom.SetActive(visible);
         buttonInfo.SetActive(visible);
+        if (!visible) {
+            SetDuelUiExtraVisible(visible);
+        }
     }
 
     public void SetDuelUiExtraVisible(bool visible)
     {
-        panelBottom.SetActive(visible);
+        panelExtra.SetActive(visible);
+    }
+
+    public void OnButtonInfoTapped()
+    {
+        Debug.Log("ButtonInfo tapped!");
+        SetDuelUiExtraVisible(!panelExtra.activeSelf);
     }
 
     public void OnCommand1Tapped()
     {
         Debug.Log("Command1 tapped!");
         GameManager.Instance.ExecuteDuel(DuelPlayerIndex, 1, null);
+    }
+
+    public void OnCommand2Tapped()
+    {
+        Debug.Log("Command2 tapped!");
+        GameManager.Instance.ExecuteDuel(DuelPlayerIndex, 2, null);
     }
 }

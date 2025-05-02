@@ -208,7 +208,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 2
+  m_SortingOrder: 3
   m_Sprite: {fileID: 21300000, guid: 93719962fe3b4ebc28f5a18282a8781c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -302,7 +302,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_Sprite: {fileID: 21300000, guid: dbbdbd4a48cf4ba6383a2c6872d91c89, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -428,6 +428,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b439e9f663abcab9598295a4e9bd8fdb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hpThresholdLow: 10
+  hpThresholdHigh: 30
+  speedBase: 0.2
+  speedMultiplier: 0.02
+  speedDebuff: 1
+  speedDebuffDefault: 1
+  speedDebuffLow: 0.5
+  speedDebuffHigh: 0.2
+  minSegmentDistance: 0.2
   maxLineLength: 5
   ignoreLayer:
     serializedVersion: 2
@@ -437,6 +446,7 @@ MonoBehaviour:
   boundBottom: {fileID: 0}
   boundLeft: {fileID: 0}
   boundRight: {fileID: 0}
+  bottomOffset: 0.5
 --- !u!65 &257023030392555945
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -470,26 +480,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a3364437eb4fe4babb2dd6981eb6f99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 
+  IsAlly: 0
+  IsAi: 0
+  playerId: 
   playerName: 
-  gender: 
-  type: 0
-  position: 
-  isAlly: 0
-  isAi: 0
+  lv: 0
+  gender: 0
+  element: 0
+  position: 0
   isStunned: 0
-  hpMax: 0
-  hp: 0
-  spMax: 0
-  sp: 0
-  kick: 0
-  body: 0
-  control: 0
-  guard: 0
-  speed: 0
-  stamina: 0
-  courage: 0
-  freedom: 0
+  spritePlayer: {fileID: 0}
+  spritePortrait: {fileID: 0}
+  pathPlayer: Player/
+  pathPortrait: Portrait/
+  minStatRatio: 0.1
 --- !u!1 &3520640958279559203
 GameObject:
   m_ObjectHideFlags: 0
@@ -607,7 +611,7 @@ GameObject:
   - component: {fileID: 2081404177187847170}
   - component: {fileID: 6620214344093070709}
   m_Layer: 0
-  m_Name: TypeIcon
+  m_Name: ElementIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

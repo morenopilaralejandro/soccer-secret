@@ -8,14 +8,23 @@ public class GameManager : MonoBehaviour
     public bool IsMovementFrozen { get; private set; } = false;
     public bool IsTimeFrozen { get; private set; } = false;
 
-    public List<GameObject> allyPlayers;
-    public List<GameObject> oppPlayers;    
-    public Transform[] players; // Array of player transforms
-    public Transform ball; // Transform of the ball
-    public Transform[] initialPlayerPositions; // Array to store initial player positions
-    public Vector3 initialBallPosition; // Vector3 to store initial ball position
-    public float timeRemaining = 180f; // 3 minutes
-    public TextMeshProUGUI timerText;
+    [SerializeField] private List<GameObject> allyPlayers;
+    [SerializeField] private List<GameObject> oppPlayers;    
+    [SerializeField] private Transform[] players; // Array of player transforms
+    [SerializeField] private Transform ball; // Transform of the ball
+    [SerializeField] private Transform[] initialPlayerPositions; // Array to store initial player positions
+    [SerializeField] private Vector3 initialBallPosition; // Vector3 to store initial ball position
+    [SerializeField] private float timeRemaining = 180f; // 3 minutes
+    [SerializeField] private TextMeshProUGUI timerText;
+
+    [SerializeField] private PlayerCardUI playerCard0;
+    [SerializeField] private PlayerCardUI playerCard1;
+    [SerializeField] private BarUI barHp0;
+    [SerializeField] private BarUI barHp1;
+    [SerializeField] private BarUI barSp0;
+    [SerializeField] private BarUI barSp1;
+    [SerializeField] private GameObject imagePossesion0;
+    [SerializeField] private GameObject imagePossesion1;
 
     private GameObject[] duelPlayers = new GameObject[2];
     private int duelType;
@@ -125,19 +134,28 @@ public class GameManager : MonoBehaviour
         
 
         for (int i = 0; i < duelPlayers.Length; i++) {
-            if (duelPlayers[i].GetComponent<Player>().isAi) 
+            Player auxPlayer = duelPlayers[i].GetComponent<Player>();
+
+            if (auxPlayer.IsAi) 
             {
                 duelCommand[i] = 1;
                 duelSecret[i] = null;
             } else {
                 UIManager.Instance.DuelPlayerIndex = i;
+                if (duelAction[i] == 0) 
+                {
+                    imagePossesion0.SetActive(true);
+                    imagePossesion1.SetActive(false);
+                } else {
+                    imagePossesion0.SetActive(false);
+                    imagePossesion1.SetActive(true);
+                }
                 switch (duelType)
                 {
                     case 0:
                         if (duelAction[i] == 0) 
                         {
-                            //ui dribble
-
+                            //ui dribble only select dribble secret
                         } else {
                             //ui block
                         }
@@ -146,6 +164,16 @@ public class GameManager : MonoBehaviour
                         Debug.LogWarning("Unknown duelType: " + duelType);
                         break;
                 }
+            }
+
+            if(auxPlayer.IsAlly) {
+                playerCard0.SetPlayer(auxPlayer);
+                barHp0.SetPlayer(auxPlayer);
+                barSp0.SetPlayer(auxPlayer);
+            } else {
+                playerCard1.SetPlayer(auxPlayer);
+                barHp1.SetPlayer(auxPlayer);
+                barSp1.SetPlayer(auxPlayer);
             }
         }
 
@@ -173,10 +201,10 @@ public class GameManager : MonoBehaviour
         {
             
         } else {
-            if (TypeManager.Instance.IsPlayerEffective(duelPlayers[0], duelPlayers[1])) {
+            if (ElementManager.Instance.IsPlayerEffective(duelPlayers[0], duelPlayers[1])) {
                 duelDamage[0] *= 2; 
             } else {
-                if (TypeManager.Instance.IsPlayerEffective(duelPlayers[1], duelPlayers[0])) {
+                if (ElementManager.Instance.IsPlayerEffective(duelPlayers[1], duelPlayers[0])) {
                     duelDamage[1] *= 2; 
                 }
             } 
@@ -188,10 +216,9 @@ public class GameManager : MonoBehaviour
         } else {
             duelWinnerIndex = 1;
         }
-
+        Debug.Log("Winner: " + duelWinnerIndex + " (" + duelDamage[0] + ", " + duelDamage[1] + ")");
         for (int i = 0; i < duelPlayers.Length; i++) 
         {
-            Debug.Log(duelDamage[i]);
             if (i == duelWinnerIndex) 
             {
                 //give ball
@@ -235,19 +262,19 @@ public class GameManager : MonoBehaviour
             {
                 case "001":
                     /*dribble Phys*/
-                    damage = player.currControl + player.currBody * 0.05f + player.currStamina * 0.02f + player.currCourage;
+                    damage = player.GetStat(PlayerStats.Control) + player.GetStat(PlayerStats.Body) * 0.05f + player.GetStat(PlayerStats.Stamina) * 0.02f + player.GetStat(PlayerStats.Courage);
                     break;
                 case "002":
                     /*dribble Skill*/
-                    damage = player.currControl + player.currBody * 0.05f + player.currSpeed * 0.02f + player.currCourage;
+                    damage = player.GetStat(PlayerStats.Control) + player.GetStat(PlayerStats.Body) * 0.05f + player.GetStat(PlayerStats.Speed) * 0.02f + player.GetStat(PlayerStats.Courage);
                     break;
                 case "011":
                     /*block Phys*/
-                    damage = player.currBody + player.currGuard * 0.05f + player.currStamina * 0.02f + player.currCourage;
+                    damage = player.GetStat(PlayerStats.Body) + player.GetStat(PlayerStats.Guard) * 0.05f + player.GetStat(PlayerStats.Stamina) * 0.02f + player.GetStat(PlayerStats.Courage);
                     break;
                 case "012":
                     /*block Skill*/
-                    damage = player.currBody + player.currGuard * 0.05f + player.currControl * 0.02f + player.currCourage;
+                    damage = player.GetStat(PlayerStats.Body) + player.GetStat(PlayerStats.Guard) * 0.05f + player.GetStat(PlayerStats.Control) * 0.02f + player.GetStat(PlayerStats.Courage);
                     break;
                 default:
                     Debug.LogWarning("Unknown formulaId: " + formulaId);

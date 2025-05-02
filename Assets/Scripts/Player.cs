@@ -3,111 +3,102 @@ using System.Collections;
 using System;
 using System.IO;
 
+public enum PlayerStats { Hp, Sp, Kick, Body, Control, Guard, Speed, Stamina, Courage }
+
 public class Player : MonoBehaviour
-{    
-    public string id;
-    public string playerName;
+{   
 
-    public string gndr;
-    public Type type;
-    public Posi posi;
+    public string PlayerId => playerId;
+    public string PlayerName => playerName;
+    public Gender Gender => gender;
+    public Element Element => element;
+    public Position Position => position;
+    public bool IsAlly;
+    public bool IsAi;
+    public bool IsStunned => isStunned;
+    public int Lv => lv;
+    public Sprite SpritePlayer => spritePlayer;
+    public Sprite SpritePortrait => spritePortrait;
 
-    public bool isAlly;
-    public bool isAi;
-    public bool isStunned;
-
-    public int lv;
-    public const int maxLv = 99;
-    [Range(0f, 1f)] public float minStatRatio = 0.1f; // Value at level 1 is 10% of max stat
-
-    public int baseHp;
-    public int baseSp;
-    public int baseKick;
-    public int baseBody;
-    public int baseControl;
-    public int baseGuard;
-    public int baseSpeed;
-    public int baseStamina;
-    public int baseCourage;
-    public int baseFreedom;
-
-    public int maxMore = 50;
-    public int moreHp;
-    public int moreSp;
-    public int moreKick;
-    public int moreBody;
-    public int moreControl;
-    public int moreGuard;
-    public int moreSpeed;
-    public int moreStamina;
-    public int moreCourage;
-
-    public int maxHp;
-    public int maxSp;
-
-    public int currHp;
-    public int currSp;
-    public int currKick;
-    public int currBody;
-    public int currControl;
-    public int currGuard;
-    public int currSpeed;
-    public int currStamina;
-    public int currCourage;
-    public int currFreedom;
-
-    public Sprite spritePlayer;
-    public Sprite spritePortrait;
-
+    [SerializeField] private string playerId;
+    [SerializeField] private string playerName;
+    [SerializeField] private int lv;
+    [SerializeField] private Gender gender;
+    [SerializeField] private Element element;
+    [SerializeField] private Position position;
+    [SerializeField] private bool isStunned;
+    [SerializeField] private Sprite spritePlayer;
+    [SerializeField] private Sprite spritePortrait;
+    [SerializeField] private string pathPlayer = "Player/";
+    [SerializeField] private string pathPortrait = "Portrait/";
+    [SerializeField] private const int maxLv = 99;
+    [SerializeField] private const int maxMore = 50;
+    [SerializeField] [Range(0f, 1f)] private float minStatRatio = 0.1f; // Value at level 1 is 10% of max stat
+    private int maxHp;
+    private int maxSp;
+    private int baseFreedom;
+    private int currFreedom;
+    private int[] baseStats = new int[9]; // Match PlayerStats enum count
+    private int[] moreStats = new int[9];
+    private int[] currStats = new int[9];
     private Collider[] colliders;
 
     public void Initialize(PlayerData playerData)
     {
-        id = playerData.id;
+        playerId = playerData.playerId;
         playerName = playerData.playerName;
-        gndr = playerData.gndr;
 
-        string auxString = playerData.type;
-        Type auxType;
-        bool isValid = Enum.TryParse(auxString, true, out auxType); // case-insensitive parse
+        string auxString = playerData.gender;
+        Gender auxGender;
+        bool isValid = Enum.TryParse(auxString, true, out auxGender); // case-insensitive parse
         if (isValid)
         {
-            type = auxType;
+            gender = auxGender;
         } else {
-            type = Type.Fire;
+            gender = Gender.M;
         }
 
-        auxString = playerData.posi;
-        Posi auxPosi;
-        isValid = Enum.TryParse(auxString, true, out auxPosi); // case-insensitive parse
+        auxString = playerData.element;
+        Element auxElement;
+        isValid = Enum.TryParse(auxString, true, out auxElement); // case-insensitive parse
         if (isValid)
         {
-            posi = auxPosi;
+            element = auxElement;
         } else {
-            posi = Posi.Fw;
+            element = Element.Fire;
         }
 
-        isAlly = true;
-        isAi = false;
+        auxString = playerData.position;
+        Position auxPosition;
+        isValid = Enum.TryParse(auxString, true, out auxPosition); // case-insensitive parse
+        if (isValid)
+        {
+            position = auxPosition;
+        } else {
+            position = Position.Fw;
+        }
+
+        IsAlly = true;
+        IsAi = false;
         isStunned = false;
 
         lv = 99;
 
-        baseHp = playerData.hp;
-        baseSp = playerData.sp;
-        baseKick = playerData.kick;
-        baseBody = playerData.body;
-        baseControl = playerData.control;
-        baseGuard = playerData.guard;
-        baseSpeed = playerData.speed;
-        baseStamina = playerData.stamina;
-        baseCourage = playerData.courage;
+        baseStats[0] = playerData.hp;
+        baseStats[1] = playerData.sp;
+        baseStats[2] = playerData.kick;
+        baseStats[3] = playerData.body;
+        baseStats[4] = playerData.control;
+        baseStats[5] = playerData.guard;
+        baseStats[6] = playerData.speed;
+        baseStats[7] = playerData.stamina;
+        baseStats[8] = playerData.courage;
         baseFreedom = playerData.freedom;
 
         //sprite
         Sprite spriteAux = null;
 
-        spriteAux = Resources.Load<Sprite>("Player/" + "player");
+        spriteAux = Resources.Load<Sprite>(pathPlayer + "player");
         if (spriteAux != null)
         {
             spritePlayer = spriteAux;
@@ -117,7 +108,7 @@ public class Player : MonoBehaviour
             Debug.LogWarning("Sprite not found for portrait: " + playerData.playerName);
         }
 
-        spriteAux = Resources.Load<Sprite>("Portrait/" + "portrait");
+        spriteAux = Resources.Load<Sprite>(pathPortrait + "portrait");
         if (spriteAux != null)
         {
             spritePortrait = spriteAux;
@@ -189,10 +180,10 @@ public class Player : MonoBehaviour
         transform.position = pos;
     }
     
-    //lv
+    //Lv
     public void LevelUp()
     {
-        if(lv < maxLv)
+        if(Lv < maxLv)
         {
             lv++;
             UpdateStats();
@@ -202,139 +193,62 @@ public class Player : MonoBehaviour
     private int ScaleStat(int maxStat)
     {
         // Linear down-scaling: at lvl 1 it's minStatRatio, at 99 it's 1.0 of maxStat
-        float t = (float)(lv - 1) / (maxLv - 1);
+        float t = (float)(Lv - 1) / (maxLv - 1);
         float statValue = maxStat * Mathf.Lerp(minStatRatio, 1f, t);
         return Mathf.RoundToInt(statValue);
     }
 
+    public int GetStat(PlayerStats stat) => currStats[(int)stat];
+
+    public int GetMaxStat(PlayerStats stat){
+        switch(stat) {
+            case PlayerStats.Hp:
+                return maxHp;
+            case PlayerStats.Sp:
+                return maxSp;
+        }
+        return 0;
+    }
+
     public void UpdateStats()
     {
-        maxHp = ScaleStat(baseHp) + moreHp;
-        maxSp = ScaleStat(baseSp) + moreSp;
-        
-        currHp = maxHp;
-        currSp = maxSp;
-
-        currKick = ScaleStat(baseKick) + moreKick;
-        currBody = ScaleStat(baseBody) + moreBody;
-        currControl = ScaleStat(baseControl) + moreControl;
-        currGuard = ScaleStat(baseGuard) + moreGuard;
-        currSpeed = ScaleStat(baseSpeed) + moreSpeed;
-        currStamina = ScaleStat(baseStamina) + moreStamina;
-        currCourage = ScaleStat(baseCourage) + moreCourage;
+        for (int i = 0; i < baseStats.Length; i++)
+            currStats[i] = ScaleStat(baseStats[i]) + moreStats[i];
+        maxHp = currStats[(int)PlayerStats.Hp];
+        maxSp = currStats[(int)PlayerStats.Sp];
     }
 
-    public bool isTrainable(int statIndex)
+    public bool IsTrainable(PlayerStats stat)
     {
-        switch (statIndex)
-        {
-            case 0:
-                if (moreHp >= maxMore)
-                    return false;
-                break;
-            case 1:
-                if (moreSp >= maxMore)
-                    return false;
-                break;
-            case 2:
-                if (moreKick >= maxMore)
-                    return false;
-                break;
-            case 3:
-                if (moreBody >= maxMore)
-                    return false;
-                break;
-            case 4:
-                if (moreControl >= maxMore)
-                    return false;
-                break;
-            case 5:
-                if (moreGuard >= maxMore)
-                    return false;
-                break;
-            case 6:
-                if (moreSpeed >= maxMore)
-                    return false;
-                break;
-            case 7:
-                if (moreStamina >= maxMore)
-                    return false;
-                break;
-            case 8:
-                if (moreCourage >= maxMore)
-                    return false;
-                break;
-            default:
-                Debug.LogWarning("Unknown statIndex: " + statIndex);
-                break;
-        }
-
-        if (currFreedom <= 0 || moreKick + moreBody + moreControl + moreGuard
-            + moreSpeed + moreStamina + moreCourage > baseFreedom) 
-        {
+        if (moreStats[(int)stat] >= maxMore)
             return false;
-        } else {
-            return true;
-        }
+
+        int totalTrained = 0;
+        for (int i = 0; i < moreStats.Length; i++)
+            totalTrained += moreStats[i];
+
+        if (currFreedom <= 0 || totalTrained > baseFreedom)
+            return false;
+
+        return true;
     }
 
-    public void TrainStat(int statIndex, int amount)
+    public void TrainStat(PlayerStats playerStat, int amount)
     {
-        switch (statIndex)
-        {
-            case 0:
-                moreHp += amount;
-                moreHp = Mathf.Clamp(moreHp, 0, maxMore);
-                break;
-            case 1:
-                moreSp += amount;
-                moreSp = Mathf.Clamp(moreSp, 0, maxMore);
-                break;
-            case 2:
-                moreKick += amount;
-                moreKick = Mathf.Clamp(moreKick, 0, maxMore);
-                break;
-            case 3:
-                moreBody += amount;
-                moreBody = Mathf.Clamp(moreBody, 0, maxMore);
-                break;
-            case 4:
-                moreControl += amount;
-                moreControl = Mathf.Clamp(moreControl, 0, maxMore);
-                break;
-            case 5:
-                moreGuard += amount;
-                moreGuard = Mathf.Clamp(moreGuard, 0, maxMore);
-                break;
-            case 6:
-                moreSpeed += amount;
-                moreSpeed = Mathf.Clamp(moreSpeed, 0, maxMore);
-                break;
-            case 7:
-                moreStamina += amount;
-                moreStamina = Mathf.Clamp(moreStamina, 0, maxMore);
-                break;
-            case 8:
-                moreCourage += amount;
-                moreCourage = Mathf.Clamp(moreCourage, 0, maxMore);
-                break;
-            default:
-                Debug.LogWarning("Unknown statIndex: " + statIndex);
-                break;
-        }
+        moreStats[(int)playerStat] = Mathf.Clamp(moreStats[(int)playerStat] + amount, 0, maxMore);
         ReduceFreedom(amount);
     }
 
     public void ReduceHp(int amount)
     {
-        currHp -= amount;
-        currHp = Mathf.Clamp(currHp, 0, maxHp);
+        currStats[(int)PlayerStats.Hp] -= amount;
+        currStats[(int)PlayerStats.Hp] = Mathf.Clamp(currStats[(int)PlayerStats.Hp], 0, maxHp);
     }
 
     public void ReduceSp(int amount)
     {
-        currSp -= amount;
-        currSp = Mathf.Clamp(currSp, 0, maxSp);
+        currStats[(int)PlayerStats.Sp] -= amount;
+        currStats[(int)PlayerStats.Sp] = Mathf.Clamp(currStats[(int)PlayerStats.Sp], 0, maxHp);
     }
 
     public void ReduceFreedom(int amount)
@@ -345,14 +259,14 @@ public class Player : MonoBehaviour
 
     public void RecoverHp(int amount)
     {
-        currHp += amount;
-        currHp = Mathf.Clamp(currHp, 0, maxHp);
+        currStats[(int)PlayerStats.Hp] += amount;
+        currStats[(int)PlayerStats.Hp] = Mathf.Clamp(currStats[(int)PlayerStats.Hp], 0, maxHp);
     }
 
     public void RecoverSp(int amount)
     {
-        currSp += amount;
-        currSp = Mathf.Clamp(currSp, 0, maxSp);
+        currStats[(int)PlayerStats.Sp] += amount;
+        currStats[(int)PlayerStats.Sp] = Mathf.Clamp(currStats[(int)PlayerStats.Sp], 0, maxHp);
     }
 
 }

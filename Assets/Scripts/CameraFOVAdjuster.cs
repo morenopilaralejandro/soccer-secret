@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class CameraFOVAdjuster : MonoBehaviour
 {
-    public Camera mainCamera;
-    public float defaultFOV = 60f; // Default field of view
-    public float targetAspect = 9f / 16f; // Target aspect ratio (e.g., 9:16 for portrait)
+    [SerializeField] private Camera mainCamera;
+    [SerializeField] private float defaultFOV = 60f; // Default field of view
+    [SerializeField] private float targetAspect = 9f / 16f; // Target aspect ratio (e.g., 9:16 for portrait)
 
     void Start()
     {

@@ -10,22 +10,26 @@ public class DrawLineOnDrag : MonoBehaviour
     private List<Vector3> linePoints = new List<Vector3>();
     private int currentPointIndex = 0;
     private bool isMoving = false;
-    private float hpThreshold1 = 30;
-    private float hpThreshold2 = 30;
-    private float speedBase = 0.2f;
-    private float speedMultiplier = 0.02f;
-    private float speedDebuff = 1f;
-    private float speedDebuff1 = 0.5f;
-    private float speedDebuff2 = 0.2f;
+    
+    [SerializeField] private int hpThresholdLow = 10;
+    [SerializeField] private int hpThresholdHigh = 30;
+    [SerializeField] private float speedBase = 0.2f;
+    [SerializeField] private float speedMultiplier = 0.02f;
+    [SerializeField] private float speedDebuff = 1f;
+    [SerializeField] private float speedDebuffDefault = 1f;
+    [SerializeField] private float speedDebuffLow = 0.5f;
+    [SerializeField] private float speedDebuffHigh = 0.2f;
 
-    public float maxLineLength = 6f;
-    public LayerMask ignoreLayer;
-    public Transform playerChildWithCollider;
+    [SerializeField] private float minSegmentDistance = 0.2f;
+    [SerializeField] private float maxLineLength = 6f;
+    [SerializeField] private LayerMask ignoreLayer;
+    [SerializeField] private Transform playerChildWithCollider;
 
-    public BoxCollider boundTop;
-    public BoxCollider boundBottom;
-    public BoxCollider boundLeft;
-    public BoxCollider boundRight;
+    [SerializeField] private BoxCollider boundTop;
+    [SerializeField] private BoxCollider boundBottom;
+    [SerializeField] private BoxCollider boundLeft;
+    [SerializeField] private BoxCollider boundRight;
+    [SerializeField] private float bottomOffset = 0.5f;
 
     void Start()
     {
@@ -56,7 +60,9 @@ public class DrawLineOnDrag : MonoBehaviour
                     if (isDragging)
                     {
                         touchPosition.y = 0;
-                        if (CanAddPoint(touchPosition) && IsWithinBounds(touchPosition))
+                        if (CanAddPoint(touchPosition) 
+                            && IsWithinBounds(touchPosition) 
+                            && IsFarEnough(touchPosition))
                         {
                             lineRenderer.positionCount++;
                             lineRenderer.SetPosition(lineRenderer.positionCount - 1, touchPosition);
@@ -77,7 +83,7 @@ public class DrawLineOnDrag : MonoBehaviour
             }
         }
 
-        if (player.isStunned)
+        if (player.IsStunned)
         {
             // Optionally, you could play a stun animation or effects here
             return; // Don't process movement
@@ -85,15 +91,7 @@ public class DrawLineOnDrag : MonoBehaviour
 
         if (isMoving && !GameManager.Instance.IsMovementFrozen)
         {
-            if (player.currHp <= hpThreshold1) {
-                speedDebuff = speedDebuff1;   
-            } else {
-                if (player.currHp <= hpThreshold2) {
-                    speedDebuff = speedDebuff2;   
-                } else {
-                    speedDebuff = 1f;
-                }
-            }
+            CalcSpeedDebuff(player);
             MoveAlongLine();
         }
     }
@@ -128,23 +126,28 @@ public class DrawLineOnDrag : MonoBehaviour
         return currentLength <= maxLineLength;
     }
 
+    private bool IsFarEnough(Vector3 newPoint)
+    {
+        if (linePoints.Count == 0) return true;
+        float distance = Vector3.Distance(linePoints[linePoints.Count - 1], newPoint);
+        return distance >= minSegmentDistance;
+    }
+
     private bool IsWithinBounds(Vector3 point)
     {
-        float bottomOffset = 0.5f;
-
         return point.x >= boundLeft.bounds.min.x && point.x <= boundRight.bounds.max.x &&
                point.z >= (boundBottom.bounds.min.z + bottomOffset) && point.z <= boundTop.bounds.max.z;
     }
 
     private void MoveAlongLine()
     {
-        if (currentPointIndex < linePoints.Count)
+       if (currentPointIndex < linePoints.Count)
         {
             Vector3 targetPosition = linePoints[currentPointIndex];
-            float speedCalc = (player.currSpeed * speedMultiplier + speedBase) * speedDebuff * Time.deltaTime;
-            //Debug.Log("speedCalc:" + speedCalc);
+            float speed = CalcSpeed(player);
+            //Debug.Log("speed:" + speed);
             //Debug.Log("speedDebuff:" + speedDebuff);
-            Vector3 newPosition = Vector3.MoveTowards(transform.position, targetPosition, speedCalc);
+            Vector3 newPosition = Vector3.MoveTowards(transform.position, targetPosition, speed);
             transform.position = newPosition;
 
             if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
@@ -157,6 +160,21 @@ public class DrawLineOnDrag : MonoBehaviour
         else
         {
             isMoving = false;
+        }
+    }
+
+    private float CalcSpeed(Player player) {
+        return (player.GetStat(PlayerStats.Speed) * speedMultiplier + speedBase) * speedDebuff * Time.deltaTime;
+    }
+
+    private void CalcSpeedDebuff(Player player) {
+        int playerHp = player.GetStat(PlayerStats.Hp);
+        if (playerHp <= hpThresholdLow) {
+            speedDebuff = speedDebuffLow;
+        } else if (playerHp <= hpThresholdHigh) {
+            speedDebuff = speedDebuffHigh;
+        } else {
+            speedDebuff = speedDebuffDefault;
         }
     }
 }

@@ -1,39 +1,44 @@
 using System.Collections.Generic;
-using System.IO;
+using System;
 using UnityEngine;
 
 public class PlayerManager : MonoBehaviour
 {
-    public GameObject allyPrefab; 
-    public GameObject oppPrefab;
-    public GameObject[] playerAllyObjects;
-    public GameObject[] playerOppObjects;
+    [SerializeField] private GameObject allyPrefab; 
+    [SerializeField] private GameObject oppPrefab;
+    [SerializeField] private GameObject[] playerAllyObjects;
+    [SerializeField] private GameObject[] playerOppObjects;
 
     private List<PlayerData> players;
 
     void Start()
     {
-        string path = "Assets/Csv/player.csv"; // Path to your CSV file
-        players = LoadPlayerDataFromCSV(path);
+        string path = "Csv/"; // Path to your CSV file
+        string fileName = "player"; // Path to your CSV file
+
+        TextAsset csv = Resources.Load<TextAsset>(path + fileName);
+        string csvText = csv.text;
+        players = LoadPlayerDataFromCSV(csvText);
+
         InitializeAlly();
         InitializeOpp();
     }
 
-    List<PlayerData> LoadPlayerDataFromCSV(string filePath)
+    List<PlayerData> LoadPlayerDataFromCSV(string csvText)
     {
         List<PlayerData> playerList = new List<PlayerData>();
-        string[] lines = File.ReadAllLines(filePath);
+        string[] lines = csvText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
         for (int i = 1; i < lines.Length; i++) // Start from 1 to skip header
         {
             string[] values = lines[i].Split(',');
             PlayerData player = new PlayerData
             {
-                id = values[0],
+                playerId = values[0],
                 playerName = values[1],
-                gndr = values[2],
-                type = values[3],
-                posi = values[4],
+                gender = values[2],
+                element = values[3],
+                position = values[4],
                 hp = int.Parse(values[5]),
                 sp = int.Parse(values[6]),
                 kick = int.Parse(values[7]),
@@ -80,8 +85,8 @@ public class PlayerManager : MonoBehaviour
             GameObject playerObject = playerOppObjects[i];      
             PlayerData playerData = GetPlayerDataById(ids[i]);
             InitializePlayer(playerObject, playerData, wearId);
-            playerObject.GetComponent<Player>().isAlly = false;
-            playerObject.GetComponent<Player>().isAi = true;
+            playerObject.GetComponent<Player>().IsAlly = false;
+            playerObject.GetComponent<Player>().IsAi = true;
         }
     }
 
@@ -91,10 +96,16 @@ public class PlayerManager : MonoBehaviour
         {
             playerObject.GetComponent<Player>().Initialize(playerData);
 
+            SpriteRenderer elementIconSpriteRenderer = playerObject.transform.Find("ElementIcon").GetComponent<SpriteRenderer>(); 
+            if (elementIconSpriteRenderer != null)
+            {
+                elementIconSpriteRenderer.sprite = ElementManager.Instance.GetElementIcon(playerObject.GetComponent<Player>().Element);
+            }
+
             SpriteRenderer playerSpriteRenderer = playerObject.GetComponent<SpriteRenderer>();
             if (playerSpriteRenderer != null)
             {
-                playerSpriteRenderer.sprite = playerObject.GetComponent<Player>().spritePlayer;
+                playerSpriteRenderer.sprite = playerObject.GetComponent<Player>().SpritePlayer;
             }
 
             Transform wearTransform = playerObject.transform.GetChild(0);
@@ -128,16 +139,16 @@ public class PlayerManager : MonoBehaviour
         return null;
     }
 
-    public PlayerData GetPlayerDataById(string id)
+    public PlayerData GetPlayerDataById(string playerId)
     {
         foreach (var player in players)
         {
-            if (player.id == id)
+            if (player.playerId == playerId)
             {
                 return player;
             }
         }
-        Debug.LogWarning("Player not found: " + id);
+        Debug.LogWarning("Player not found: " + playerId);
         return null;
     }
 }
