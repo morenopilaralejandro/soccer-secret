@@ -9,7 +9,8 @@ public class Player : MonoBehaviour
 {   
 
     public string PlayerId => playerId;
-    public string PlayerName => playerName;
+    public string PlayerNameEn => playerNameEn;
+    public string PlayerNameJa => playerNameJa;
     public Gender Gender => gender;
     public Element Element => element;
     public Position Position => position;
@@ -21,7 +22,8 @@ public class Player : MonoBehaviour
     public Sprite SpritePortrait => spritePortrait;
 
     [SerializeField] private string playerId;
-    [SerializeField] private string playerName;
+    [SerializeField] private string playerNameEn;
+    [SerializeField] private string playerNameJa;
     [SerializeField] private int lv;
     [SerializeField] private Gender gender;
     [SerializeField] private Element element;
@@ -46,7 +48,8 @@ public class Player : MonoBehaviour
     public void Initialize(PlayerData playerData)
     {
         playerId = playerData.playerId;
-        playerName = playerData.playerName;
+        playerNameEn = playerData.playerNameEn;
+        playerNameJa = playerData.playerNameJa;
 
         string auxString = playerData.gender;
         Gender auxGender;
@@ -105,7 +108,7 @@ public class Player : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Sprite not found for portrait: " + playerData.playerName);
+            Debug.LogWarning("Sprite not found for portrait: " + playerData.playerId);
         }
 
         spriteAux = Resources.Load<Sprite>(pathPortrait + "portrait");
@@ -115,7 +118,7 @@ public class Player : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Sprite not found for portrait: " + playerData.playerName);
+            Debug.LogWarning("Sprite not found for portrait: " + playerData.playerId);
         }
 
         // Additional initialization logic can go here

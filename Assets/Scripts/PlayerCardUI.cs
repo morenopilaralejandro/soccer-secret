@@ -36,7 +36,7 @@ public class PlayerCardUI : MonoBehaviour
         playerCard.color = ElementManager.Instance.GetPositionColor(player.Position);
         if (player != null)
         {
-            textName.text = player.PlayerName;
+            textName.text = player.PlayerNameEn;
             imagePortrait.sprite = player.SpritePortrait;
             imageElement.sprite = ElementManager.Instance.GetElementIcon(player.Element);
         }

@@ -9,59 +9,29 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private GameObject[] playerAllyObjects;
     [SerializeField] private GameObject[] playerOppObjects;
 
-    private List<PlayerData> players;
+    private Dictionary<string, PlayerData> playerDict = new Dictionary<string, PlayerData>();
+
+    void Awake()
+    {
+        PlayerData[] allPlayers = Resources.LoadAll<PlayerData>("ScriptableObjects/Player");
+        foreach (PlayerData playerData in allPlayers)
+        {
+            AddPlayerToDict(playerData);
+        }
+    }
 
     void Start()
     {
-        string path = "Csv/"; // Path to your CSV file
-        string fileName = "player"; // Path to your CSV file
-
-        TextAsset csv = Resources.Load<TextAsset>(path + fileName);
-        string csvText = csv.text;
-        players = LoadPlayerDataFromCSV(csvText);
-
         InitializeAlly();
         InitializeOpp();
     }
 
-    List<PlayerData> LoadPlayerDataFromCSV(string csvText)
+    public void AddPlayerToDict(PlayerData playerData)
     {
-        List<PlayerData> playerList = new List<PlayerData>();
-        string[] lines = csvText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-        for (int i = 1; i < lines.Length; i++) // Start from 1 to skip header
-        {
-            string[] values = lines[i].Split(',');
-            PlayerData player = new PlayerData
-            {
-                playerId = values[0],
-                playerName = values[1],
-                gender = values[2],
-                element = values[3],
-                position = values[4],
-                hp = int.Parse(values[5]),
-                sp = int.Parse(values[6]),
-                kick = int.Parse(values[7]),
-                body = int.Parse(values[8]),
-                control = int.Parse(values[9]),
-                guard = int.Parse(values[10]),
-                speed = int.Parse(values[11]),
-                stamina = int.Parse(values[12]),
-                courage = int.Parse(values[13]),	
-                freedom = int.Parse(values[14])
-            };
-            playerList.Add(player);
-        }
-        return playerList;
-    }
-
-    void InstantiatePlayers(List<PlayerData> players)
-    {
-        foreach (var playerData in players)
-        {
-            GameObject player = Instantiate(allyPrefab);
-            // Set player stats here, e.g., player.GetComponent<Player>().Initialize(playerData);
-        }
+        if (!playerDict.ContainsKey(playerData.playerId))
+            playerDict.Add(playerData.playerId, playerData);
+        else
+            Debug.LogWarning("Duplicate playerId: " + playerData.playerId);
     }
 
     void InitializeAlly()
@@ -126,28 +96,11 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    public PlayerData GetPlayerDataByName(string playerName)
-    {
-        foreach (var player in players)
-        {
-            if (player.playerName == playerName)
-            {
-                return player;
-            }
-        }
-        Debug.LogWarning("Player not found: " + playerName);
-        return null;
-    }
-
     public PlayerData GetPlayerDataById(string playerId)
     {
-        foreach (var player in players)
-        {
-            if (player.playerId == playerId)
-            {
-                return player;
-            }
-        }
+        if (playerDict.TryGetValue(playerId, out var playerData))
+            return playerData;
+
         Debug.LogWarning("Player not found: " + playerId);
         return null;
     }
