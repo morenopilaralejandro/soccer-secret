@@ -36,22 +36,22 @@ public class CSVPlayerImporter
         // Get CSV header index mapping
         string[] headers = lines[0].Split(',');
 
-        int playerIdIndex = System.Array.IndexOf(headers, "id");
-        int playerNameEnIndex = System.Array.IndexOf(headers, "name-en");
-        int playerNameJaIndex = System.Array.IndexOf(headers, "name-ja");
-        int genderIndex = System.Array.IndexOf(headers, "gender");
-        int elementIndex = System.Array.IndexOf(headers, "element");
-        int positionIndex = System.Array.IndexOf(headers, "position");
-        int hpIndex = System.Array.IndexOf(headers, "hp");
-        int spIndex = System.Array.IndexOf(headers, "sp");
-        int kickIndex = System.Array.IndexOf(headers, "kick");
-        int bodyIndex = System.Array.IndexOf(headers, "body");
-        int controlIndex = System.Array.IndexOf(headers, "control");
-        int guardIndex = System.Array.IndexOf(headers, "guard");
-        int speedIndex = System.Array.IndexOf(headers, "speed");
-        int staminaIndex = System.Array.IndexOf(headers, "stamina");
-        int courageIndex = System.Array.IndexOf(headers, "courage");
-        int freedomIndex  = System.Array.IndexOf(headers, "freedom");
+        int playerIdIndex       = System.Array.IndexOf(headers, "id");
+        int playerNameEnIndex   = System.Array.IndexOf(headers, "name-en");
+        int playerNameJaIndex   = System.Array.IndexOf(headers, "name-ja");
+        int genderIndex         = System.Array.IndexOf(headers, "gender");
+        int elementIndex        = System.Array.IndexOf(headers, "element");
+        int positionIndex       = System.Array.IndexOf(headers, "position");
+        int hpIndex             = System.Array.IndexOf(headers, "hp");
+        int spIndex             = System.Array.IndexOf(headers, "sp");
+        int kickIndex           = System.Array.IndexOf(headers, "kick");
+        int bodyIndex           = System.Array.IndexOf(headers, "body");
+        int controlIndex        = System.Array.IndexOf(headers, "control");
+        int guardIndex          = System.Array.IndexOf(headers, "guard");
+        int speedIndex          = System.Array.IndexOf(headers, "speed");
+        int staminaIndex        = System.Array.IndexOf(headers, "stamina");
+        int courageIndex        = System.Array.IndexOf(headers, "courage");
+        int freedomIndex        = System.Array.IndexOf(headers, "freedom");
 
         for (int i = 1; i < lines.Length; i++)
         {

@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerManager : MonoBehaviour
@@ -9,14 +9,14 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private GameObject[] playerAllyObjects;
     [SerializeField] private GameObject[] playerOppObjects;
 
-    private Dictionary<string, PlayerData> playerDict = new Dictionary<string, PlayerData>();
+    private Dictionary<string, PlayerData> playerDataDict = new Dictionary<string, PlayerData>();
 
     void Awake()
     {
         PlayerData[] allPlayers = Resources.LoadAll<PlayerData>("ScriptableObjects/Player");
         foreach (PlayerData playerData in allPlayers)
         {
-            AddPlayerToDict(playerData);
+            AddPlayerDataToDict(playerData);
         }
     }
 
@@ -26,10 +26,10 @@ public class PlayerManager : MonoBehaviour
         InitializeOpp();
     }
 
-    public void AddPlayerToDict(PlayerData playerData)
+    public void AddPlayerDataToDict(PlayerData playerData)
     {
-        if (!playerDict.ContainsKey(playerData.playerId))
-            playerDict.Add(playerData.playerId, playerData);
+        if (!playerDataDict.ContainsKey(playerData.playerId))
+            playerDataDict.Add(playerData.playerId, playerData);
         else
             Debug.LogWarning("Duplicate playerId: " + playerData.playerId);
     }
@@ -98,7 +98,7 @@ public class PlayerManager : MonoBehaviour
 
     public PlayerData GetPlayerDataById(string playerId)
     {
-        if (playerDict.TryGetValue(playerId, out var playerData))
+        if (playerDataDict.TryGetValue(playerId, out var playerData))
             return playerData;
 
         Debug.LogWarning("Player not found: " + playerId);

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "PlayerData", menuName = "ScriptableObject/PlayerData")]
 public class PlayerData : ScriptableObject
@@ -19,4 +20,6 @@ public class PlayerData : ScriptableObject
     public int stamina;
     public int courage;	
     public int freedom;
+
+    public List<SecretLearnEntry> learnSet = new List<SecretLearnEntry>();
 }

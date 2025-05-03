@@ -1,13 +1,13 @@
 using UnityEngine;
-using System.Collections;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 public enum PlayerStats { Hp, Sp, Kick, Body, Control, Guard, Speed, Stamina, Courage }
 
 public class Player : MonoBehaviour
 {   
-
     public string PlayerId => playerId;
     public string PlayerNameEn => playerNameEn;
     public string PlayerNameJa => playerNameJa;
@@ -36,6 +36,8 @@ public class Player : MonoBehaviour
     [SerializeField] private const int maxLv = 99;
     [SerializeField] private const int maxMore = 50;
     [SerializeField] [Range(0f, 1f)] private float minStatRatio = 0.1f; // Value at level 1 is 10% of max stat
+    [SerializeField] private List<Secret> learnedSecret;
+    private List<SecretLearnEntry> learnSet;
     private int maxHp;
     private int maxSp;
     private int baseFreedom;
@@ -44,6 +46,7 @@ public class Player : MonoBehaviour
     private int[] moreStats = new int[9];
     private int[] currStats = new int[9];
     private Collider[] colliders;
+
 
     public void Initialize(PlayerData playerData)
     {
@@ -121,6 +124,7 @@ public class Player : MonoBehaviour
             Debug.LogWarning("Sprite not found for portrait: " + playerData.playerId);
         }
 
+        learnSet = playerData.learnSet;
         // Additional initialization logic can go here
         UpdateStats();
     }
@@ -270,6 +274,31 @@ public class Player : MonoBehaviour
     {
         currStats[(int)PlayerStats.Sp] += amount;
         currStats[(int)PlayerStats.Sp] = Mathf.Clamp(currStats[(int)PlayerStats.Sp], 0, maxHp);
+    }
+
+    private void TryLearnSecret()
+    {
+        foreach (var entry in learnSet)
+        {
+            if (lv == entry.lv && entry.secretId != null)
+            {
+                learnedSecret.Add(SecretManager.Instance.GetSecretById(entry.secretId));
+            }
+        }
+    }
+
+    private List<Secret> GetLearnedSecretByLv()
+    {
+        //when scouted set level (ex 5) then call this method
+        List<Secret> secres = new List<Secret>();
+        foreach (var entry in learnSet)
+        {
+            if (lv >= entry.lv && entry.secretId != null)
+            {
+                secres.Add(SecretManager.Instance.GetSecretById(entry.secretId));
+            }
+        }
+        return secres;
     }
 
 }

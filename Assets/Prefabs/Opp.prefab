@@ -81,7 +81,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: dbbdbd4a48cf4ba6383a2c6872d91c89, type: 3}
+  m_Sprite: {fileID: 21300000, guid: f307982ad54ec076cadbb13469190b90, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -227,50 +227,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a3364437eb4fe4babb2dd6981eb6f99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 
-  playerName: 
-  gndr: 0
-  type: 0
-  posi: 0
-  isAlly: 0
-  isAi: 0
-  isStunned: 0
+  IsAlly: 0
+  IsAi: 0
+  playerId: 
+  playerNameEn: 
+  playerNameJa: 
   lv: 0
-  minStatRatio: 0.1
-  baseHp: 0
-  baseSp: 0
-  baseKick: 0
-  baseBody: 0
-  baseControl: 0
-  baseGuard: 0
-  baseSpeed: 0
-  baseStamina: 0
-  baseCourage: 0
-  baseFreedom: 0
-  maxMore: 50
-  moreHp: 0
-  moreSp: 0
-  moreKick: 0
-  moreBody: 0
-  moreControl: 0
-  moreGuard: 0
-  moreSpeed: 0
-  moreStamina: 0
-  moreCourage: 0
-  maxHp: 0
-  maxSp: 0
-  currHp: 0
-  currSp: 0
-  currKick: 0
-  currBody: 0
-  currControl: 0
-  currGuard: 0
-  currSpeed: 0
-  currStamina: 0
-  currCourage: 0
-  currFreedom: 0
+  gender: 0
+  element: 0
+  position: 0
+  isStunned: 0
   spritePlayer: {fileID: 0}
   spritePortrait: {fileID: 0}
+  pathPlayer: Player/
+  pathPortrait: Portrait/
+  minStatRatio: 0.1
 --- !u!1 &4421736091340814814
 GameObject:
   m_ObjectHideFlags: 0
