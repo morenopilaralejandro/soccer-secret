@@ -8,6 +8,7 @@ public class Secret : MonoBehaviour
     public string SecretId => secretId;
     public string SecretNameEn => secretNameEn;
     public string SecretNameJa => secretNameJa;
+    public Category Category => category;
     public Element Element => element;
     public int Power => power;
     public int Cost => cost;
@@ -15,6 +16,7 @@ public class Secret : MonoBehaviour
     [SerializeField] private string secretId;
     [SerializeField] private string secretNameEn;
     [SerializeField] private string secretNameJa;
+    [SerializeField] private Category category;
     [SerializeField] private Element element;
     [SerializeField] private int power;
     [SerializeField] private int cost;
@@ -37,9 +39,19 @@ public class Secret : MonoBehaviour
         secretNameEn = secretData.secretNameEn;
         secretNameJa = secretData.secretNameJa;
 
-        string auxString = secretData.element;
+        string auxString = secretData.category;
+        Category auxCategory;
+        bool isValid = Enum.TryParse(auxString, true, out auxCategory); // case-insensitive parse
+        if (isValid)
+        {
+            category = auxCategory;
+        } else {
+            category = Category.Shoot;
+        }
+
+        auxString = secretData.element;
         Element auxElement;
-        bool isValid = Enum.TryParse(auxString, true, out auxElement); // case-insensitive parse
+        isValid = Enum.TryParse(auxString, true, out auxElement); // case-insensitive parse
         if (isValid)
         {
             element = auxElement;

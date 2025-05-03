@@ -39,6 +39,7 @@ public class CSVSecretImporter
         int secretIdIndex       = System.Array.IndexOf(headers, "id");
         int secretNameEnIndex   = System.Array.IndexOf(headers, "name-en");
         int secretNameJaIndex   = System.Array.IndexOf(headers, "name-ja");
+        int categoryIndex       = System.Array.IndexOf(headers, "category");
         int elementIndex        = System.Array.IndexOf(headers, "element");
         int powerIndex          = System.Array.IndexOf(headers, "power");
         int costIndex           = System.Array.IndexOf(headers, "cost");
@@ -53,6 +54,7 @@ public class CSVSecretImporter
             secretData.secretId      = values[secretIdIndex].Trim();
             secretData.secretNameEn  = values[secretNameEnIndex].Trim();
             secretData.secretNameJa  = values[secretNameJaIndex].Trim();
+            secretData.category       = values[categoryIndex].Trim();
             secretData.element       = values[elementIndex].Trim();
             secretData.power         = int.Parse(values[powerIndex]);
             secretData.cost          = int.Parse(values[costIndex]);

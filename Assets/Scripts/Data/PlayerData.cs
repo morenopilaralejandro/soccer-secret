@@ -20,6 +20,12 @@ public class PlayerData : ScriptableObject
     public int stamina;
     public int courage;	
     public int freedom;
-
-    public List<SecretLearnEntry> learnSet = new List<SecretLearnEntry>();
+    public string secret1;
+    public string secret2;
+    public string secret3;
+    public string secret4;
+    public int lv1;
+    public int lv2;
+    public int lv3;
+    public int lv4;
 }

@@ -1,5 +1,8 @@
 ScriptsOnlyBuild:
   usedScripts:
+    Assembly-CSharp:
+    - PlayerData
+    - SecretData
     Assembly-CSharp.dll:
     - BallBehavior
     - BarUI
@@ -10,6 +13,8 @@ ScriptsOnlyBuild:
     - Player
     - PlayerCardUI
     - PlayerManager
+    - SecretData
+    - SecretManager
     - UIManager
     Unity.AdaptivePerformance.Editor.dll:
     - UnityEditor.AdaptivePerformance.Editor.AdaptivePerformanceGeneralSettingsPerBuildTarget
@@ -21,8 +26,6 @@ ScriptsOnlyBuild:
     Unity.AdaptivePerformance.dll:
     - UnityEngine.AdaptivePerformance.AdaptivePerformanceGeneralSettings
     - UnityEngine.AdaptivePerformance.AdaptivePerformanceManagerSettings
-    Unity.Mobile.AndroidLogcat.Editor.dll:
-    - Unity.Android.Logcat.AndroidLogcatManager
     Unity.PlasticSCM.Editor.dll:
     - Unity.PlasticSCM.Editor.PlasticWindow
     Unity.Rider.Editor.dll:
@@ -135,45 +138,51 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 16722}
     - Class: 114
-      Script: {instanceID: 17174}
+      Script: {instanceID: 17048}
     - Class: 114
-      Script: {instanceID: 17326}
+      Script: {instanceID: 17176}
     - Class: 114
-      Script: {instanceID: 17780}
+      Script: {instanceID: 17328}
     - Class: 114
-      Script: {instanceID: 17816}
+      Script: {instanceID: 17782}
     - Class: 114
-      Script: {instanceID: 17928}
+      Script: {instanceID: 17818}
     - Class: 114
-      Script: {instanceID: 17998}
+      Script: {instanceID: 17930}
     - Class: 114
-      Script: {instanceID: 18280}
+      Script: {instanceID: 18000}
     - Class: 114
-      Script: {instanceID: 18310}
+      Script: {instanceID: 18282}
     - Class: 114
-      Script: {instanceID: 18696}
+      Script: {instanceID: 18312}
     - Class: 114
-      Script: {instanceID: 19048}
+      Script: {instanceID: 18698}
     - Class: 114
-      Script: {instanceID: 19352}
+      Script: {instanceID: 19050}
     - Class: 114
-      Script: {instanceID: 19622}
+      Script: {instanceID: 19354}
     - Class: 114
-      Script: {instanceID: 20360}
+      Script: {instanceID: 19624}
     - Class: 114
-      Script: {instanceID: 20818}
+      Script: {instanceID: 20362}
     - Class: 114
-      Script: {instanceID: 20934}
+      Script: {instanceID: 20820}
     - Class: 114
-      Script: {instanceID: 21094}
+      Script: {instanceID: 20936}
     - Class: 114
-      Script: {instanceID: 21444}
+      Script: {instanceID: 21096}
     - Class: 114
-      Script: {instanceID: 21748}
+      Script: {instanceID: 21446}
     - Class: 114
-      Script: {instanceID: 22880}
+      Script: {instanceID: 21750}
     - Class: 114
-      Script: {instanceID: 25130}
+      Script: {instanceID: 22882}
+    - Class: 114
+      Script: {instanceID: 25500}
+    - Class: 114
+      Script: {instanceID: 28384}
+    - Class: 114
+      Script: {instanceID: 29668}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 120
@@ -273,13 +282,19 @@ ScriptsOnlyBuild:
     className: UnityOnMouseExitMessageListener
   - hash:
       serializedVersion: 2
+      Hash: 9309d69b3ffe7d50afcfa1a195c8abd7
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: BarUI
+  - hash:
+      serializedVersion: 2
       Hash: 49ae7f4ab86f75a744120f4344e81cd6
     assemblyName: Unity.Notifications.Android
     namespaceName: Unity.Notifications.Android
     className: AndroidReceivedNotificationMainThreadDispatcher
   - hash:
       serializedVersion: 2
-      Hash: f805c696d08c4f04d1edba56473652cc
+      Hash: 6f084d10de2e8ffc9ff96044306f5e13
     assemblyName: Assembly-CSharp
     namespaceName: 
     className: Player
@@ -357,7 +372,7 @@ ScriptsOnlyBuild:
     className: TimelineAsset
   - hash:
       serializedVersion: 2
-      Hash: d95d19d658ca35ff48393a78f820625e
+      Hash: 102801ee70559b8d3cf548dea4dfc4b7
     assemblyName: Assembly-CSharp
     namespaceName: 
     className: ElementManager
@@ -1239,10 +1254,28 @@ ScriptsOnlyBuild:
     className: UnityOnSliderValueChangedMessageListener
   - hash:
       serializedVersion: 2
-      Hash: 9309d69b3ffe7d50afcfa1a195c8abd7
+      Hash: ec24290b43ed6434b1803494bff095fa
     assemblyName: Assembly-CSharp
     namespaceName: 
-    className: BarUI
+    className: PlayerData
+  - hash:
+      serializedVersion: 2
+      Hash: 6aabf44ed693dd24419c21c483a6aa5a
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: SecretData
+  - hash:
+      serializedVersion: 2
+      Hash: e0da5a679d10d009de897a4a364cc31d
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: Secret
+  - hash:
+      serializedVersion: 2
+      Hash: e8fade41bf97850e93c9f2252336dd68
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: SecretManager
   platform: 13
   scenePathNames:
   - Assets/Scenes/Battle.unity

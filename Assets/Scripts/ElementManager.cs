@@ -12,15 +12,15 @@ public class ElementManager : MonoBehaviour
 {
     public static ElementManager Instance { get; private set; }
 
-    [SerializeField] private Color[] PositionColors = {
+    [SerializeField] private Color[] positionColors = {
         new Color(0.8549f, 0.0941f, 0.0941f, 1f),
         new Color(30f/255f, 62f/255f, 186f/255f, 1f),
         new Color(2f/255f, 122f/255f, 4f/255f, 1f),
         new Color(226f/255f, 120f/255f, 0f/255f, 1f)
     };
-    [SerializeField] private Sprite[] ElementIcons; // assign in Inspector, matches ElementOrder
-    [SerializeField] private Sprite[] GenderIcons; // assign in Inspector, matches Gender Order
-    [SerializeField] private Element[] ElementOrder = { Element.Fire, Element.Ice, Element.Light, Element.Evil, Element.Air, Element.Forest, Element.Earth, Element.Electric, Element.Water };
+    [SerializeField] private Sprite[] elementIcons; // assign in Inspector, matches elementOrder
+    [SerializeField] private Sprite[] genderIcons; // assign in Inspector, matches Gender Order
+    [SerializeField] private Element[] elementOrder = { Element.Fire, Element.Ice, Element.Light, Element.Evil, Element.Air, Element.Forest, Element.Earth, Element.Electric, Element.Water };
 
     private void Awake()
     {
@@ -51,11 +51,11 @@ public class ElementManager : MonoBehaviour
 
         if(offPlayer == null || defPlayer == null) return false;
 
-        int offIndex = System.Array.IndexOf(ElementOrder, offPlayer.Element);
-        int defIndex = System.Array.IndexOf(ElementOrder, defPlayer.Element);
+        int offIndex = System.Array.IndexOf(elementOrder, offPlayer.Element);
+        int defIndex = System.Array.IndexOf(elementOrder, defPlayer.Element);
 
         // Super effective if def is the next in order (with wrap-around)
-        int nextIndex = (offIndex + 1) % ElementOrder.Length;
+        int nextIndex = (offIndex + 1) % elementOrder.Length;
 
         return defIndex == nextIndex;
     }
@@ -64,15 +64,15 @@ public class ElementManager : MonoBehaviour
     {
         //iconRenderer = transform.Find("ElementIcon").GetComponent<SpriteRenderer>();
         int index = (int)element; // enum to int index
-        if (ElementIcons != null &&
-            ElementIcons.Length > index &&
-            ElementIcons[index] != null)
+        if (elementIcons != null &&
+            elementIcons.Length > index &&
+            elementIcons[index] != null)
         {
-            return ElementIcons[index];
+            return elementIcons[index];
         }
         else
         {
-            return ElementIcons[0]; // or set to a default/placeholder icon
+            return elementIcons[0]; // or set to a default/placeholder icon
         }
     }
 
@@ -80,26 +80,26 @@ public class ElementManager : MonoBehaviour
     {
         //iconRenderer = transform.Find("ElementIcon").GetComponent<SpriteRenderer>();
         int index = (int)gender; // enum to int index
-        if (GenderIcons != null &&
-            GenderIcons.Length > index &&
-            GenderIcons[index] != null)
+        if (genderIcons != null &&
+            genderIcons.Length > index &&
+            genderIcons[index] != null)
         {
-            return GenderIcons[index];
+            return genderIcons[index];
         }
         else
         {
-            return GenderIcons[0]; // or set to a default/placeholder icon
+            return genderIcons[0]; // or set to a default/placeholder icon
         }
     }
 
     public Color GetPositionColor(Position position)
     {
         int index = (int)position; // enum to int index
-        if (PositionColors != null &&
-            PositionColors.Length > index &&
-            PositionColors[index] != null)
+        if (positionColors != null &&
+            positionColors.Length > index &&
+            positionColors[index] != null)
         {
-            return PositionColors[index];
+            return positionColors[index];
         }
         else
         {

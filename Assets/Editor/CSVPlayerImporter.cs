@@ -52,6 +52,16 @@ public class CSVPlayerImporter
         int staminaIndex        = System.Array.IndexOf(headers, "stamina");
         int courageIndex        = System.Array.IndexOf(headers, "courage");
         int freedomIndex        = System.Array.IndexOf(headers, "freedom");
+        int secret1Index        = System.Array.IndexOf(headers, "secret1");
+        int secret2Index        = System.Array.IndexOf(headers, "secret2");
+        int secret3Index        = System.Array.IndexOf(headers, "secret3");
+        int secret4Index        = System.Array.IndexOf(headers, "secret4");
+        int lv1Index            = System.Array.IndexOf(headers, "lv1");
+        int lv2Index            = System.Array.IndexOf(headers, "lv2");
+        int lv3Index            = System.Array.IndexOf(headers, "lv3");
+        int lv4Index            = System.Array.IndexOf(headers, "lv4");
+
+
 
         for (int i = 1; i < lines.Length; i++)
         {
@@ -76,6 +86,14 @@ public class CSVPlayerImporter
             playerData.stamina       = int.Parse(values[staminaIndex]);
             playerData.courage       = int.Parse(values[courageIndex]);
             playerData.freedom       = int.Parse(values[freedomIndex]);
+            playerData.secret1       = values[secret1Index].Trim();
+            playerData.secret2       = values[secret2Index].Trim();
+            playerData.secret3       = values[secret3Index].Trim();
+            playerData.secret4       = values[secret4Index].Trim();
+            playerData.lv1           = int.Parse(values[lv1Index]);
+            playerData.lv2           = int.Parse(values[lv2Index]);
+            playerData.lv3           = int.Parse(values[lv3Index]);
+            playerData.lv4           = int.Parse(values[lv4Index]);
 
             string safeName = playerData.playerId.Replace(" ", "_").Replace("/", "_");
             string assetPath = $"{assetFolder}/{safeName}.asset";

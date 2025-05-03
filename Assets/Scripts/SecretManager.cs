@@ -1,6 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
+
+public enum Category { Shoot, Dribble, Block, Catch }
 
 public class SecretManager : MonoBehaviour
 {
@@ -8,6 +12,13 @@ public class SecretManager : MonoBehaviour
 
     private Dictionary<string, SecretData> secretDataDict = new Dictionary<string, SecretData>();
     private Dictionary<string, Secret> secretDict = new Dictionary<string, Secret>();
+
+    [SerializeField] private Color[] categoryColors = {
+        new Color(0.906f, 0.420f, 0.482f, 1.0f),
+        new Color(0.290f, 0.420f, 0.839f, 1.0f),
+        new Color(0.224f, 0.710f, 0.160f, 1.0f),
+        new Color(0.871f, 0.549f, 0.0f, 1.0f)
+    };
 
     void Awake()
     {
@@ -24,7 +35,7 @@ public class SecretManager : MonoBehaviour
         foreach (SecretData secretData in allSecrets)
         {
             AddSecretDataToDict(secretData);
-            Secret auxSecret = new Secret();
+            Secret auxSecret = gameObject.AddComponent<Secret>();
             auxSecret.Initialize(secretData);
             AddSecretToDict(auxSecret);
         }
@@ -67,5 +78,20 @@ public class SecretManager : MonoBehaviour
 
         Debug.LogWarning("Secret not found: " + secretId);
         return null;
+    }
+
+    public Color GetCategoryColor(Category category)
+    {
+        int index = (int)category;
+        if (categoryColors != null &&
+            categoryColors.Length > index &&
+            categoryColors[index] != null)
+        {
+            return categoryColors[index];
+        }
+        else
+        {
+            return new Color();
+        }
     }
 }

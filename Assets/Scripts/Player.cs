@@ -36,15 +36,17 @@ public class Player : MonoBehaviour
     [SerializeField] private const int maxLv = 99;
     [SerializeField] private const int maxMore = 50;
     [SerializeField] [Range(0f, 1f)] private float minStatRatio = 0.1f; // Value at level 1 is 10% of max stat
+    [SerializeField] private List<Secret> currentSecret;
     [SerializeField] private List<Secret> learnedSecret;
-    private List<SecretLearnEntry> learnSet;
+    [SerializeField] private List<SecretLearnEntry> learnSet;
+    [SerializeField] private int[] baseStats = new int[9]; // Match PlayerStats enum count
+    [SerializeField] private int[] moreStats = new int[9];
+    [SerializeField] private int[] currStats = new int[9];
+    [SerializeField] private int baseFreedom;
+    [SerializeField] private int currFreedom;
     private int maxHp;
     private int maxSp;
-    private int baseFreedom;
-    private int currFreedom;
-    private int[] baseStats = new int[9]; // Match PlayerStats enum count
-    private int[] moreStats = new int[9];
-    private int[] currStats = new int[9];
+
     private Collider[] colliders;
 
 
@@ -101,6 +103,17 @@ public class Player : MonoBehaviour
         baseStats[8] = playerData.courage;
         baseFreedom = playerData.freedom;
 
+        int[] learnSetLv = { playerData.lv1, playerData.lv2, playerData.lv3, playerData.lv4 };
+        string[] learnSetSecret = { playerData.secret1, playerData.secret2, playerData.secret3, playerData.secret4 };
+
+        for (int i = 0; i < learnSetLv.Length; i++)
+        {
+            learnSet.Add(new SecretLearnEntry {
+                lv = learnSetLv[i],
+                secretId = learnSetSecret[i]
+            });
+        }
+
         //sprite
         Sprite spriteAux = null;
 
@@ -124,9 +137,10 @@ public class Player : MonoBehaviour
             Debug.LogWarning("Sprite not found for portrait: " + playerData.playerId);
         }
 
-        learnSet = playerData.learnSet;
         // Additional initialization logic can go here
         UpdateStats();
+        learnedSecret = GetLearnedSecretByLv();
+        currentSecret.AddRange(learnedSecret);
     }
 
     void Awake()
@@ -301,4 +315,34 @@ public class Player : MonoBehaviour
         return secres;
     }
 
+    public PlayerSaveData ToSaveData()
+    {
+        return new PlayerSaveData
+        {
+            playerId = this.playerId,
+            lv = this.lv,
+            moreStats = (int[])this.moreStats.Clone(), // Deep copy
+            currFreedom = this.currFreedom,
+            currentSecretIds = this.currentSecret?.ConvertAll(sec => sec.SecretId) ?? new List<string>(),
+            learnedSecretIds = this.learnedSecret?.ConvertAll(sec => sec.SecretId) ?? new List<string>()
+        };
+    }
+
+    public void FromSaveData(PlayerSaveData data, PlayerData template)
+    {
+        Initialize(template);  // Reset everything (or just set the parts that never change)
+
+        this.lv = data.lv;
+
+        Array.Copy(data.moreStats, this.moreStats, Mathf.Min(data.moreStats.Length, this.moreStats.Length));
+        this.currFreedom = data.currFreedom;
+
+        this.currentSecret = data.currentSecretIds?
+            .ConvertAll(id => SecretManager.Instance.GetSecretById(id)) ?? new List<Secret>();
+
+        this.learnedSecret = data.learnedSecretIds?
+            .ConvertAll(id => SecretManager.Instance.GetSecretById(id)) ?? new List<Secret>();
+        
+        UpdateStats();
+    }
 }

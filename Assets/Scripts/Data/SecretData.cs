@@ -6,6 +6,7 @@ public class SecretData : ScriptableObject
     public string secretId;
     public string secretNameEn;
     public string secretNameJa;
+    public string category;
     public string element;
     public int power;
     public int cost;
