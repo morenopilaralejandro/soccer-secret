@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum Element { Fire, Ice, Light, Evil, Air, Forest, Earth, Electric, Water }
+public enum Element { Fire, Ice, Holy, Evil, Air, Forest, Earth, Electric, Water }
 
 public enum Position { Fw, Mf, Df, Gk }
 
@@ -20,7 +20,7 @@ public class ElementManager : MonoBehaviour
     };
     [SerializeField] private Sprite[] elementIcons; // assign in Inspector, matches elementOrder
     [SerializeField] private Sprite[] genderIcons; // assign in Inspector, matches Gender Order
-    [SerializeField] private Element[] elementOrder = { Element.Fire, Element.Ice, Element.Light, Element.Evil, Element.Air, Element.Forest, Element.Earth, Element.Electric, Element.Water };
+    [SerializeField] private Element[] elementOrder = { Element.Fire, Element.Ice, Element.Holy, Element.Evil, Element.Air, Element.Forest, Element.Earth, Element.Electric, Element.Water };
 
     private void Awake()
     {
