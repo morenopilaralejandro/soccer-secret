@@ -8,6 +8,7 @@ ScriptsOnlyBuild:
     - BarUI
     - CameraFOVAdjuster
     - DrawLineOnDrag
+    - DuelCollider
     - ElementManager
     - GameManager
     - Player
@@ -23,9 +24,13 @@ ScriptsOnlyBuild:
     - UnityEngine.AdaptivePerformance.Google.Android.GoogleAndroidProviderSettings
     Unity.AdaptivePerformance.Samsung.Android.dll:
     - UnityEngine.AdaptivePerformance.Samsung.Android.SamsungAndroidProviderSettings
+    Unity.AdaptivePerformance.Simulator.Editor.dll:
+    - UnityEditor.AdaptivePerformance.Simulator.Editor.SimulatorProviderSettings
     Unity.AdaptivePerformance.dll:
     - UnityEngine.AdaptivePerformance.AdaptivePerformanceGeneralSettings
     - UnityEngine.AdaptivePerformance.AdaptivePerformanceManagerSettings
+    Unity.Mobile.AndroidLogcat.Editor.dll:
+    - Unity.Android.Logcat.AndroidLogcatManager
     Unity.PlasticSCM.Editor.dll:
     - Unity.PlasticSCM.Editor.PlasticWindow
     Unity.Rider.Editor.dll:
@@ -144,45 +149,47 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 17328}
     - Class: 114
-      Script: {instanceID: 17782}
+      Script: {instanceID: 17626}
     - Class: 114
-      Script: {instanceID: 17818}
+      Script: {instanceID: 17784}
     - Class: 114
-      Script: {instanceID: 17930}
+      Script: {instanceID: 17820}
     - Class: 114
-      Script: {instanceID: 18000}
+      Script: {instanceID: 17932}
     - Class: 114
-      Script: {instanceID: 18282}
+      Script: {instanceID: 18002}
     - Class: 114
-      Script: {instanceID: 18312}
+      Script: {instanceID: 18284}
     - Class: 114
-      Script: {instanceID: 18698}
+      Script: {instanceID: 18314}
     - Class: 114
-      Script: {instanceID: 19050}
+      Script: {instanceID: 18700}
     - Class: 114
-      Script: {instanceID: 19356}
+      Script: {instanceID: 19052}
     - Class: 114
-      Script: {instanceID: 19626}
+      Script: {instanceID: 19358}
     - Class: 114
-      Script: {instanceID: 19732}
+      Script: {instanceID: 19628}
     - Class: 114
-      Script: {instanceID: 20368}
+      Script: {instanceID: 19734}
     - Class: 114
-      Script: {instanceID: 20826}
+      Script: {instanceID: 20370}
     - Class: 114
-      Script: {instanceID: 20942}
+      Script: {instanceID: 20828}
     - Class: 114
-      Script: {instanceID: 21104}
+      Script: {instanceID: 20944}
     - Class: 114
-      Script: {instanceID: 21456}
+      Script: {instanceID: 21106}
     - Class: 114
-      Script: {instanceID: 21762}
+      Script: {instanceID: 21458}
     - Class: 114
-      Script: {instanceID: 22306}
+      Script: {instanceID: 21764}
     - Class: 114
-      Script: {instanceID: 22898}
+      Script: {instanceID: 22308}
     - Class: 114
-      Script: {instanceID: 23360}
+      Script: {instanceID: 22900}
+    - Class: 114
+      Script: {instanceID: 26112}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 120
@@ -342,6 +349,12 @@ ScriptsOnlyBuild:
     className: RawImage
   - hash:
       serializedVersion: 2
+      Hash: ec24290b43ed6434b1803494bff095fa
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: PlayerData
+  - hash:
+      serializedVersion: 2
       Hash: 1321993db8249e1e05e1e0492b2bbdc3
     assemblyName: Unity.VisualScripting.Core
     namespaceName: Unity.VisualScripting
@@ -480,7 +493,7 @@ ScriptsOnlyBuild:
     className: UnityOnDropdownValueChangedMessageListener
   - hash:
       serializedVersion: 2
-      Hash: bb6f1e3ac993b396aabaec47ffeec108
+      Hash: e916b04be21d340e53e54409ae860fa3
     assemblyName: Assembly-CSharp
     namespaceName: 
     className: BallBehavior
@@ -1272,10 +1285,10 @@ ScriptsOnlyBuild:
     className: UnityOnSliderValueChangedMessageListener
   - hash:
       serializedVersion: 2
-      Hash: ec24290b43ed6434b1803494bff095fa
+      Hash: 68c504222f6b75347467e2b54b75a5ea
     assemblyName: Assembly-CSharp
     namespaceName: 
-    className: PlayerData
+    className: DuelCollider
   platform: 13
   scenePathNames:
   - Assets/Scenes/Battle.unity
