@@ -16,6 +16,7 @@ public class Player : MonoBehaviour
     public Position Position => position;
     public bool IsAlly;
     public bool IsAi;
+    public bool IsPossession;
     public bool IsStunned => isStunned;
     public int Lv => lv;
     public Sprite SpritePlayer => spritePlayer;
@@ -33,8 +34,8 @@ public class Player : MonoBehaviour
     [SerializeField] private Sprite spritePortrait;
     [SerializeField] private string pathPlayer = "Player/";
     [SerializeField] private string pathPortrait = "Portrait/";
-    [SerializeField] private const int maxLv = 99;
-    [SerializeField] private const int maxMore = 50;
+    [SerializeField] private const int MAX_LV = 99;
+    [SerializeField] private const int MAX_MORE = 50;
     [SerializeField] [Range(0f, 1f)] private float minStatRatio = 0.1f; // Value at level 1 is 10% of max stat
     [SerializeField] private List<Secret> currentSecret;
     [SerializeField] private List<Secret> learnedSecret;
@@ -88,6 +89,7 @@ public class Player : MonoBehaviour
 
         IsAlly = true;
         IsAi = false;
+        IsPossession = false;
         isStunned = false;
 
         lv = 99;
@@ -204,7 +206,7 @@ public class Player : MonoBehaviour
     //Lv
     public void LevelUp()
     {
-        if(Lv < maxLv)
+        if(Lv < MAX_LV)
         {
             lv++;
             UpdateStats();
@@ -214,7 +216,7 @@ public class Player : MonoBehaviour
     private int ScaleStat(int maxStat)
     {
         // Linear down-scaling: at lvl 1 it's minStatRatio, at 99 it's 1.0 of maxStat
-        float t = (float)(Lv - 1) / (maxLv - 1);
+        float t = (float)(Lv - 1) / (MAX_LV - 1);
         float statValue = maxStat * Mathf.Lerp(minStatRatio, 1f, t);
         return Mathf.RoundToInt(statValue);
     }
@@ -241,7 +243,7 @@ public class Player : MonoBehaviour
 
     public bool IsTrainable(PlayerStats stat)
     {
-        if (moreStats[(int)stat] >= maxMore)
+        if (moreStats[(int)stat] >= MAX_MORE)
             return false;
 
         int totalTrained = 0;
@@ -256,7 +258,7 @@ public class Player : MonoBehaviour
 
     public void TrainStat(PlayerStats playerStat, int amount)
     {
-        moreStats[(int)playerStat] = Mathf.Clamp(moreStats[(int)playerStat] + amount, 0, maxMore);
+        moreStats[(int)playerStat] = Mathf.Clamp(moreStats[(int)playerStat] + amount, 0, MAX_MORE);
         ReduceFreedom(amount);
     }
 

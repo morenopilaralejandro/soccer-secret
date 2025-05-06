@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 9113836751410960419}
   - component: {fileID: 6840228469205287805}
   - component: {fileID: 1296286090994406984}
-  - component: {fileID: 6459689442005166128}
   - component: {fileID: 298896159515212001}
+  - component: {fileID: 5691284942188683218}
   m_Layer: 6
   m_Name: Opp
   m_TagString: Player
@@ -194,27 +194,6 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 0
---- !u!65 &6459689442005166128
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 68784767611044830}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.32, y: 0.64000016, z: 0.20000005}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &298896159515212001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -229,6 +208,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   IsAlly: 0
   IsAi: 0
+  IsPossession: 0
   playerId: 
   playerNameEn: 
   playerNameJa: 
@@ -250,6 +230,29 @@ MonoBehaviour:
   currStats: 000000000000000000000000000000000000000000000000000000000000000000000000
   baseFreedom: 0
   currFreedom: 0
+--- !u!136 &5691284942188683218
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 68784767611044830}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.15
+  m_Height: 0.4
+  m_Direction: 1
+  m_Center: {x: 0, y: -0.12, z: 0}
 --- !u!1 &4421736091340814814
 GameObject:
   m_ObjectHideFlags: 0
@@ -563,9 +566,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2016148872407843991}
-  - component: {fileID: 8153927905393683540}
   - component: {fileID: 29052648887491335}
   - component: {fileID: 269513583972378874}
+  - component: {fileID: 8439183972207156863}
   m_Layer: 11
   m_Name: DuelCollider
   m_TagString: Opp
@@ -588,27 +591,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 9113836751410960419}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &8153927905393683540
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8807385040578179729}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.5, y: 0.8, z: 0.1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &29052648887491335
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -621,7 +603,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1100d7f10c69f7030be51323e9320451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ball: {fileID: 0}
 --- !u!54 &269513583972378874
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -649,3 +630,26 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 1
+--- !u!136 &8439183972207156863
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8807385040578179729}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.15
+  m_Height: 0.4
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}

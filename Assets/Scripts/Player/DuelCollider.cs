@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class DuelCollider : MonoBehaviour
 {
-    public BallBehavior ball;
-
     // Start is called before the first frame update
     void Start()
     {
@@ -25,16 +23,22 @@ public class DuelCollider : MonoBehaviour
         GameObject otherRootObj = otherDuelCollider.transform.root.gameObject;
 
         // Get the tag of the player in possession
-        string possesionPlayerTag = tag;
+        string possessionPlayerTag = tag;
 
         // Get the tag of the other collider
         string otherPlayerTag = otherDuelCollider.tag;
 
-        Debug.Log("DuelCollider Tags: (" + possesionPlayerTag + ", " + otherPlayerTag + ")");
+        Debug.Log("DuelCollider Tags: (" + possessionPlayerTag + ", " + otherPlayerTag + ")");
         // If tags are different and both are either "Ally" or "Opp"
-        if (thisRootObj == ball.possesionPlayer && possesionPlayerTag != null && (otherPlayerTag == "Ally" || otherPlayerTag == "Opp") && possesionPlayerTag != otherPlayerTag)
+ 
+        if (thisRootObj.GetComponent<Player>().IsPossession
+            && possessionPlayerTag != null 
+            && (otherPlayerTag == "Ally" 
+            || otherPlayerTag == "Opp") 
+            && possessionPlayerTag != otherPlayerTag)
         {            
             GameManager.Instance.HandleDuel(thisRootObj, otherRootObj, 0);
         }
+       
     }
 }

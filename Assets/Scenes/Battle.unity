@@ -280,33 +280,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b0a36dd019f384f7b019ab779c54832, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  possessionDistance: 0.2
+  mainCamera: {fileID: 1412624558}
+  rb: {fileID: 112661219}
+  isPossessed: 0
+  isDragging: 0
+  touchStartPos: {x: 0, y: 0}
+  touchEndPos: {x: 0, y: 0}
+  dragThreshold: 2
   kickForce: 2
   maxForceDistance: 3
   maxVelocity: 10
   dribbleSpeed: 10
-  possessionCooldown: 0.3
-  verticalForceMultiplier: 0.2
+  possessionCooldown: 0.2
+  possessionPlayer: {fileID: 0}
+  lastPossessionPlayer: {fileID: 0}
   crosshairImage: {fileID: 1332661631}
   crosshairDisplayDuration: 0.2
-  mainCamera: {fileID: 0}
-  rb: {fileID: 0}
-  possesionPlayer: {fileID: 0}
-  isPossessed: 0
-  isDragging: 0
-  lastKickTime: -Infinity
-  touchStartPos: {x: 0, y: 0}
-  touchEndPos: {x: 0, y: 0}
-  allyPlayers:
-  - {fileID: 551947106550313408}
-  - {fileID: 954059574}
-  - {fileID: 1713767307}
-  - {fileID: 1070242207}
-  oppPlayers:
-  - {fileID: 2570814976421121462}
-  - {fileID: 1870062271}
-  - {fileID: 2034816058}
-  - {fileID: 1460781099}
 --- !u!1 &117029089
 GameObject:
   m_ObjectHideFlags: 0
