@@ -428,6 +428,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b439e9f663abcab9598295a4e9bd8fdb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 1820447550172888761}
+  lineRenderer: {fileID: 2240819543781236569}
+  touchArea: {fileID: 814698588436293653}
+  mainCamera: {fileID: 0}
+  isDragging: 0
+  isMoving: 0
   hpThresholdLow: 10
   hpThresholdHigh: 30
   speedBase: 0.2
@@ -436,17 +442,17 @@ MonoBehaviour:
   speedDebuffDefault: 1
   speedDebuffLow: 0.5
   speedDebuffHigh: 0.2
-  minSegmentDistance: 0.2
+  minSegmentDistance: 0.3
   maxLineLength: 5
+  awaitingFirstSegment: 0
   ignoreLayer:
     serializedVersion: 2
-    m_Bits: 769
-  playerChildWithCollider: {fileID: 4472173290169371704}
+    m_Bits: 2624
   boundTop: {fileID: 0}
   boundBottom: {fileID: 0}
   boundLeft: {fileID: 0}
   boundRight: {fileID: 0}
-  bottomOffset: 0.5
+  bottomOffset: 0.2
 --- !u!114 &1820447550172888761
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -470,10 +476,11 @@ MonoBehaviour:
   element: 0
   position: 0
   isStunned: 0
+  isKicking: 0
   spritePlayer: {fileID: 0}
   spritePortrait: {fileID: 0}
   pathPlayer: Player/
-  pathPortrait: Portrait/
+  pathPortrait: PlayerPortrait/
   minStatRatio: 0.1
   currentSecret: []
   learnedSecret: []

@@ -17,12 +17,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float timeRemaining = 180f; // 3 minutes
     [SerializeField] private TextMeshProUGUI timerText;
 
-    [SerializeField] private PlayerCardUI playerCard0;
-    [SerializeField] private PlayerCardUI playerCard1;
-    [SerializeField] private BarUI barHp0;
-    [SerializeField] private BarUI barHp1;
-    [SerializeField] private BarUI barSp0;
-    [SerializeField] private BarUI barSp1;
+    [SerializeField] private PlayerCard playerCard0;
+    [SerializeField] private PlayerCard playerCard1;
+    [SerializeField] private Bar barHp0;
+    [SerializeField] private Bar barHp1;
+    [SerializeField] private Bar barSp0;
+    [SerializeField] private Bar barSp1;
     [SerializeField] private GameObject imagePossesion0;
     [SerializeField] private GameObject imagePossesion1;
 

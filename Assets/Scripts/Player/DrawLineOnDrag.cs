@@ -3,39 +3,41 @@ using System.Collections.Generic;
 
 public class DrawLineOnDrag : MonoBehaviour
 {
-    private Player player;
-    private LineRenderer lineRenderer;
-    private bool isDragging = false;
-    private Camera mainCamera;
+    [SerializeField] private Player player;
+    [SerializeField] private LineRenderer lineRenderer;
+    [SerializeField] private Collider touchArea;
+    [SerializeField] private Camera mainCamera;
+    [SerializeField] private bool isDragging = false;
     private List<Vector3> linePoints = new List<Vector3>();
     private int currentPointIndex = 0;
-    private bool isMoving = false;
-    
+    [SerializeField] private bool isMoving = false;
+    [SerializeField] private float moveTolerance = 0.1f;
+
+
+    private float lastHpValue = float.MinValue;
     [SerializeField] private int hpThresholdLow = 10;
     [SerializeField] private int hpThresholdHigh = 30;
-    [SerializeField] private float speedBase = 0.2f;
+    private float speedBase = 0.2f;
     [SerializeField] private float speedMultiplier = 0.02f;
-    [SerializeField] private float speedDebuff = 1f;
+    private float speedDebuff = 1f;
     [SerializeField] private float speedDebuffDefault = 1f;
     [SerializeField] private float speedDebuffLow = 0.5f;
     [SerializeField] private float speedDebuffHigh = 0.2f;
 
-    [SerializeField] private float minSegmentDistance = 0.2f;
+    [SerializeField] private float minSegmentDistance = 0.3f;
     [SerializeField] private float maxLineLength = 6f;
+    private bool awaitingFirstSegment = false;
     [SerializeField] private LayerMask ignoreLayer;
-    [SerializeField] private Transform playerChildWithCollider;
 
     [SerializeField] private BoxCollider boundTop;
     [SerializeField] private BoxCollider boundBottom;
     [SerializeField] private BoxCollider boundLeft;
     [SerializeField] private BoxCollider boundRight;
-    [SerializeField] private float bottomOffset = 0.5f;
+    [SerializeField] private float bottomOffset = 0.2f;
 
     void Start()
     {
-        lineRenderer = GetComponent<LineRenderer>();
-        player = GetComponent<Player>();
-        mainCamera = Camera.main;
+
     }
 
     void Update()
@@ -44,6 +46,7 @@ public class DrawLineOnDrag : MonoBehaviour
         {
             Touch touch = Input.GetTouch(0);
             Vector3 touchPosition = mainCamera.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, mainCamera.nearClipPlane));
+            touchPosition.y = 0f;
 
             switch (touch.phase)
             {
@@ -51,22 +54,50 @@ public class DrawLineOnDrag : MonoBehaviour
                     if (IsTouchingCharacter(touch.position))
                     {
                         isDragging = true;
-                        lineRenderer.positionCount = 0;
-                        linePoints.Clear();
+                        awaitingFirstSegment = true; // We're waiting for the first drag
                     }
                     break;
 
                 case TouchPhase.Moved:
                     if (isDragging)
                     {
-                        touchPosition.y = 0;
-                        if (CanAddPoint(touchPosition) 
-                            && IsWithinBounds(touchPosition) 
-                            && IsFarEnough(touchPosition))
+                        // No line yet, so just add normally
+                        if (linePoints.Count == 0)
                         {
-                            lineRenderer.positionCount++;
-                            lineRenderer.SetPosition(lineRenderer.positionCount - 1, touchPosition);
-                            linePoints.Add(touchPosition);
+                            if (CanAddPoint(touchPosition) && IsWithinBounds(touchPosition))
+                            {
+                                lineRenderer.positionCount = 1;
+                                lineRenderer.SetPosition(0, touchPosition);
+                                linePoints.Add(touchPosition);
+                                awaitingFirstSegment = false; // Done!
+                            }
+                        }
+                        // Existing line, and this is first movement since Began
+                        else if (awaitingFirstSegment)
+                        {
+                            float dist = Vector3.Distance(linePoints[linePoints.Count - 1], touchPosition);
+                            if (dist >= minSegmentDistance)
+                            {
+                                // Clear old line, start a new one!
+                                linePoints.Clear();
+                                lineRenderer.positionCount = 0;
+
+                                lineRenderer.positionCount = 1;
+                                lineRenderer.SetPosition(0, touchPosition);
+                                linePoints.Add(touchPosition);
+                            }
+                            // Else do not add, just wait for further movement or drag end
+                            awaitingFirstSegment = false; // Don't wait anymore
+                        }
+                        else
+                        {
+                            // Regular ongoing drag, add new points if minSegmentDistance met
+                            if (CanAddPoint(touchPosition) && IsWithinBounds(touchPosition) && IsFarEnough(touchPosition))
+                            {
+                                lineRenderer.positionCount++;
+                                lineRenderer.SetPosition(lineRenderer.positionCount - 1, touchPosition);
+                                linePoints.Add(touchPosition);
+                            }
                         }
                     }
                     break;
@@ -74,6 +105,7 @@ public class DrawLineOnDrag : MonoBehaviour
                 case TouchPhase.Ended:
                 case TouchPhase.Canceled:
                     isDragging = false;
+                    awaitingFirstSegment = false;
                     if (linePoints.Count > 0)
                     {
                         isMoving = true;
@@ -83,11 +115,8 @@ public class DrawLineOnDrag : MonoBehaviour
             }
         }
 
-        if (player.IsStunned)
-        {
-            // Optionally, you could play a stun animation or effects here
+        if (player.IsStunned || player.IsKicking)
             return; // Don't process movement
-        }
 
         if (isMoving && !GameManager.Instance.IsMovementFrozen)
         {
@@ -103,7 +132,7 @@ public class DrawLineOnDrag : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, ~ignoreLayer))
         {
-            return hit.collider.gameObject == playerChildWithCollider.gameObject;
+            return hit.collider == touchArea;
         }
         return false;
     }
@@ -133,6 +162,17 @@ public class DrawLineOnDrag : MonoBehaviour
         return distance >= minSegmentDistance;
     }
 
+    private float GetLineLength()
+    {
+        if (linePoints.Count < 2) return 0f;
+        float length = 0f;
+        for (int i = 0; i < linePoints.Count - 1; i++)
+        {
+            length += Vector3.Distance(linePoints[i], linePoints[i + 1]);
+        }
+        return length;
+    }
+
     private bool IsWithinBounds(Vector3 point)
     {
         return point.x >= boundLeft.bounds.min.x && point.x <= boundRight.bounds.max.x &&
@@ -150,7 +190,7 @@ public class DrawLineOnDrag : MonoBehaviour
             Vector3 newPosition = Vector3.MoveTowards(transform.position, targetPosition, speed);
             transform.position = newPosition;
 
-            if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
+            if (Vector3.Distance(transform.position, targetPosition) < moveTolerance)
             {
                 linePoints.RemoveAt(currentPointIndex);
                 lineRenderer.positionCount = linePoints.Count;
@@ -167,14 +207,16 @@ public class DrawLineOnDrag : MonoBehaviour
         return (player.GetStat(PlayerStats.Speed) * speedMultiplier + speedBase) * speedDebuff * Time.deltaTime;
     }
 
-    private void CalcSpeedDebuff(Player player) {
+    private void CalcSpeedDebuff(Player player)
+    {
         int playerHp = player.GetStat(PlayerStats.Hp);
-        if (playerHp <= hpThresholdLow) {
-            speedDebuff = speedDebuffLow;
-        } else if (playerHp <= hpThresholdHigh) {
-            speedDebuff = speedDebuffHigh;
-        } else {
-            speedDebuff = speedDebuffDefault;
-        }
+        // Only recalculate if HP actually changed (if not, skip assignment, saves possible further calcs/use)
+        if (Mathf.Approximately(playerHp, lastHpValue)) return;
+
+        lastHpValue = playerHp; // update cache
+
+        speedDebuff = playerHp <= hpThresholdLow ? speedDebuffLow :
+                      playerHp <= hpThresholdHigh ? speedDebuffHigh :
+                      speedDebuffDefault;
     }
 }

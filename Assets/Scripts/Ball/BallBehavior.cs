@@ -69,6 +69,15 @@ public class BallBehavior : MonoBehaviour
                 case TouchPhase.Ended:
                     touchEndPos = touch.position;
                     bool isTap = !isDragging && Vector2.Distance(touchStartPos, touchEndPos) < dragThreshold;
+
+                    // Handle crosshair tap to cancel pending kick
+                    if (GameManager.Instance.IsMovementFrozen && IsTouchingCrosshair(touchEndPos))
+                    {
+                        pendingKickTarget = null;
+                        HideCrosshairImmediately();
+                        break; // Do not process as a kick
+                    }
+
                     if (isPossessed && possessionPlayer && possessionPlayer.IsAlly && isTap)
                     {
                         crosshairImage.transform.position = touchEndPos;
@@ -93,6 +102,7 @@ public class BallBehavior : MonoBehaviour
                     }
                     break;
                 case TouchPhase.Canceled:
+                    pendingKickTarget = null;
                     hideCrosshairCoroutine = StartCoroutine(HideCrosshairAfterDelay());
                     break;
             }
@@ -114,6 +124,9 @@ public class BallBehavior : MonoBehaviour
     {
         isPossessed = false;
         rb.isKinematic = false;
+
+        if (possessionPlayer != null)
+            StartCoroutine(possessionPlayer.KickCoroutine());
 
         // Convert the screen position to a world position
         Vector3 touchPosition = mainCamera.ScreenToWorldPoint(new Vector3(targetScreenPosition.x, targetScreenPosition.y, mainCamera.nearClipPlane));
@@ -220,4 +233,15 @@ public class BallBehavior : MonoBehaviour
             StopCoroutine(hideCrosshairCoroutine);
         if (crosshairImage) crosshairImage.enabled = false;
     }
+
+    private bool IsTouchingCrosshair(Vector2 screenPosition)
+    {
+        if (!crosshairImage || !crosshairImage.enabled) return false;
+        // If your Canvas's render mode is Camera or Overlay, use Camera as needed, else pass null.
+        Canvas canvas = crosshairImage.canvas;
+        Camera eventCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+        return RectTransformUtility.RectangleContainsScreenPoint(
+            crosshairImage.rectTransform, screenPosition, eventCamera);
+    }
+
 }

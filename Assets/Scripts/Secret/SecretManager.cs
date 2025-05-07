@@ -13,6 +13,7 @@ public class SecretManager : MonoBehaviour
     private Dictionary<string, SecretData> secretDataDict = new Dictionary<string, SecretData>();
     private Dictionary<string, Secret> secretDict = new Dictionary<string, Secret>();
 
+    [SerializeField] private Sprite[] categoryIcons;
     [SerializeField] private Color[] categoryColors = {
         new Color(0.906f, 0.420f, 0.482f, 1.0f),
         new Color(0.290f, 0.420f, 0.839f, 1.0f),
@@ -78,6 +79,21 @@ public class SecretManager : MonoBehaviour
 
         Debug.LogWarning("Secret not found: " + secretId);
         return null;
+    }
+
+    public Sprite GetCategoryIcon(Category category)
+    {
+        int index = (int)category;
+        if (categoryIcons != null &&
+            categoryIcons.Length > index &&
+            categoryIcons[index] != null)
+        {
+            return categoryIcons[index];
+        }
+        else
+        {
+            return categoryIcons[0];
+        }
     }
 
     public Color GetCategoryColor(Category category)

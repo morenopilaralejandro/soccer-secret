@@ -18,6 +18,18 @@ public class ElementManager : MonoBehaviour
         new Color(2f/255f, 122f/255f, 4f/255f, 1f),
         new Color(226f/255f, 120f/255f, 0f/255f, 1f)
     };
+    [SerializeField] private Color[] elementColors = {
+        new Color(1f, 0f, 0f, 1f),
+        new Color(0.5f, 0.8f, 1f, 1f),
+        new Color(1f, 1f, 0f, 1f),
+        new Color(0.8f, 0.6f, 0.8f, 1f),
+        new Color(1f, 1f, 1f, 1f),
+        new Color(0.2f, 0.8f, 0.2f, 1f),
+        new Color(0.6f, 0.4f, 0.2f, 1f),
+        new Color(1f, 0.92f, 0.016f, 1f),
+        new Color(0f, 0f, 1f, 1f)
+    };
+
     [SerializeField] private Sprite[] elementIcons; // assign in Inspector, matches elementOrder
     [SerializeField] private Sprite[] genderIcons; // assign in Inspector, matches Gender Order
     [SerializeField] private Element[] elementOrder = { Element.Fire, Element.Ice, Element.Holy, Element.Evil, Element.Air, Element.Forest, Element.Earth, Element.Electric, Element.Water };
@@ -100,6 +112,21 @@ public class ElementManager : MonoBehaviour
             positionColors[index] != null)
         {
             return positionColors[index];
+        }
+        else
+        {
+            return new Color();
+        }
+    }
+
+    public Color GetElementColor(Element element)
+    {
+        int index = (int)element; // enum to int index
+        if (elementColors != null &&
+            elementColors.Length > index &&
+            elementColors[index] != null)
+        {
+            return elementColors[index];
         }
         else
         {

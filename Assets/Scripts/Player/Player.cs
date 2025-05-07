@@ -18,6 +18,7 @@ public class Player : MonoBehaviour
     public bool IsAi;
     public bool IsPossession;
     public bool IsStunned => isStunned;
+    public bool IsKicking => isKicking;
     public int Lv => lv;
     public Sprite SpritePlayer => spritePlayer;
     public Sprite SpritePortrait => spritePortrait;
@@ -30,10 +31,11 @@ public class Player : MonoBehaviour
     [SerializeField] private Element element;
     [SerializeField] private Position position;
     [SerializeField] private bool isStunned;
+    [SerializeField] private bool isKicking;
     [SerializeField] private Sprite spritePlayer;
     [SerializeField] private Sprite spritePortrait;
     [SerializeField] private string pathPlayer = "Player/";
-    [SerializeField] private string pathPortrait = "Portrait/";
+    [SerializeField] private string pathPortrait = "PlayerPortrait/";
     [SerializeField] private const int MAX_LV = 99;
     [SerializeField] private const int MAX_MORE = 50;
     [SerializeField] [Range(0f, 1f)] private float minStatRatio = 0.1f; // Value at level 1 is 10% of max stat
@@ -129,13 +131,15 @@ public class Player : MonoBehaviour
             Debug.LogWarning("Sprite not found for portrait: " + playerData.playerId);
         }
 
-        spriteAux = Resources.Load<Sprite>(pathPortrait + "portrait");
+        spriteAux = Resources.Load<Sprite>(pathPortrait + playerData.playerId);
         if (spriteAux != null)
         {
             spritePortrait = spriteAux;
         }
         else
         {
+            spriteAux = Resources.Load<Sprite>(pathPortrait + "default");
+            spritePortrait = spriteAux;
             Debug.LogWarning("Sprite not found for portrait: " + playerData.playerId);
         }
 
@@ -194,6 +198,14 @@ public class Player : MonoBehaviour
         }
         // Always end visible
         SetYPosition(0f);
+    }
+
+    public IEnumerator KickCoroutine()
+    {
+        float duration = 0.3f;
+        isKicking = true;
+        yield return new WaitForSeconds(duration);
+        isKicking = false;
     }
 
     private void SetYPosition(float yVal)
