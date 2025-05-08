@@ -39,6 +39,7 @@ public class PlayerCard : MonoBehaviour
             textName.text = player.PlayerNameEn;
             playerPortrait.SetPlayerImage(player.SpritePortrait);
             imageElement.sprite = ElementManager.Instance.GetElementIcon(player.Element);
+            imageGender.sprite = ElementManager.Instance.GetGenderIcon(player.Gender); 
         }
         else
         {

@@ -37,7 +37,7 @@ public class PlayerManager : MonoBehaviour
     void InitializeAlly()
     {
         string[] ids = {"025", "067", "015", "102"};
-        string wearId = "w001";
+        string wearId = "T1";
         for (int i = 0; i < playerAllyObjects.Length; i++)
         {
             GameObject playerObject = playerAllyObjects[i];      
@@ -49,7 +49,7 @@ public class PlayerManager : MonoBehaviour
     void InitializeOpp()
     {
         string[] ids = {"044", "001", "030", "002"};
-        string wearId = "w002";
+        string wearId = "T2";
         for (int i = 0; i < playerAllyObjects.Length; i++)
         {
             GameObject playerObject = playerOppObjects[i];      

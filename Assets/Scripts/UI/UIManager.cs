@@ -30,9 +30,6 @@ public class UIManager : MonoBehaviour
     {
         panelBottom.SetActive(visible);
         buttonInfo.SetActive(visible);
-        if (!visible) {
-            SetDuelUiExtraVisible(visible);
-        }
     }
 
     public void SetDuelUiExtraVisible(bool visible)
