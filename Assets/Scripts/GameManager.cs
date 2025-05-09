@@ -139,8 +139,8 @@ public class GameManager : MonoBehaviour
                 duelCommand[i] = 1;
                 duelSecret[i] = null;
             } else {
-                UIManager.Instance.DuelPlayerIndex = i;
-                UIManager.Instance.DuelPlayer = auxPlayer;
+                UIManager.Instance.UserIndex = i;
+                UIManager.Instance.UserPlayer = auxPlayer;
                 if (duelAction[i] == 0) 
                 {
                     imagePossesion0.SetActive(true);
@@ -155,9 +155,9 @@ public class GameManager : MonoBehaviour
                         if (duelAction[i] == 0) 
                         {
                             //ui dribble only select dribble secret
-                            UIManager.Instance.SecretCat = Category.Dribble;
+                            UIManager.Instance.UserCategory = Category.Dribble;
                         } else {
-                            UIManager.Instance.SecretCat = Category.Block;
+                            UIManager.Instance.UserCategory = Category.Block;
                         }
                         break;
                     default:

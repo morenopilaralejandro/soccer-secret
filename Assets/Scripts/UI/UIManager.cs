@@ -4,9 +4,15 @@ public class UIManager : MonoBehaviour
 {
     // Singleton instance (optional, for easy accessibility)
     public static UIManager Instance { get; private set; }
-    public int DuelPlayerIndex { get; set; }
-    public Player DuelPlayer { get; set; }
-    public Category SecretCat { get; set; }
+    public int UserIndex { get; set; }
+    public Player UserPlayer { get; set; }
+    public DuelAction UserAction { get; set; }
+    public Category UserCategory { get; set; }
+
+    public int AiIndex { get; set; }
+    public Player AiPlayer { get; set; }
+    public DuelAction AiAction { get; set; }
+    public Category AiCategory { get; set; }
 
     // Assign this in the Inspector or with Find/other methods
     [SerializeField] private GameObject panelSecret;
@@ -74,19 +80,42 @@ public class UIManager : MonoBehaviour
         Debug.Log("Command0 tapped!");
         SetPanelSecretVisible(true);
         SetPanelCommandVisible(false);
-        panelSecret.GetComponent<SecretPanel>().UpdateSecretSlots(DuelPlayer.CurrentSecret, SecretCat);
+        panelSecret.GetComponent<SecretPanel>().UpdateSecretSlots(UserPlayer.CurrentSecret, UserCategory);
     }
 
     public void OnCommand1Tapped()
     {
         Debug.Log("Command1 tapped!");
-        GameManager.Instance.ExecuteDuel(DuelPlayerIndex, 1, null);
+        //DuelCommand.Phys Secret
+            DuelManager.Instance.RegisterUISelections(
+            UserIndex,
+            UserCategory,
+            UserAction,
+            DuelCommand.Phys,
+            null);
+
+        if(UserCategory == Category.Dribble) {
+            DuelManager.Instance.RegisterUISelections(
+            AiIndex,
+            AiCategory,
+            AiAction,
+            DuelCommand.Phys,
+            null);
+        }
+
+        HideDuelUi();
+        GameManager.Instance.UnfreezeGame();
+
+
+
+
+
     }
 
     public void OnCommand2Tapped()
     {
         Debug.Log("Command2 tapped!");
-        GameManager.Instance.ExecuteDuel(DuelPlayerIndex, 2, null);
+        GameManager.Instance.ExecuteDuel(UserIndex, 2, null);
     }
 
     public void OnSecretCommandSlotTapped(SecretCommandSlot secretCommandSlot)
@@ -95,7 +124,7 @@ public class UIManager : MonoBehaviour
         if (secretCommandSlot.Secret != null) {
             SetPanelSecretVisible(true);
             SetPanelCommandVisible(false);
-            GameManager.Instance.ExecuteDuel(DuelPlayerIndex, 0, secretCommandSlot.Secret);
+            GameManager.Instance.ExecuteDuel(UserIndex, 0, secretCommandSlot.Secret);
         }
     }
 }

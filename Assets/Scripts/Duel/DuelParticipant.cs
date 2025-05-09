@@ -17,7 +17,7 @@ public class DuelParticipant
     public Dictionary<(Category, DuelCommand), Func<Player, Secret, float>> damageFormulas =
         new Dictionary<(Category, DuelCommand), Func<Player, Secret, float>>()
     {
-        // Example formula for Field-Offense-Physical
+        //Dribble
         {(Category.Dribble, DuelCommand.Phys), (player, secret) =>
             player.GetStat(PlayerStats.Control) +
             player.GetStat(PlayerStats.Body) * 0.05f +
@@ -38,6 +38,33 @@ public class DuelParticipant
                 float baseDamage =
                     secret.Power * 3.0f +
                     player.GetStat(PlayerStats.Control) * 0.5f +
+                    player.GetStat(PlayerStats.Courage);
+                if (player.Element == secret.Element)
+                    baseDamage *= 1.5f;
+                return baseDamage;
+            }
+        },
+        //Block
+        {(Category.Block, DuelCommand.Phys), (player, secret) =>
+            player.GetStat(PlayerStats.Body) +
+            player.GetStat(PlayerStats.Guard) * 0.05f +
+            player.GetStat(PlayerStats.Stamina) * 0.02f +
+            player.GetStat(PlayerStats.Courage)
+        },
+
+        {(Category.Block, DuelCommand.Skill), (player, secret) =>
+            player.GetStat(PlayerStats.Body) +
+            player.GetStat(PlayerStats.Control) * 0.05f +
+            player.GetStat(PlayerStats.Stamina) * 0.02f +
+            player.GetStat(PlayerStats.Courage)
+        },
+
+        {
+            (Category.Block, DuelCommand.Secret), (player, secret) => {
+                if (secret == null) return 0f;
+                float baseDamage =
+                    secret.Power * 3.0f +
+                    player.GetStat(PlayerStats.Body) * 0.5f +
                     player.GetStat(PlayerStats.Courage);
                 if (player.Element == secret.Element)
                     baseDamage *= 1.5f;

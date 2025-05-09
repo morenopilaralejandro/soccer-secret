@@ -38,7 +38,38 @@ public class DuelCollider : MonoBehaviour
             && (otherPlayerTag == "Ally" || otherPlayerTag == "Opp")
             && possessionPlayerTag != otherPlayerTag)
         {
-            GameManager.Instance.HandleDuel(thisRootObj, otherRootObj, 0);
+            GameManager.Instance.FreezeGame();
+
+            DuelManager.Instance.ResetDuel();
+            DuelManager.Instance.RegisterTrigger(thisRootObj);
+            DuelManager.Instance.RegisterTrigger(otherRootObj);
+
+            if (cachedPlayer.IsAi) {
+                //ai
+                DuelManager.Instance.RegisterUISelections(
+                0,
+                Category.Dribble,
+                DuelAction.Offense,
+                DuelCommand.Phys,
+                null);
+
+                UIManager.Instance.UserCategory = Category.Block;
+                UIManager.Instance.UserIndex = 1;
+                UIManager.Instance.UserPlayer = otherRootObj.GetComponent<Player>();
+                UIManager.Instance.UserAction = DuelAction.Defense;
+            } else {
+                UIManager.Instance.UserCategory = Category.Dribble;
+                UIManager.Instance.UserIndex = 0;
+                UIManager.Instance.UserPlayer = cachedPlayer;
+                UIManager.Instance.UserAction = DuelAction.Offense;
+
+                UIManager.Instance.AiCategory = Category.Block;
+                UIManager.Instance.AiIndex = 1;
+                UIManager.Instance.AiPlayer = otherRootObj.GetComponent<Player>();
+                UIManager.Instance.AiAction = DuelAction.Defense;
+
+            }
+            UIManager.Instance.SetButtonDuelToggleVisible(true);
         }
     }
 }
