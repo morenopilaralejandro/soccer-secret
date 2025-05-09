@@ -95,11 +95,13 @@ public class BallBehavior : MonoBehaviour
                             pendingKickTarget = touchEndPos;
                         }
                     }
+                    /*
                     else if (hideCrosshairCoroutine != null)
                     {
                         StopCoroutine(hideCrosshairCoroutine);
                         hideCrosshairCoroutine = StartCoroutine(HideCrosshairAfterDelay());
                     }
+                    */
                     break;
                 case TouchPhase.Canceled:
                     pendingKickTarget = null;

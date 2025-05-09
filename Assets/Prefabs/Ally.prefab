@@ -80,8 +80,8 @@ Transform:
   m_GameObject: {fileID: 477999167682909589}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: -0.25, z: 0.1}
-  m_LocalScale: {x: 0.4, y: 0.1, z: 0.2}
+  m_LocalPosition: {x: 0, y: -0.25, z: 0}
+  m_LocalScale: {x: 0.4, y: 0.001, z: 0.2}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3529597046941879289}
@@ -434,17 +434,15 @@ MonoBehaviour:
   mainCamera: {fileID: 0}
   isDragging: 0
   isMoving: 0
+  moveTolerance: 0.1
   hpThresholdLow: 10
   hpThresholdHigh: 30
-  speedBase: 0.2
   speedMultiplier: 0.02
-  speedDebuff: 1
   speedDebuffDefault: 1
   speedDebuffLow: 0.5
   speedDebuffHigh: 0.2
   minSegmentDistance: 0.3
   maxLineLength: 5
-  awaitingFirstSegment: 0
   ignoreLayer:
     serializedVersion: 2
     m_Bits: 2624

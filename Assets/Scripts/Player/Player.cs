@@ -22,6 +22,8 @@ public class Player : MonoBehaviour
     public int Lv => lv;
     public Sprite SpritePlayer => spritePlayer;
     public Sprite SpritePortrait => spritePortrait;
+    public List<Secret> CurrentSecret => currentSecret;
+    public List<Secret> LearnedSecret => learnedSecret;
 
     [SerializeField] private string playerId;
     [SerializeField] private string playerNameEn;
@@ -107,8 +109,8 @@ public class Player : MonoBehaviour
         baseStats[8] = playerData.courage;
         baseFreedom = playerData.freedom;
 
-        int[] learnSetLv = { playerData.lv1, playerData.lv2, playerData.lv3, playerData.lv4 };
-        string[] learnSetSecret = { playerData.secret1, playerData.secret2, playerData.secret3, playerData.secret4 };
+        int[] learnSetLv = { playerData.lv0, playerData.lv1, playerData.lv2, playerData.lv3 };
+        string[] learnSetSecret = { playerData.secret0, playerData.secret1, playerData.secret2, playerData.secret3 };
 
         for (int i = 0; i < learnSetLv.Length; i++)
         {
@@ -318,15 +320,15 @@ public class Player : MonoBehaviour
     private List<Secret> GetLearnedSecretByLv()
     {
         //when scouted set level (ex 5) then call this method
-        List<Secret> secres = new List<Secret>();
+        List<Secret> secrets = new List<Secret>();
         foreach (var entry in learnSet)
         {
             if (lv >= entry.lv && entry.secretId != null)
             {
-                secres.Add(SecretManager.Instance.GetSecretById(entry.secretId));
+                secrets.Add(SecretManager.Instance.GetSecretById(entry.secretId));
             }
         }
-        return secres;
+        return secrets;
     }
 
     public PlayerSaveData ToSaveData()

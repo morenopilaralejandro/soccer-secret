@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 public class DrawLineOnDrag : MonoBehaviour
 {
@@ -51,6 +52,8 @@ public class DrawLineOnDrag : MonoBehaviour
             switch (touch.phase)
             {
                 case TouchPhase.Began:
+                    if (EventSystem.current && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
+                                    return;
                     if (IsTouchingCharacter(touch.position))
                     {
                         isDragging = true;

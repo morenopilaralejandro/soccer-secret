@@ -8,8 +8,6 @@ public class GameManager : MonoBehaviour
     public bool IsMovementFrozen { get; private set; } = false;
     public bool IsTimeFrozen { get; private set; } = false;
 
-    [SerializeField] private List<GameObject> allyPlayers;
-    [SerializeField] private List<GameObject> oppPlayers;    
     [SerializeField] private Transform[] players; // Array of player transforms
     [SerializeField] private Transform ball; // Transform of the ball
     [SerializeField] private Transform[] initialPlayerPositions; // Array to store initial player positions
@@ -30,7 +28,7 @@ public class GameManager : MonoBehaviour
     private int duelType;
     private int[] duelAction = new int[2];
     private int[] duelCommand = new int[2];
-    private string[] duelSecret = new string[2];
+    private Secret[] duelSecret = new Secret[2];
     private float[] duelDamage = new float[2];
 
     private void Awake()
@@ -142,6 +140,7 @@ public class GameManager : MonoBehaviour
                 duelSecret[i] = null;
             } else {
                 UIManager.Instance.DuelPlayerIndex = i;
+                UIManager.Instance.DuelPlayer = auxPlayer;
                 if (duelAction[i] == 0) 
                 {
                     imagePossesion0.SetActive(true);
@@ -156,8 +155,9 @@ public class GameManager : MonoBehaviour
                         if (duelAction[i] == 0) 
                         {
                             //ui dribble only select dribble secret
+                            UIManager.Instance.SecretCat = Category.Dribble;
                         } else {
-                            //ui block
+                            UIManager.Instance.SecretCat = Category.Block;
                         }
                         break;
                     default:
@@ -177,10 +177,10 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        UIManager.Instance.SetDuelUiMainVisible(true);
+        UIManager.Instance.SetButtonDuelToggleVisible(true);
     }
 
-    public void ExecuteDuel(int duelPlayerIndex, int command, string secret)
+    public void ExecuteDuel(int duelPlayerIndex, int command, Secret secret)
     {
         duelCommand[duelPlayerIndex] = command;
         duelSecret[duelPlayerIndex] = secret;
@@ -199,12 +199,31 @@ public class GameManager : MonoBehaviour
         //check effectiveness
         if (isSecret) 
         {
-            
+            if (duelSecret[0] != null && duelSecret[1] == null) 
+            {
+                if (ElementManager.Instance.IsEffective(duelSecret[0].Element, duelPlayers[1].GetComponent<Player>().Element)) {
+                    duelDamage[0] *= 2; 
+                } else {
+                    if (ElementManager.Instance.IsEffective(duelPlayers[1].GetComponent<Player>().Element, duelSecret[0].Element)) {
+                        duelDamage[1] *= 2; 
+                    }
+                }
+            } else {
+                //0 null 1 not null
+                if (ElementManager.Instance.IsEffective(duelPlayers[0].GetComponent<Player>().Element, duelSecret[1].Element)) {
+                    duelDamage[0] *= 2; 
+                } else {
+                    if (ElementManager.Instance.IsEffective(duelSecret[1].Element, duelPlayers[0].GetComponent<Player>().Element)) {
+                        duelDamage[1] *= 2;
+                    }
+                }
+            }
         } else {
-            if (ElementManager.Instance.IsPlayerEffective(duelPlayers[0], duelPlayers[1])) {
+            //if none use secret ElementManager.Instance.IsEffective(player.element, player.element)
+            if (ElementManager.Instance.IsEffective(duelPlayers[0].GetComponent<Player>().Element, duelPlayers[1].GetComponent<Player>().Element)) {
                 duelDamage[0] *= 2; 
             } else {
-                if (ElementManager.Instance.IsPlayerEffective(duelPlayers[1], duelPlayers[0])) {
+                if (ElementManager.Instance.IsEffective(duelPlayers[1].GetComponent<Player>().Element, duelPlayers[0].GetComponent<Player>().Element)) {
                     duelDamage[1] *= 2; 
                 }
             } 
@@ -227,23 +246,26 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        UIManager.Instance.SetDuelUiMainVisible(false);
+        UIManager.Instance.HideDuelUi();
         UnfreezeGame();
     }
 
-    public float DamageCalc(GameObject playerObject, int duelType, int action, int command, string secret)
+    public float DamageCalc(GameObject playerObject, int duelType, int action, int command, Secret secret)
     {
         /*
             duelType: 
                 0 field
-                1 goal
+                1 shoot
+                2 catch
+                3 block
+                4 chain
             action:
                 0 off
                 1 def
             command:
                 0 secret
-                1 strength
-                2 technique
+                1 phys
+                2 skill
         */
         string formulaId = "" + duelType + action + command;
         Debug.Log("formulaId: " + formulaId);
@@ -282,7 +304,20 @@ public class GameManager : MonoBehaviour
             }
         } else
         {
-            //calculate secret power and check stab
+            switch (formulaId)
+            {
+                case "000":
+                    /*dribble*/
+                    damage = secret.Power * 1.5f + player.GetStat(PlayerStats.Control) * 0.5f + player.GetStat(PlayerStats.Courage) * 0.2f;
+                    break;
+                case "010":
+                    /*block*/
+                    damage = secret.Power * 1.5f + player.GetStat(PlayerStats.Body) * 0.5f + player.GetStat(PlayerStats.Courage) * 0.2f;
+                    break;
+                default:
+                    Debug.LogWarning("Unknown formulaId: " + formulaId);
+                    break;
+            } 
         }
         return damage;
     }
@@ -290,6 +325,7 @@ public class GameManager : MonoBehaviour
     // Call this method when a goal is scored
     public void OnGoalScored()
     {
+        //TODO
         // Reset positions after a goal
         ResetPositions();
 

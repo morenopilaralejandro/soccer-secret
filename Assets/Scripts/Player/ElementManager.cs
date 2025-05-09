@@ -57,14 +57,9 @@ public class ElementManager : MonoBehaviour
         
     }
 
-    public bool IsPlayerEffective(GameObject off, GameObject def) {
-        Player offPlayer = off.GetComponent<Player>();
-        Player defPlayer = def.GetComponent<Player>();
-
-        if(offPlayer == null || defPlayer == null) return false;
-
-        int offIndex = System.Array.IndexOf(elementOrder, offPlayer.Element);
-        int defIndex = System.Array.IndexOf(elementOrder, defPlayer.Element);
+    public bool IsEffective(Element off, Element def) {
+        int offIndex = System.Array.IndexOf(elementOrder, off);
+        int defIndex = System.Array.IndexOf(elementOrder, def);
 
         // Super effective if def is the next in order (with wrap-around)
         int nextIndex = (offIndex + 1) % elementOrder.Length;

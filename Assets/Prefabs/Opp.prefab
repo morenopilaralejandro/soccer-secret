@@ -217,8 +217,9 @@ MonoBehaviour:
   element: 0
   position: 0
   isStunned: 0
+  isKicking: 0
   spritePlayer: {fileID: 0}
-  playerPortrait: {fileID: 0}
+  spritePortrait: {fileID: 0}
   pathPlayer: Player/
   pathPortrait: PlayerPortrait/
   minStatRatio: 0.1
@@ -629,7 +630,7 @@ Rigidbody:
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 1
+  m_CollisionDetection: 0
 --- !u!136 &8439183972207156863
 CapsuleCollider:
   m_ObjectHideFlags: 0
