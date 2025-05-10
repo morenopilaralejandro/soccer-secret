@@ -12,9 +12,12 @@ public class DuelManager : MonoBehaviour
     public static DuelManager Instance { get; private set; }
 
     private List<DuelParticipantData> stagedParticipants = new List<DuelParticipantData>();
-    private List<DuelParticipant> duelParticipants = new List<DuelParticipant>(); // The real ones!
-
     private Duel duel = new Duel();
+
+    public static event Action<DuelParticipant, float> OnSetStatusPlayerAndCommand;
+    // OnSetStatusPlayer?.Invoke(somePlayer);
+    // OnSetStatusPlayerAndCommand?.Invoke(someParticipant, somePressure);
+
 
     private void Awake()
     {
@@ -65,11 +68,13 @@ public class DuelManager : MonoBehaviour
             duel.AttackPressure -= duel.LastOff.Damage;
             duel.LastOff.Damage *= 2;
             duel.AttackPressure += duel.LastOff.Damage;
+            OnSetStatusPlayerAndCommand?.Invoke(duel.LastOff, duel.AttackPressure);
             Debug.Log("Offense element is effective!");
         }
 
         if (part.Damage >= duel.AttackPressure)
         {
+            OnSetStatusPlayerAndCommand?.Invoke(part, 0f);
             Debug.Log($"{part.Player.name} stopped the attack! (-" + part.Damage +")");
             OnDuelEnd(winningPart: part, duel.LastOff, duel.LastDef, winner: "defense");
             duel.IsResolved = true;
@@ -79,6 +84,7 @@ public class DuelManager : MonoBehaviour
         else
         {
             duel.AttackPressure -= part.Damage;
+            OnSetStatusPlayerAndCommand?.Invoke(part, 0f);
             Debug.Log("Defense action decreases AttackPressure -" + part.Damage);
             StartCoroutine(duel.LastDef.Player.Stun());
             // Duel continues for next defender...
@@ -99,6 +105,7 @@ public class DuelManager : MonoBehaviour
             // Update persistent state
             duel.AttackPressure += participant.Damage;
             duel.LastOff = participant;
+            OnSetStatusPlayerAndCommand?.Invoke(participant, duel.AttackPressure);
             Debug.Log("Offense action increses AttackPressure +" + participant.Damage);
         }
         else // Defense
@@ -115,7 +122,7 @@ public class DuelManager : MonoBehaviour
         if (winningPart.Action == DuelAction.Defense)
         {
             StartCoroutine(duel.LastOff.Player.Stun());
-            //grant possesion winningPart
+            BallBehavior.Instance.GainPossession(winningPart.Player);
         }
     }
 
@@ -167,6 +174,7 @@ public class DuelManager : MonoBehaviour
     }
 
     public void ResetDuel() {
+        stagedParticipants.Clear();
         duel.ResetDuel();
     }
 

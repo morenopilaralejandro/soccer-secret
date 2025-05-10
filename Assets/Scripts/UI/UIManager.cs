@@ -17,7 +17,11 @@ public class UIManager : MonoBehaviour
     // Assign this in the Inspector or with Find/other methods
     [SerializeField] private GameObject panelSecret;
     [SerializeField] private GameObject panelCommand;
+    [SerializeField] private PanelStatusSide panelStatusSideAlly;
+    [SerializeField] private PanelStatusSide panelStatusSideOpp;
+
     [SerializeField] private GameObject buttonDuelToggle;
+
 
     private void Awake()
     {
@@ -30,6 +34,25 @@ public class UIManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        panelStatusSideAlly.SetPlayer(null);
+        panelStatusSideOpp.SetPlayer(null);
+    }
+
+    private void OnEnable()
+    {
+        BallBehavior.OnHideStatusPlayer += HideStatusPlayer;
+        BallBehavior.OnSetStatusPlayer += SetStatusPlayer;
+        DuelCollider.OnSetStatusPlayer += SetStatusPlayer;
+        DuelManager.OnSetStatusPlayerAndCommand += SetStatusPlayerAndCommand;
+    }
+
+    private void OnDisable()
+    {
+        BallBehavior.OnHideStatusPlayer -= HideStatusPlayer;
+        BallBehavior.OnSetStatusPlayer -= SetStatusPlayer;
+        DuelCollider.OnSetStatusPlayer -= SetStatusPlayer;
+        DuelManager.OnSetStatusPlayerAndCommand -= SetStatusPlayerAndCommand;
     }
 
     // Toggle method
@@ -54,7 +77,7 @@ public class UIManager : MonoBehaviour
         SetPanelCommandVisible(false);
         SetButtonDuelToggleVisible(false);
     }
-
+    //button
     public void OnButtonDuelToggleTapped()
     {
         Debug.Log("ButtonDuelToggle tapped!");
@@ -125,6 +148,33 @@ public class UIManager : MonoBehaviour
             SetPanelSecretVisible(true);
             SetPanelCommandVisible(false);
             GameManager.Instance.ExecuteDuel(UserIndex, 0, secretCommandSlot.Secret);
+        }
+    }
+    //Status
+    public void HideStatusPlayer(Player player) 
+    {
+        if (player.IsAlly) {
+            panelStatusSideAlly.SetPlayer(null);
+        } else {
+            panelStatusSideOpp.SetPlayer(null);
+        }
+    }
+
+    public void SetStatusPlayer(Player player) 
+    {
+        if (player.IsAlly) {
+            panelStatusSideAlly.SetPlayer(player);
+        } else {
+            panelStatusSideOpp.SetPlayer(player);
+        }
+    }
+
+    public void SetStatusPlayerAndCommand(DuelParticipant duelParticipant, float attackPressure) 
+    {
+        if (duelParticipant.Player.IsAlly) {
+            panelStatusSideAlly.SetPlayerAndCommand(duelParticipant, attackPressure);
+        } else {
+            panelStatusSideOpp.SetPlayerAndCommand(duelParticipant, attackPressure);
         }
     }
 }

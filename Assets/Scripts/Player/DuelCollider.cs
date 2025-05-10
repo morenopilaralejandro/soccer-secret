@@ -1,10 +1,13 @@
 using UnityEngine;
+using System;
 
 public class DuelCollider : MonoBehaviour
 {
     [SerializeField] private float duelCooldown = 0.2f; // cooldown in seconds
     private float nextDuelAllowedTime = 0f;
     private Player cachedPlayer;
+
+    public static event Action<Player> OnSetStatusPlayer;
 
     void Awake()
     {
@@ -39,10 +42,11 @@ public class DuelCollider : MonoBehaviour
             && possessionPlayerTag != otherPlayerTag)
         {
             GameManager.Instance.FreezeGame();
-
             DuelManager.Instance.ResetDuel();
             DuelManager.Instance.RegisterTrigger(thisRootObj);
             DuelManager.Instance.RegisterTrigger(otherRootObj);
+            DuelCollider.OnSetStatusPlayer?.Invoke(cachedPlayer);
+            DuelCollider.OnSetStatusPlayer?.Invoke(otherRootObj.GetComponent<Player>());
 
             if (cachedPlayer.IsAi) {
                 //ai

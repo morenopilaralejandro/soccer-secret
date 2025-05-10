@@ -17,7 +17,7 @@ public class Duel
     public void ResetDuel()
     {
         Parts.Clear();
-        AttackPressure = 0;
+        AttackPressure = 0f;
         LastOff = null;
         LastDef = null;
         IsResolved = false;

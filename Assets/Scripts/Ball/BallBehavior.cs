@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.UI;
@@ -6,6 +7,8 @@ using UnityEngine.EventSystems;
 
 public class BallBehavior : MonoBehaviour
 {
+    public static BallBehavior Instance { get; private set; }
+
     [SerializeField] private Camera mainCamera;
     [SerializeField] private Rigidbody rb;
 
@@ -30,6 +33,19 @@ public class BallBehavior : MonoBehaviour
     private Coroutine hideCrosshairCoroutine;
     [SerializeField] private Vector2? pendingKickTarget = null;
     [SerializeField] private bool wasMovementFrozen = false;
+
+    public static event Action<Player> OnSetStatusPlayer;
+    public static event Action<Player> OnHideStatusPlayer;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+        Instance = this;
+    }
 
     void Start()
     {
@@ -179,9 +195,10 @@ public class BallBehavior : MonoBehaviour
         ReleasePossession();        
     }
 
-    public void GainPossession(GameObject player)
+    public void GainPossession(Player player)
     {
-        possessionPlayer = player.GetComponent<Player>();
+        possessionPlayer = player;
+        BallBehavior.OnSetStatusPlayer?.Invoke(possessionPlayer);
         Debug.Log("Possession granted to: " + possessionPlayer.PlayerNameEn);
         possessionPlayer.IsPossession = true;
         isPossessed = true;
@@ -195,6 +212,7 @@ public class BallBehavior : MonoBehaviour
     public void ReleasePossession()
     {
         if (possessionPlayer != null) {
+            BallBehavior.OnHideStatusPlayer?.Invoke(possessionPlayer);
             Debug.Log("Possession taken from: " + possessionPlayer.PlayerNameEn);
             lastPossessionPlayer = possessionPlayer.gameObject;
             lastPossessionPlayerKickTime = Time.time;
@@ -217,7 +235,7 @@ public class BallBehavior : MonoBehaviour
             // Only block if it's the same player within their cooldown
             if (!cooldownActiveForThisPlayer)
             {
-                GainPossession(rootObj);
+                GainPossession(rootObj.GetComponent<Player>());
             }
         }
     }
