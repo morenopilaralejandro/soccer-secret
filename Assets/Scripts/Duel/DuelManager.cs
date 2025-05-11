@@ -13,6 +13,7 @@ public class DuelManager : MonoBehaviour
 
     private List<DuelParticipantData> stagedParticipants = new List<DuelParticipantData>();
     private Duel duel = new Duel();
+    private Coroutine unlockStatusCoroutine;
 
     public static event Action<DuelParticipant, float> OnSetStatusPlayerAndCommand;
     // OnSetStatusPlayer?.Invoke(somePlayer);
@@ -89,6 +90,17 @@ public class DuelManager : MonoBehaviour
             StartCoroutine(duel.LastDef.Player.Stun());
             // Duel continues for next defender...
             Debug.Log($"Partial block. AttackPressure now {duel.AttackPressure}");
+
+            if (duel.Mode == DuelMode.Field)
+            {
+                Debug.Log("Partial block in Field mode—duel ends!");
+                OnDuelEnd(winningPart: duel.LastOff, duel.LastOff, duel.LastDef, winner: "offense");
+                duel.IsResolved = true;
+                duel.ResetDuel();
+                // Optionally clear duel.Parts or reset state here!
+                // You may want to return here to stop further processing.
+                return;
+            }
         }
     }
 
@@ -124,6 +136,27 @@ public class DuelManager : MonoBehaviour
             StartCoroutine(duel.LastOff.Player.Stun());
             BallBehavior.Instance.GainPossession(winningPart.Player);
         }
+
+        if (unlockStatusCoroutine != null)
+            StopCoroutine(unlockStatusCoroutine);
+        unlockStatusCoroutine = StartCoroutine(UnlockStatus());
+    }
+
+    public void OnDuelStart(DuelMode mode) {
+        if (unlockStatusCoroutine != null)
+        {
+            StopCoroutine(unlockStatusCoroutine);
+            unlockStatusCoroutine = null;
+        }
+
+        UIManager.Instance.LockStatus();
+        ResetDuel();
+        duel.Mode = mode;
+    }
+
+    public void ResetDuel() {
+        stagedParticipants.Clear();
+        duel.ResetDuel();
     }
 
     // Call this when a GameObject enters the trigger
@@ -173,9 +206,17 @@ public class DuelManager : MonoBehaviour
         }
     }
 
-    public void ResetDuel() {
-        stagedParticipants.Clear();
-        duel.ResetDuel();
+    private IEnumerator UnlockStatus()
+    {
+        float duration = 1.5f;
+        yield return new WaitForSeconds(duration);
+        // Put the code here that you want to run after 1 second
+        Debug.Log("UnlockStatus: Status unlocked after " + duration + " seconds.");
+        UIManager.Instance.HideStatus();
+        if (BallBehavior.Instance.PossessionPlayer != null) {
+            UIManager.Instance.SetStatusPlayer(BallBehavior.Instance.PossessionPlayer);
+        }
+        UIManager.Instance.UnlockStatus();
     }
 
 }

@@ -42,7 +42,7 @@ public class DuelCollider : MonoBehaviour
             && possessionPlayerTag != otherPlayerTag)
         {
             GameManager.Instance.FreezeGame();
-            DuelManager.Instance.ResetDuel();
+            DuelManager.Instance.OnDuelStart(DuelMode.Field);
             DuelManager.Instance.RegisterTrigger(thisRootObj);
             DuelManager.Instance.RegisterTrigger(otherRootObj);
             DuelCollider.OnSetStatusPlayer?.Invoke(cachedPlayer);

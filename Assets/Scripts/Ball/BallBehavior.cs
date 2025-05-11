@@ -24,7 +24,7 @@ public class BallBehavior : MonoBehaviour
     [SerializeField] private float dribbleSpeed = 10f;
     [SerializeField] private float possessionCooldown = 0.2f;
 
-    [SerializeField] private Player possessionPlayer = null;
+    public Player PossessionPlayer = null;
     [SerializeField] private GameObject lastPossessionPlayer = null;
     private float lastPossessionPlayerKickTime = -Mathf.Infinity;
 
@@ -35,7 +35,7 @@ public class BallBehavior : MonoBehaviour
     [SerializeField] private bool wasMovementFrozen = false;
 
     public static event Action<Player> OnSetStatusPlayer;
-    public static event Action<Player> OnHideStatusPlayer;
+    //public static event Action<Player> OnHideStatusPlayer;
 
     private void Awake()
     {
@@ -94,8 +94,33 @@ public class BallBehavior : MonoBehaviour
                         break; // Do not process as a kick
                     }
 
-                    if (isPossessed && possessionPlayer && possessionPlayer.IsAlly && isTap)
+                    if (isPossessed && PossessionPlayer && PossessionPlayer.IsAlly && isTap)
                     {
+                        // --- Goal Raycast from camera to tap position ---                  
+                        Ray ray = mainCamera.ScreenPointToRay(touchEndPos);
+                        Debug.DrawRay(ray.origin, ray.direction * Mathf.Infinity, Color.red, 2f); // <--- Add this line
+                        RaycastHit hitGoal;
+                        int goalLayerMask = LayerMask.GetMask("Goal");
+                        Debug.Log($"Attempting to raycast to Goal layer. Mask={goalLayerMask}, TapPos={touchEndPos}");
+                        if (Physics.Raycast(ray, out hitGoal, Mathf.Infinity, goalLayerMask))
+                        {
+                            Debug.Log($"Raycast hit: {hitGoal.collider.name} on layer {LayerMask.LayerToName(hitGoal.collider.gameObject.layer)} Tag={hitGoal.collider.tag}");
+                            if (hitGoal.collider.CompareTag("Opp"))
+                            {
+                                Debug.Log("Tap on OPP GOAL detected. Initiating Duel.");
+                                GameManager.Instance.FreezeGame();
+                                DuelManager.Instance.OnDuelStart(DuelMode.Shoot);
+                                DuelManager.Instance.RegisterTrigger(PossessionPlayer.gameObject);
+                                UIManager.Instance.SetButtonDuelToggleVisible(true);
+                                ShootTriangle.Instance.SetTriangleFromPlayer(PossessionPlayer, touchEndPos);
+                                ShootTriangle.Instance.SetTriangleVisible(true);
+                            }
+                            break; // Do nothing else this frame
+                        } else {
+                            Debug.Log("Raycast did NOT hit anything on 'Goal' layer.");
+                        }
+                        // --- End Goal raycast
+
                         crosshairImage.transform.position = touchEndPos;
                         crosshairImage.enabled = true;
                         if (!GameManager.Instance.IsMovementFrozen)
@@ -111,13 +136,6 @@ public class BallBehavior : MonoBehaviour
                             pendingKickTarget = touchEndPos;
                         }
                     }
-                    /*
-                    else if (hideCrosshairCoroutine != null)
-                    {
-                        StopCoroutine(hideCrosshairCoroutine);
-                        hideCrosshairCoroutine = StartCoroutine(HideCrosshairAfterDelay());
-                    }
-                    */
                     break;
                 case TouchPhase.Canceled:
                     pendingKickTarget = null;
@@ -129,9 +147,9 @@ public class BallBehavior : MonoBehaviour
 
     private void HandlePossession()
     {
-        if (possessionPlayer == null) return;
+        if (PossessionPlayer == null) return;
 
-        Vector3 targetPosition = possessionPlayer.gameObject.transform.position + possessionPlayer.gameObject.transform.forward * 0.5f;
+        Vector3 targetPosition = PossessionPlayer.gameObject.transform.position + PossessionPlayer.gameObject.transform.forward * 0.5f;
         targetPosition.x += 0.1f;
         targetPosition.y = transform.position.y;
         targetPosition.z -= 0.2f;
@@ -143,8 +161,8 @@ public class BallBehavior : MonoBehaviour
         isPossessed = false;
         rb.isKinematic = false;
 
-        if (possessionPlayer != null)
-            StartCoroutine(possessionPlayer.KickCoroutine());
+        if (PossessionPlayer != null)
+            StartCoroutine(PossessionPlayer.KickCoroutine());
 
         // Convert the screen position to a world position
         Vector3 touchPosition = mainCamera.ScreenToWorldPoint(new Vector3(targetScreenPosition.x, targetScreenPosition.y, mainCamera.nearClipPlane));
@@ -197,27 +215,29 @@ public class BallBehavior : MonoBehaviour
 
     public void GainPossession(Player player)
     {
-        possessionPlayer = player;
-        BallBehavior.OnSetStatusPlayer?.Invoke(possessionPlayer);
-        Debug.Log("Possession granted to: " + possessionPlayer.PlayerNameEn);
-        possessionPlayer.IsPossession = true;
+        PossessionPlayer = player;
+        if (!UIManager.Instance.IsStatusLocked) {
+            UIManager.Instance.HideStatus();
+            BallBehavior.OnSetStatusPlayer?.Invoke(PossessionPlayer);
+        }
+        Debug.Log("Possession granted to: " + PossessionPlayer.PlayerNameEn);
+        PossessionPlayer.IsPossession = true;
         isPossessed = true;
         rb.isKinematic = true;
 
-        Vector3 immediatePosition = possessionPlayer.gameObject.transform.position + possessionPlayer.gameObject.transform.forward * 0.5f;
+        Vector3 immediatePosition = PossessionPlayer.gameObject.transform.position + PossessionPlayer.gameObject.transform.forward * 0.5f;
         immediatePosition.y = transform.position.y;
         transform.position = immediatePosition;
     }
 
     public void ReleasePossession()
     {
-        if (possessionPlayer != null) {
-            BallBehavior.OnHideStatusPlayer?.Invoke(possessionPlayer);
-            Debug.Log("Possession taken from: " + possessionPlayer.PlayerNameEn);
-            lastPossessionPlayer = possessionPlayer.gameObject;
+        if (PossessionPlayer != null) {
+            Debug.Log("Possession taken from: " + PossessionPlayer.PlayerNameEn);
+            lastPossessionPlayer = PossessionPlayer.gameObject;
             lastPossessionPlayerKickTime = Time.time;
-            possessionPlayer.IsPossession = false;
-            possessionPlayer = null;
+            PossessionPlayer.IsPossession = false;
+            PossessionPlayer = null;
             isPossessed = false;
             rb.isKinematic = false;
         }
