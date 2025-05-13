@@ -103,6 +103,9 @@ public class ShootTriangle : MonoBehaviour
         float offsetAmount2 = Mathf.Max(baseOffsetMin, randomValue2 - control);
         vertex2 = touchWorld - perp * offsetAmount2;
 
+        vertex1.z = touchWorld.z;
+        vertex2.z = touchWorld.z;
+
         UpdateMesh();
     }
 

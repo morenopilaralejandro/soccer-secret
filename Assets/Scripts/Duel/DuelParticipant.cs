@@ -70,6 +70,34 @@ public class DuelParticipant
                     baseDamage *= 1.5f;
                 return baseDamage;
             }
+        },
+
+        //Shoot
+        {(Category.Shoot, DuelCommand.Phys), (player, secret) =>
+            player.GetStat(PlayerStats.Kick) +
+            player.GetStat(PlayerStats.Body) * 0.05f +
+            player.GetStat(PlayerStats.Stamina) * 0.02f +
+            player.GetStat(PlayerStats.Courage)
+        },
+
+        {(Category.Shoot, DuelCommand.Skill), (player, secret) =>
+            player.GetStat(PlayerStats.Kick) +
+            player.GetStat(PlayerStats.Control) * 0.05f +
+            player.GetStat(PlayerStats.Speed) * 0.02f +
+            player.GetStat(PlayerStats.Courage)
+        },
+
+        {
+            (Category.Shoot, DuelCommand.Secret), (player, secret) => {
+                if (secret == null) return 0f;
+                float baseDamage =
+                    secret.Power * 3.0f +
+                    player.GetStat(PlayerStats.Kick) * 0.5f +
+                    player.GetStat(PlayerStats.Courage);
+                if (player.Element == secret.Element)
+                    baseDamage *= 1.5f;
+                return baseDamage;
+            }
         }
 
         // etc

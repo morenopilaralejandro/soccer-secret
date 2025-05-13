@@ -29,6 +29,8 @@ public class DuelManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(this.gameObject);
+
+        duel.IsResolved = true;
     }
 
     // Start is called before the first frame update
@@ -78,8 +80,6 @@ public class DuelManager : MonoBehaviour
             OnSetStatusPlayerAndCommand?.Invoke(part, 0f);
             Debug.Log($"{part.Player.name} stopped the attack! (-" + part.Damage +")");
             OnDuelEnd(winningPart: part, duel.LastOff, duel.LastDef, winner: "defense");
-            duel.IsResolved = true;
-            duel.ResetDuel();
             // Optionally clear duel.Parts or reset state here!
         }
         else
@@ -95,8 +95,6 @@ public class DuelManager : MonoBehaviour
             {
                 Debug.Log("Partial block in Field mode—duel ends!");
                 OnDuelEnd(winningPart: duel.LastOff, duel.LastOff, duel.LastDef, winner: "offense");
-                duel.IsResolved = true;
-                duel.ResetDuel();
                 // Optionally clear duel.Parts or reset state here!
                 // You may want to return here to stop further processing.
                 return;
@@ -131,18 +129,21 @@ public class DuelManager : MonoBehaviour
     private void OnDuelEnd(DuelParticipant winningPart, DuelParticipant lastOff, DuelParticipant lastDef, string winner)
     {
         Debug.Log("OnDuelEnd Winner: " + winner);
+        duel.IsResolved = true;
+        UIManager.Instance.ShowTextDuelResult(winningPart);
+        ShootTriangle.Instance.SetTriangleVisible(false);
         if (winningPart.Action == DuelAction.Defense)
         {
             StartCoroutine(duel.LastOff.Player.Stun());
             BallBehavior.Instance.GainPossession(winningPart.Player);
         }
-
         if (unlockStatusCoroutine != null)
             StopCoroutine(unlockStatusCoroutine);
         unlockStatusCoroutine = StartCoroutine(UnlockStatus());
     }
 
-    public void OnDuelStart(DuelMode mode) {
+    public void OnDuelStart(DuelMode mode) 
+    {
         if (unlockStatusCoroutine != null)
         {
             StopCoroutine(unlockStatusCoroutine);
@@ -154,9 +155,40 @@ public class DuelManager : MonoBehaviour
         duel.Mode = mode;
     }
 
-    public void ResetDuel() {
+    public void ResetDuel() 
+    {
         stagedParticipants.Clear();
         duel.ResetDuel();
+    }
+
+    public bool GetDuelIsResolved() 
+    {
+        return duel.IsResolved;
+    }
+
+    public DuelMode GetDuelMode() 
+    {
+        return duel.Mode;
+    }
+
+    public List<DuelParticipant> GetDuelParticipants() {
+        return duel.Parts;
+    }
+
+    public void StartBallTravel() 
+    {
+        BallBehavior.Instance.ReleasePossession();
+        BallBehavior.Instance.StartTravelToPoint(
+            ShootTriangle.Instance.GetRandomPoint()
+        );
+    }
+
+    public DuelParticipant GetLastOff() {
+        return duel.LastOff;
+    }
+
+    public DuelParticipant GetLastDef() {
+        return duel.LastDef;
     }
 
     // Call this when a GameObject enters the trigger

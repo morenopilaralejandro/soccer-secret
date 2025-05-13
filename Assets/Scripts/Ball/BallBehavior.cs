@@ -37,6 +37,13 @@ public class BallBehavior : MonoBehaviour
     public static event Action<Player> OnSetStatusPlayer;
     //public static event Action<Player> OnHideStatusPlayer;
 
+    private bool isTravelingToPoint = false;
+    private Vector3 currentTravelTarget;
+    private float travelSpeed = 4f; // set as desired
+    private bool isTravelPaused = false;
+
+    private Action onTravelCanceled;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -54,6 +61,24 @@ public class BallBehavior : MonoBehaviour
 
     void Update()
     {
+        if (isTravelingToPoint && !isTravelPaused)
+        {
+            Vector3 start = transform.position;
+            Vector3 end = currentTravelTarget;
+            float step = travelSpeed * Time.deltaTime;
+            transform.position = Vector3.MoveTowards(start, end, step);
+
+            // Arrived!
+            if (Vector3.Distance(transform.position, end) < 0.01f)
+            {
+                isTravelingToPoint = false;
+                rb.isKinematic = false; // enable physics again if needed
+            }
+        }
+
+        if (isTravelingToPoint) 
+            return;
+
         if (isPossessed) HandlePossession();
 
         bool nowFrozen = GameManager.Instance.IsMovementFrozen;
@@ -86,6 +111,9 @@ public class BallBehavior : MonoBehaviour
                     touchEndPos = touch.position;
                     bool isTap = !isDragging && Vector2.Distance(touchStartPos, touchEndPos) < dragThreshold;
 
+                    if (!DuelManager.Instance.GetDuelIsResolved() && DuelManager.Instance.GetDuelMode() == DuelMode.Shoot)
+                        break;
+
                     // Handle crosshair tap to cancel pending kick
                     if (GameManager.Instance.IsMovementFrozen && IsTouchingCrosshair(touchEndPos))
                     {
@@ -105,13 +133,17 @@ public class BallBehavior : MonoBehaviour
                         if (Physics.Raycast(ray, out hitGoal, Mathf.Infinity, goalLayerMask))
                         {
                             Debug.Log($"Raycast hit: {hitGoal.collider.name} on layer {LayerMask.LayerToName(hitGoal.collider.gameObject.layer)} Tag={hitGoal.collider.tag}");
-                            if (hitGoal.collider.CompareTag("Opp"))
+                            if (hitGoal.collider.CompareTag("Opp") && DuelManager.Instance.GetDuelIsResolved())
                             {
                                 Debug.Log("Tap on OPP GOAL detected. Initiating Duel.");
                                 GameManager.Instance.FreezeGame();
                                 DuelManager.Instance.OnDuelStart(DuelMode.Shoot);
                                 DuelManager.Instance.RegisterTrigger(PossessionPlayer.gameObject);
                                 UIManager.Instance.SetButtonDuelToggleVisible(true);
+                                UIManager.Instance.UserCategory = Category.Shoot;
+                                UIManager.Instance.UserIndex = 0;
+                                UIManager.Instance.UserPlayer = PossessionPlayer;
+                                UIManager.Instance.UserAction = DuelAction.Offense;
                                 ShootTriangle.Instance.SetTriangleFromPlayer(PossessionPlayer, touchEndPos);
                                 ShootTriangle.Instance.SetTriangleVisible(true);
                             }
@@ -247,6 +279,18 @@ public class BallBehavior : MonoBehaviour
     {
         GameObject rootObj = collider.transform.root.gameObject;
         Debug.Log("BallBehavior OnTriggerEnter: " + rootObj.name + " (Tag: " + rootObj.tag + ")");
+
+        if (isTravelingToPoint && collider.CompareTag("Bound"))
+        {
+            CancelTravel();
+            return;
+        }
+
+        if (isTravelingToPoint)
+        {
+            return;
+        }
+
         if (!isPossessed && rootObj.CompareTag("Player"))
         {
             bool isLastPossessionPlayer = (lastPossessionPlayer != null && rootObj == lastPossessionPlayer);
@@ -282,6 +326,34 @@ public class BallBehavior : MonoBehaviour
         Camera eventCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
         return RectTransformUtility.RectangleContainsScreenPoint(
             crosshairImage.rectTransform, screenPosition, eventCamera);
+    }
+
+
+    public void StartTravelToPoint(Vector3 targetPoint)
+    {
+        isTravelingToPoint = true;
+        currentTravelTarget = targetPoint;
+        isTravelPaused = false;
+        rb.isKinematic = true; // disables physics!
+    }
+
+    public void PauseTravel()
+    {
+        if (isTravelingToPoint) isTravelPaused = true;
+    }
+
+    public void ResumeTravel()
+    {
+        if (isTravelingToPoint) isTravelPaused = false;
+    }
+
+    public void CancelTravel()
+    {
+        isTravelingToPoint = false;
+        isTravelPaused = false;
+        rb.isKinematic = false; // re-enables physics
+        if (onTravelCanceled != null) onTravelCanceled.Invoke();
+        Debug.Log("Travel canceled");
     }
 
 }

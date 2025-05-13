@@ -25,6 +25,7 @@ public class Player : MonoBehaviour
     public List<Secret> CurrentSecret => currentSecret;
     public List<Secret> LearnedSecret => learnedSecret;
 
+    [SerializeField] private float defaultYPosition = 0f;    
     [SerializeField] private string playerId;
     [SerializeField] private string playerNameEn;
     [SerializeField] private string playerNameJa;
@@ -176,7 +177,7 @@ public class Player : MonoBehaviour
         SetAllCollidersEnabled(true);
         isStunned = false;
         // Ensure player is visible at end
-        SetYPosition(0);
+        SetYPosition(defaultYPosition);
     }
 
     private void SetAllCollidersEnabled(bool enabled)
@@ -193,13 +194,13 @@ public class Player : MonoBehaviour
 
         while (elapsed < duration)
         {
-            SetYPosition(visible ? 0f : -1f);
+            SetYPosition(visible ? defaultYPosition : -1f);
             visible = !visible;
             yield return new WaitForSeconds(blinkInterval);
             elapsed += blinkInterval;
         }
         // Always end visible
-        SetYPosition(0f);
+        SetYPosition(defaultYPosition);
     }
 
     public IEnumerator KickCoroutine()

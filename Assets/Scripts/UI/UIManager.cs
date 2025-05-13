@@ -1,4 +1,7 @@
 using UnityEngine;
+using System.Collections.Generic;
+using System.Collections;
+using System.Linq;
 
 public class UIManager : MonoBehaviour
 {
@@ -21,6 +24,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private PanelStatusSide panelStatusSideOpp;
     [SerializeField] private GameObject buttonDuelToggle;
     [SerializeField] private GameObject buttonSwap;
+    [SerializeField] private GameObject textWin;
+    [SerializeField] private GameObject textLose;
 
     private void Awake()
     {
@@ -120,10 +125,15 @@ public class UIManager : MonoBehaviour
     public void OnCommand1Tapped()
     {
         Debug.Log("Command1 tapped!");
+
+        if(UserCategory == Category.Shoot && !DuelManager.Instance.GetDuelParticipants().Any())
+            DuelManager.Instance.StartBallTravel();
+
         RegisterUserSelections(DuelCommand.Phys, null);
 
         if(UserCategory == Category.Dribble) 
             RegisterAiSelections(DuelCommand.Phys, null);
+
 
         HideDuelUi();
         if (GameManager.Instance != null)
@@ -160,10 +170,20 @@ public class UIManager : MonoBehaviour
     }
 
     // Status
+    public void ShowTextDuelResult(DuelParticipant winningPart) {
+        if (winningPart.Player.IsAlly) {
+            textWin.SetActive(true);
+        } else {
+            textLose.SetActive(true);
+        }
+    }
+
     public void HideStatus() 
     {
         if(panelStatusSideAlly != null) panelStatusSideAlly.SetPlayer(null);
         if(panelStatusSideOpp != null) panelStatusSideOpp.SetPlayer(null);
+        if(textWin != null) textWin.SetActive(false);
+        if(textLose != null) textLose.SetActive(false);
     }
 
     public void HideStatusPlayer(Player player) 

@@ -10,6 +10,8 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private Transform[] players; // Array of player transforms
     [SerializeField] private Transform ball; // Transform of the ball
+    [SerializeField] private Transform goalTop;
+    [SerializeField] private Transform goalBottom;
     [SerializeField] private Transform[] initialPlayerPositions; // Array to store initial player positions
     [SerializeField] private Vector3 initialBallPosition; // Vector3 to store initial ball position
     [SerializeField] private float timeRemaining = 180f; // 3 minutes
@@ -128,5 +130,11 @@ public class GameManager : MonoBehaviour
         ResetPositions();
 
         // Additional logic for handling a goal (e.g., updating score) can be added here
+    }
+
+    public float GetDistanceFromPlayerToGoal(Player player) 
+    {
+        Transform goal = player.IsAlly ? goalTop : goalBottom;
+        return Vector3.Distance(player.transform.position, goal.position);
     }
 }
