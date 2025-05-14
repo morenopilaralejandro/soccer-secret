@@ -22,7 +22,6 @@ public class ComboCollider : MonoBehaviour
         Debug.Log("ComboCollider OnTriggerEnter");
         if (!DuelManager.Instance.GetDuelIsResolved() && !GameManager.Instance.IsMovementFrozen && cachedPlayer != DuelManager.Instance.GetLastOff().Player) 
         {
-            Debug.Log("ComboCollider OnTriggerEnter 1");
             if (DuelManager.Instance.GetLastDef() != null && DuelManager.Instance.GetLastDef().Player == cachedPlayer)
                 return;
 

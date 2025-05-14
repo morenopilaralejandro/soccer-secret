@@ -133,7 +133,7 @@ public class BallBehavior : MonoBehaviour
                         if (Physics.Raycast(ray, out hitGoal, Mathf.Infinity, goalLayerMask))
                         {
                             Debug.Log($"Raycast hit: {hitGoal.collider.name} on layer {LayerMask.LayerToName(hitGoal.collider.gameObject.layer)} Tag={hitGoal.collider.tag}");
-                            if (hitGoal.collider.CompareTag("Opp") && DuelManager.Instance.GetDuelIsResolved())
+                            if (GameManager.Instance.GetDistanceToOppGoal(PossessionPlayer) < 2.2f && hitGoal.collider.CompareTag("Opp") && DuelManager.Instance.GetDuelIsResolved())
                             {
                                 Debug.Log("Tap on OPP GOAL detected. Initiating Duel.");
                                 GameManager.Instance.FreezeGame();
@@ -248,12 +248,12 @@ public class BallBehavior : MonoBehaviour
     public void GainPossession(Player player)
     {
         PossessionPlayer = player;
+        PossessionPlayer.IsPossession = true;
         if (!UIManager.Instance.IsStatusLocked) {
             UIManager.Instance.HideStatus();
             BallBehavior.OnSetStatusPlayer?.Invoke(PossessionPlayer);
         }
         Debug.Log("Possession granted to: " + PossessionPlayer.PlayerNameEn);
-        PossessionPlayer.IsPossession = true;
         isPossessed = true;
         rb.isKinematic = true;
 
@@ -291,7 +291,7 @@ public class BallBehavior : MonoBehaviour
             return;
         }
 
-        if (!isPossessed && rootObj.CompareTag("Player"))
+        if (!isPossessed && collider.CompareTag("Player"))
         {
             bool isLastPossessionPlayer = (lastPossessionPlayer != null && rootObj == lastPossessionPlayer);
             bool cooldownActiveForThisPlayer = isLastPossessionPlayer && (Time.time <= lastPossessionPlayerKickTime + possessionCooldown);

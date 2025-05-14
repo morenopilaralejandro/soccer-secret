@@ -132,9 +132,15 @@ public class GameManager : MonoBehaviour
         // Additional logic for handling a goal (e.g., updating score) can be added here
     }
 
-    public float GetDistanceFromPlayerToGoal(Player player) 
+    public float GetDistanceToOppGoal(Player player) 
     {
         Transform goal = player.IsAlly ? goalTop : goalBottom;
+        return Vector3.Distance(player.transform.position, goal.position);
+    }
+
+    public float GetDistanceToAllyGoal(Player player) 
+    {
+        Transform goal = player.IsAlly ? goalBottom : goalTop;
         return Vector3.Distance(player.transform.position, goal.position);
     }
 }

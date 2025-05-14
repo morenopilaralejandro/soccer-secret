@@ -21,15 +21,15 @@ public class DuelCollider : MonoBehaviour
 
     void OnTriggerStay(Collider other)
     {
-        if (Time.time < nextDuelAllowedTime) return;
-        if (GameManager.Instance.IsMovementFrozen) return;
-
         HandleTrigger(other);
-        nextDuelAllowedTime = Time.time + duelCooldown;
     }
 
     private void HandleTrigger(Collider otherDuelCollider)
     {
+        // Check cooldown and movement freeze first!
+        if (Time.time < nextDuelAllowedTime) return;
+        if (GameManager.Instance.IsMovementFrozen) return;
+
         GameObject thisRootObj = cachedPlayer.gameObject;
         GameObject otherRootObj = otherDuelCollider.transform.root.gameObject;
 
@@ -42,6 +42,9 @@ public class DuelCollider : MonoBehaviour
             && possessionPlayerTag != otherPlayerTag
             && DuelManager.Instance.GetDuelIsResolved())
         {
+            // SET COOLDOWN ONLY WHEN A DUEL IS STARTED!
+            nextDuelAllowedTime = Time.time + duelCooldown;
+
             GameManager.Instance.FreezeGame();
             DuelManager.Instance.OnDuelStart(DuelMode.Field);
             DuelManager.Instance.RegisterTrigger(thisRootObj);
@@ -50,19 +53,20 @@ public class DuelCollider : MonoBehaviour
             DuelCollider.OnSetStatusPlayer?.Invoke(otherRootObj.GetComponent<Player>());
 
             if (cachedPlayer.IsAi) {
-                //ai
+                // ai
                 DuelManager.Instance.RegisterUISelections(
-                0,
-                Category.Dribble,
-                DuelAction.Offense,
-                DuelCommand.Phys,
-                null);
+                    0,
+                    Category.Dribble,
+                    DuelAction.Offense,
+                    DuelCommand.Phys,
+                    null);
 
                 UIManager.Instance.UserCategory = Category.Block;
                 UIManager.Instance.UserIndex = 1;
                 UIManager.Instance.UserPlayer = otherRootObj.GetComponent<Player>();
                 UIManager.Instance.UserAction = DuelAction.Defense;
-            } else {
+            }
+            else {
                 UIManager.Instance.UserCategory = Category.Dribble;
                 UIManager.Instance.UserIndex = 0;
                 UIManager.Instance.UserPlayer = cachedPlayer;
@@ -72,7 +76,6 @@ public class DuelCollider : MonoBehaviour
                 UIManager.Instance.AiIndex = 1;
                 UIManager.Instance.AiPlayer = otherRootObj.GetComponent<Player>();
                 UIManager.Instance.AiAction = DuelAction.Defense;
-
             }
             UIManager.Instance.SetButtonDuelToggleVisible(true);
         }

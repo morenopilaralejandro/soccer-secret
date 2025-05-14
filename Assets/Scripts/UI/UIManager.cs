@@ -56,12 +56,16 @@ public class UIManager : MonoBehaviour
         {
             BallBehavior.OnSetStatusPlayer += SetStatusPlayer;
             DuelCollider.OnSetStatusPlayer += SetStatusPlayer;
+            ComboCollider.OnSetStatusPlayer += SetStatusPlayer;
+            KeeperCollider.OnSetStatusPlayer += SetStatusPlayer;
             DuelManager.OnSetStatusPlayerAndCommand += SetStatusPlayerAndCommand;
         }
         else
         {
             BallBehavior.OnSetStatusPlayer -= SetStatusPlayer;
             DuelCollider.OnSetStatusPlayer -= SetStatusPlayer;
+            ComboCollider.OnSetStatusPlayer -= SetStatusPlayer;
+            KeeperCollider.OnSetStatusPlayer -= SetStatusPlayer;
             DuelManager.OnSetStatusPlayerAndCommand -= SetStatusPlayerAndCommand;
         }
     }
@@ -143,7 +147,18 @@ public class UIManager : MonoBehaviour
     public void OnCommand2Tapped()
     {
         Debug.Log("Command2 tapped!");
-        //GameManager.Instance.ExecuteDuel(UserIndex, 2, null);
+        if(UserCategory == Category.Shoot && !DuelManager.Instance.GetDuelParticipants().Any())
+            DuelManager.Instance.StartBallTravel();
+
+        RegisterUserSelections(DuelCommand.Skill, null);
+
+        if(UserCategory == Category.Dribble) 
+            RegisterAiSelections(DuelCommand.Skill, null);
+
+
+        HideDuelUi();
+        if (GameManager.Instance != null)
+            GameManager.Instance.UnfreezeGame();
     }
 
     public void OnSecretCommandSlotTapped(SecretCommandSlot secretCommandSlot)

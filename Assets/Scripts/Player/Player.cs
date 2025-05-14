@@ -17,6 +17,7 @@ public class Player : MonoBehaviour
     public bool IsAlly;
     public bool IsAi;
     public bool IsPossession;
+    public bool IsKeeper;
     public bool IsStunned => isStunned;
     public bool IsKicking => isKicking;
     public int Lv => lv;
@@ -96,6 +97,7 @@ public class Player : MonoBehaviour
         IsAi = false;
         IsPossession = false;
         isStunned = false;
+        IsKeeper = false;
 
         lv = 99;
 
@@ -160,23 +162,24 @@ public class Player : MonoBehaviour
     //stun
     public IEnumerator Stun()
     {
-        /*
-            if (isStunned)
-            {
-                // Optionally, you could play a stun animation or effects here
-                return; // Don't process movement
-            }
+        if (isStunned)
+            yield break; // Prevent stun-stacking
 
-            player.StartCoroutine(player.Stun());
-        */
         float duration = 3f;
         isStunned = true;
         SetAllCollidersEnabled(false);
         StartCoroutine(BlinkEffect(duration));
-        yield return new WaitForSeconds(duration);
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            if (!GameManager.Instance.IsTimeFrozen)
+                elapsed += Time.deltaTime;
+            yield return null;
+        }
+
         SetAllCollidersEnabled(true);
         isStunned = false;
-        // Ensure player is visible at end
         SetYPosition(defaultYPosition);
     }
 
@@ -189,17 +192,26 @@ public class Player : MonoBehaviour
     private IEnumerator BlinkEffect(float duration)
     {
         float elapsed = 0f;
-        float blinkInterval = 0.2f; // seconds between blinks
+        float blinkInterval = 0.2f;
         bool visible = true;
-
+        float blinkElapsed = 0f;
         while (elapsed < duration)
         {
-            SetYPosition(visible ? defaultYPosition : -1f);
-            visible = !visible;
-            yield return new WaitForSeconds(blinkInterval);
-            elapsed += blinkInterval;
+            if (!GameManager.Instance.IsTimeFrozen)
+            {
+                elapsed += Time.deltaTime;
+                blinkElapsed += Time.deltaTime;
+                if (blinkElapsed >= blinkInterval)
+                {
+                    SetYPosition(visible ? defaultYPosition : -1f);
+                    visible = !visible;
+                    blinkElapsed = 0f;
+                }
+            } else {
+                SetYPosition(defaultYPosition);
+            }
+            yield return null;
         }
-        // Always end visible
         SetYPosition(defaultYPosition);
     }
 

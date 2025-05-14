@@ -96,11 +96,38 @@ public class DuelParticipant
                     player.GetStat(PlayerStats.Courage);
                 if (player.Element == secret.Element)
                     baseDamage *= 1.5f;
+                baseDamage -= GameManager.Instance.GetDistanceToOppGoal(player) * 10f;
+                return baseDamage;
+            }
+        },
+
+        //Catch
+        {(Category.Catch, DuelCommand.Phys), (player, secret) =>
+            player.GetStat(PlayerStats.Guard) +
+            player.GetStat(PlayerStats.Body) * 0.05f +
+            player.GetStat(PlayerStats.Stamina) * 0.02f +
+            player.GetStat(PlayerStats.Courage)
+        },
+
+        {(Category.Catch, DuelCommand.Skill), (player, secret) =>
+            player.GetStat(PlayerStats.Guard) +
+            player.GetStat(PlayerStats.Control) * 0.05f +
+            player.GetStat(PlayerStats.Speed) * 0.02f +
+            player.GetStat(PlayerStats.Courage)
+        },
+
+        {
+            (Category.Catch, DuelCommand.Secret), (player, secret) => {
+                if (secret == null) return 0f;
+                float baseDamage =
+                    secret.Power * 3.0f +
+                    player.GetStat(PlayerStats.Guard) * 0.5f +
+                    player.GetStat(PlayerStats.Courage);
+                if (player.Element == secret.Element)
+                    baseDamage *= 1.5f;
                 return baseDamage;
             }
         }
-
-        // etc
     };
 
     public DuelParticipant(

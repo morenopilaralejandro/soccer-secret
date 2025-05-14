@@ -91,9 +91,9 @@ public class DuelManager : MonoBehaviour
             // Duel continues for next defender...
             Debug.Log($"Partial block. AttackPressure now {duel.AttackPressure}");
 
-            if (duel.Mode == DuelMode.Field)
+            if (duel.Mode == DuelMode.Field || duel.LastDef.Category == Category.Catch)
             {
-                Debug.Log("Partial block in Field mode—duel ends!");
+                Debug.Log("Partial block ends the duel");
                 OnDuelEnd(winningPart: duel.LastOff, duel.LastOff, duel.LastDef, winner: "offense");
                 // Optionally clear duel.Parts or reset state here!
                 // You may want to return here to stop further processing.
@@ -105,6 +105,7 @@ public class DuelManager : MonoBehaviour
     public void AddParticipantToDuel(Duel duel, DuelParticipant participant)
     {
         Debug.Log("AddParticipantToDuel");
+        BallBehavior.Instance.ResumeTravel();
         if (duel.IsResolved) 
             return; // Prevent further processing after resolution
 
@@ -148,6 +149,11 @@ public class DuelManager : MonoBehaviour
         {
             StopCoroutine(unlockStatusCoroutine);
             unlockStatusCoroutine = null;
+    
+            UIManager.Instance.HideStatus();
+            if (BallBehavior.Instance.PossessionPlayer != null) {
+                UIManager.Instance.SetStatusPlayer(BallBehavior.Instance.PossessionPlayer);
+            }
         }
 
         UIManager.Instance.LockStatus();
@@ -240,7 +246,7 @@ public class DuelManager : MonoBehaviour
 
     private IEnumerator UnlockStatus()
     {
-        float duration = 1.5f;
+        float duration = 2f;
         yield return new WaitForSeconds(duration);
         // Put the code here that you want to run after 1 second
         Debug.Log("UnlockStatus: Status unlocked after " + duration + " seconds.");

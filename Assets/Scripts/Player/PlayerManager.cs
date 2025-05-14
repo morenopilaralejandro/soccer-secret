@@ -43,6 +43,9 @@ public class PlayerManager : MonoBehaviour
             GameObject playerObject = playerAllyObjects[i];      
             PlayerData playerData = GetPlayerDataById(ids[i]);
             InitializePlayer(playerObject, playerData, wearId);
+            if (i == 0) {
+                playerObject.GetComponent<Player>().IsKeeper = true;
+            } 
         }
     }
 
@@ -57,6 +60,9 @@ public class PlayerManager : MonoBehaviour
             InitializePlayer(playerObject, playerData, wearId);
             playerObject.GetComponent<Player>().IsAlly = false;
             playerObject.GetComponent<Player>().IsAi = true;
+            if (i == 0) {
+                playerObject.GetComponent<Player>().IsKeeper = true;
+            } 
         }
     }
 
