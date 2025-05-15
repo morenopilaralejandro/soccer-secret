@@ -111,7 +111,7 @@ public class BallBehavior : MonoBehaviour
                     touchEndPos = touch.position;
                     bool isTap = !isDragging && Vector2.Distance(touchStartPos, touchEndPos) < dragThreshold;
 
-                    if (!DuelManager.Instance.GetDuelIsResolved() && DuelManager.Instance.GetDuelMode() == DuelMode.Shoot)
+                    if (!DuelManager.Instance.IsDuelResolved() && DuelManager.Instance.GetDuelMode() == DuelMode.Shoot)
                         break;
 
                     // Handle crosshair tap to cancel pending kick
@@ -133,17 +133,15 @@ public class BallBehavior : MonoBehaviour
                         if (Physics.Raycast(ray, out hitGoal, Mathf.Infinity, goalLayerMask))
                         {
                             Debug.Log($"Raycast hit: {hitGoal.collider.name} on layer {LayerMask.LayerToName(hitGoal.collider.gameObject.layer)} Tag={hitGoal.collider.tag}");
-                            if (GameManager.Instance.GetDistanceToOppGoal(PossessionPlayer) < 2.2f && hitGoal.collider.CompareTag("Opp") && DuelManager.Instance.GetDuelIsResolved())
+                            if (GameManager.Instance.GetDistanceToOppGoal(PossessionPlayer) < 2.2f && hitGoal.collider.CompareTag("Opp") && DuelManager.Instance.IsDuelResolved())
                             {
                                 Debug.Log("Tap on OPP GOAL detected. Initiating Duel.");
                                 GameManager.Instance.FreezeGame();
-                                DuelManager.Instance.OnDuelStart(DuelMode.Shoot);
+                                DuelManager.Instance.StartDuel(DuelMode.Shoot);
                                 DuelManager.Instance.RegisterTrigger(PossessionPlayer.gameObject);
                                 UIManager.Instance.SetButtonDuelToggleVisible(true);
-                                UIManager.Instance.UserCategory = Category.Shoot;
-                                UIManager.Instance.UserIndex = 0;
-                                UIManager.Instance.UserPlayer = PossessionPlayer;
-                                UIManager.Instance.UserAction = DuelAction.Offense;
+                                UIManager.Instance.SetUserRole(Category.Shoot, 0, PossessionPlayer, DuelAction.Offense);
+
                                 ShootTriangle.Instance.SetTriangleFromPlayer(PossessionPlayer, touchEndPos);
                                 ShootTriangle.Instance.SetTriangleVisible(true);
                             }

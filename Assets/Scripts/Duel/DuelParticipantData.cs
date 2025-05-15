@@ -1,15 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class DuelParticipantData
 {
-    public GameObject gameObj;
-    public Category? category;
-    public DuelAction? action;
-    public DuelCommand? command;
-    public Secret secret;
+    public GameObject GameObject;
+    public Category? Category;
+    public DuelAction? Action;
+    public DuelCommand? Command;
+    public Secret Secret;
 
     public bool IsComplete =>
-        gameObj != null && category.HasValue && action.HasValue && command.HasValue;
+        GameObject != null &&
+        Category.HasValue &&
+        Action.HasValue &&
+        Command.HasValue;
 }

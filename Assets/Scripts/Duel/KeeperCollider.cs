@@ -1,65 +1,78 @@
 using UnityEngine;
 using System;
 
+[RequireComponent(typeof(Collider))]
 public class KeeperCollider : MonoBehaviour
 {
     private Player cachedPlayer;
 
     public static event Action<Player> OnSetStatusPlayer;
 
-    void Awake()
+    private void Awake()
     {
         cachedPlayer = GetComponentInParent<Player>();
+        if (cachedPlayer == null)
+            Debug.LogError($"{nameof(KeeperCollider)} could not find Player in parent.");
     }
 
-    void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
-        HandleTrigger(other);
+        TryHandleTrigger(other);
     }
 
-    private void HandleTrigger(Collider otherCollider)
+    private void TryHandleTrigger(Collider otherCollider)
     {
         Debug.Log("KeeperCollider OnTriggerEnter");
-            GameObject thisRootObj = cachedPlayer.gameObject;
-            GameObject otherRootObj = otherCollider.transform.root.gameObject;
 
-            if (otherRootObj.tag != "Ball")
-                return;
+        // Only respond to ball collision
+        if (!otherCollider.transform.root.CompareTag("Ball"))
+            return;
 
-        if (!DuelManager.Instance.GetDuelIsResolved() && !GameManager.Instance.IsMovementFrozen) 
+        // Pre-duel state checks
+        if (DuelManager.Instance.IsDuelResolved()
+            || GameManager.Instance.IsMovementFrozen
+            || cachedPlayer == null
+            || DuelManager.Instance.GetLastOffense() == null)
         {
-            //Duel Catch
-            if (DuelManager.Instance.GetLastDef() != null && DuelManager.Instance.GetLastDef().Player == cachedPlayer)
-                return;
+            return;
+        }
 
+        // Avoid duplicate/circular defense from this player
+        DuelParticipant lastDefense = DuelManager.Instance.GetLastDefense();
+        DuelParticipant lastOffense = DuelManager.Instance.GetLastOffense();
+        if (lastDefense != null && lastDefense.Player == cachedPlayer)
+            return;
 
-            Player lastOff = DuelManager.Instance.GetLastOff().Player;
-            int currentIndex = DuelManager.Instance.GetDuelParticipants().Count;
+        // Prevent self-trigger as offense
+        if (cachedPlayer == lastOffense.Player)
+            return;
 
-            DuelManager.Instance.RegisterTrigger(thisRootObj);
-            KeeperCollider.OnSetStatusPlayer?.Invoke(cachedPlayer);
+        int participantIndex = DuelManager.Instance.GetDuelParticipants().Count;
+        DuelManager.Instance.RegisterTrigger(cachedPlayer.gameObject);
+        OnSetStatusPlayer?.Invoke(cachedPlayer);
 
+        SetupKeeperDuelUI(participantIndex, lastOffense.Player);
+    }
 
-            if (lastOff.IsAi)
-            {
-                //user catch
-                    GameManager.Instance.FreezeGame();
-                    BallBehavior.Instance.PauseTravel();
-                    UIManager.Instance.UserCategory = Category.Catch;
-                    UIManager.Instance.UserIndex = currentIndex;
-                    UIManager.Instance.UserPlayer = cachedPlayer;
-                    UIManager.Instance.UserAction = DuelAction.Defense;
-                    UIManager.Instance.SetButtonDuelToggleVisible(true);
-
-            } else {
-                //ai catch
-                    DuelManager.Instance.RegisterUISelections(
-                    currentIndex,
-                    Category.Catch,
-                    DuelAction.Defense,
-                    DuelCommand.Phys,
-                    null);
-            }
+    private void SetupKeeperDuelUI(int index, Player lastOffensePlayer)
+    {
+        if (lastOffensePlayer.IsAi)
+        {
+            // User must input "catch"
+            GameManager.Instance.FreezeGame();
+            BallBehavior.Instance.PauseTravel();
+            UIManager.Instance.SetUserRole(Category.Catch, index, cachedPlayer, DuelAction.Defense);
+            UIManager.Instance.SetButtonDuelToggleVisible(true);
+        }
+        else
+        {
+            // AI automatically "catch"
+            DuelManager.Instance.RegisterUISelections(
+                index,
+                Category.Catch,
+                DuelAction.Defense,
+                DuelCommand.Phys,
+                null);
         }
     }
 }

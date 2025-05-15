@@ -1,25 +1,21 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Duel
 {
-    public DuelMode Mode;
-    public List<DuelParticipant> Parts = new List<DuelParticipant>();
+    public DuelMode Mode { get; set; }
+    public List<DuelParticipant> Participants { get; } = new List<DuelParticipant>();
+    public float AttackPressure { get; set; }
+    public DuelParticipant LastOffense { get; set; }
+    public DuelParticipant LastDefense { get; set; }
+    public bool IsResolved { get; set; }
 
-    public float AttackPressure = 0f;
-    public DuelParticipant LastOff = null;
-    public DuelParticipant LastDef = null;
-
-    public bool IsResolved = false;
-
-    public void ResetDuel()
+    public void Reset()
     {
-        Parts.Clear();
+        Participants.Clear();
         AttackPressure = 0f;
-        LastOff = null;
-        LastDef = null;
+        LastOffense = null;
+        LastDefense = null;
         IsResolved = false;
     }
 }

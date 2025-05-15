@@ -144,13 +144,7 @@ public class DuelParticipant
         Secret = secret;
 
         Player = gameObj.GetComponent<Player>();
-
-        if (secret == null) 
-        {
-            CurrentElement = Player.Element;
-        } else {
-            CurrentElement = secret.Element;
-        }
+        CurrentElement = Secret == null ? Player.Element : Secret.Element;
 
         // Calculate damage on construction
         if (damageFormulas.TryGetValue((Category, Command), out var formulaFunc))

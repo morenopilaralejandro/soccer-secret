@@ -5,256 +5,225 @@ using UnityEngine;
 
 public enum DuelMode { Field, Shoot }
 public enum DuelAction { Offense, Defense }
-public enum DuelCommand { Secret, Phys, Skill }
+public enum DuelCommand { Phys, Skill, Secret }
 
 public class DuelManager : MonoBehaviour
 {
     public static DuelManager Instance { get; private set; }
 
+    public static event Action<DuelParticipant, float> OnSetStatusPlayerAndCommand;
+
     private List<DuelParticipantData> stagedParticipants = new List<DuelParticipantData>();
-    private Duel duel = new Duel();
+    private Duel currentDuel = new Duel();
     private Coroutine unlockStatusCoroutine;
 
-    public static event Action<DuelParticipant, float> OnSetStatusPlayerAndCommand;
-    // OnSetStatusPlayer?.Invoke(somePlayer);
-    // OnSetStatusPlayerAndCommand?.Invoke(someParticipant, somePressure);
-
+    #region Unity Lifecycle
 
     private void Awake()
     {
+        // Standard Unity Singleton pattern:
         if (Instance != null && Instance != this)
         {
-            Destroy(this.gameObject);
+            Destroy(gameObject);
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(this.gameObject);
-
-        duel.IsResolved = true;
+        DontDestroyOnLoad(gameObject);
+        currentDuel.IsResolved = true;
     }
 
-    // Start is called before the first frame update
-    void Start()
+    #endregion
+
+    #region Duel Flow
+
+    public void StartDuel(DuelMode mode)
     {
-        
+        StopAndCleanupUnlockStatus();
+        UIManager.Instance.LockStatus();
+        ResetDuel();
+        currentDuel.Mode = mode;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void ResetDuel()
     {
-        
+        stagedParticipants.Clear();
+        currentDuel.Reset();
     }
 
-    private void ExecuteDuel(Duel duel, DuelParticipant newDefPart)
-    {
-        Debug.Log("ExecuteDuel");
-        // Use persistent duel state!
-        var part = newDefPart;
+    public bool IsDuelResolved() => currentDuel.IsResolved;
+    public DuelMode GetDuelMode() => currentDuel.Mode;
+    public List<DuelParticipant> GetDuelParticipants() => currentDuel.Participants;
+    public DuelParticipant GetLastOffense() => currentDuel.LastOffense;
+    public DuelParticipant GetLastDefense() => currentDuel.LastDefense;
 
-        if (duel.LastOff == null)
+    #endregion
+
+    #region Duel Participation
+
+    public void AddParticipantToDuel(DuelParticipant participant)
+    {
+        BallBehavior.Instance.ResumeTravel();
+
+        if (currentDuel.IsResolved)
+            return;
+
+        currentDuel.Participants.Add(participant);
+
+        if (participant.Action == DuelAction.Offense)
         {
-            // Sanity: No offense was ever added, cannot duel
+            currentDuel.AttackPressure += participant.Damage;
+            currentDuel.LastOffense = participant;
+            OnSetStatusPlayerAndCommand?.Invoke(participant, currentDuel.AttackPressure);
+            Debug.Log($"Offense action increases attack pressure +{participant.Damage}");
+        }
+        else
+        {
+            ResolveDefense(participant);
+        }
+    }
+
+    private void ResolveDefense(DuelParticipant defender)
+    {
+        if (currentDuel.LastOffense == null)
+        {
             Debug.LogWarning("No offense present before defense.");
             return;
         }
 
-        duel.LastDef = part;
+        currentDuel.LastDefense = defender;
 
-        // Element effectiveness
-        if (ElementManager.Instance.IsEffective(part.CurrentElement, duel.LastOff.CurrentElement))
-        {
-            part.Damage *= 2f;
-            Debug.Log("Defense element is effective!");
-        }
-        else if (ElementManager.Instance.IsEffective(duel.LastOff.CurrentElement, part.CurrentElement))
-        {
-            duel.AttackPressure -= duel.LastOff.Damage;
-            duel.LastOff.Damage *= 2;
-            duel.AttackPressure += duel.LastOff.Damage;
-            OnSetStatusPlayerAndCommand?.Invoke(duel.LastOff, duel.AttackPressure);
-            Debug.Log("Offense element is effective!");
-        }
+        ApplyElementalEffectiveness(currentDuel.LastOffense, defender);
 
-        if (part.Damage >= duel.AttackPressure)
+        if (defender.Damage >= currentDuel.AttackPressure)
         {
-            OnSetStatusPlayerAndCommand?.Invoke(part, 0f);
-            Debug.Log($"{part.Player.name} stopped the attack! (-" + part.Damage +")");
-            OnDuelEnd(winningPart: part, duel.LastOff, duel.LastDef, winner: "defense");
-            // Optionally clear duel.Parts or reset state here!
+            OnSetStatusPlayerAndCommand?.Invoke(defender, 0f);
+            Debug.Log($"{defender.Player.name} stopped the attack! (-{defender.Damage})");
+            EndDuel(winningParticipant: defender, winnerAction: DuelAction.Defense);
         }
         else
         {
-            duel.AttackPressure -= part.Damage;
-            OnSetStatusPlayerAndCommand?.Invoke(part, 0f);
-            Debug.Log("Defense action decreases AttackPressure -" + part.Damage);
-            StartCoroutine(duel.LastDef.Player.Stun());
-            // Duel continues for next defender...
-            Debug.Log($"Partial block. AttackPressure now {duel.AttackPressure}");
+            currentDuel.AttackPressure -= defender.Damage;
+            OnSetStatusPlayerAndCommand?.Invoke(defender, 0f);
+            Debug.Log($"Partial block. Attack pressure now {currentDuel.AttackPressure}");
 
-            if (duel.Mode == DuelMode.Field || duel.LastDef.Category == Category.Catch)
+            StartCoroutine(defender.Player.Stun());
+
+            if (currentDuel.Mode == DuelMode.Field || defender.Category == Category.Catch)
             {
-                Debug.Log("Partial block ends the duel");
-                OnDuelEnd(winningPart: duel.LastOff, duel.LastOff, duel.LastDef, winner: "offense");
-                // Optionally clear duel.Parts or reset state here!
-                // You may want to return here to stop further processing.
-                return;
+                Debug.Log("Partial block ends the duel.");
+                EndDuel(winningParticipant: currentDuel.LastOffense, winnerAction: DuelAction.Offense);
             }
+            // Else: duel continues for next defense
         }
     }
 
-    public void AddParticipantToDuel(Duel duel, DuelParticipant participant)
+    private void ApplyElementalEffectiveness(DuelParticipant offense, DuelParticipant defense)
     {
-        Debug.Log("AddParticipantToDuel");
-        BallBehavior.Instance.ResumeTravel();
-        if (duel.IsResolved) 
-            return; // Prevent further processing after resolution
+        var elements = ElementManager.Instance; // Singleton assumed
 
-        duel.Parts.Add(participant);
-
-        if (participant.Action == DuelAction.Offense)
+        if (elements.IsEffective(defense.CurrentElement, offense.CurrentElement))
         {
-            // Update persistent state
-            duel.AttackPressure += participant.Damage;
-            duel.LastOff = participant;
-            OnSetStatusPlayerAndCommand?.Invoke(participant, duel.AttackPressure);
-            Debug.Log("Offense action increses AttackPressure +" + participant.Damage);
+            defense.Damage *= 2f;
+            Debug.Log("Defense element is effective!");
         }
-        else // Defense
+        else if (elements.IsEffective(offense.CurrentElement, defense.CurrentElement))
         {
-            // Evaluate only with new defense
-            Debug.Log("Defense action -> ExecuteDuel");
-            ExecuteDuel(duel, participant);
+            currentDuel.AttackPressure -= offense.Damage;
+            offense.Damage *= 2;
+            currentDuel.AttackPressure += offense.Damage;
+            OnSetStatusPlayerAndCommand?.Invoke(offense, currentDuel.AttackPressure);
+            Debug.Log("Offense element is effective!");
         }
     }
 
-    private void OnDuelEnd(DuelParticipant winningPart, DuelParticipant lastOff, DuelParticipant lastDef, string winner)
+    private void EndDuel(DuelParticipant winningParticipant, DuelAction winnerAction)
     {
-        Debug.Log("OnDuelEnd Winner: " + winner);
-        duel.IsResolved = true;
-        UIManager.Instance.ShowTextDuelResult(winningPart);
+        currentDuel.IsResolved = true;
+        UIManager.Instance.ShowTextDuelResult(winningParticipant);
         ShootTriangle.Instance.SetTriangleVisible(false);
-        if (winningPart.Action == DuelAction.Defense)
+
+        if (winnerAction == DuelAction.Defense)
         {
-            StartCoroutine(duel.LastOff.Player.Stun());
-            BallBehavior.Instance.GainPossession(winningPart.Player);
+            StartCoroutine(currentDuel.LastOffense.Player.Stun());
+            BallBehavior.Instance.GainPossession(winningParticipant.Player);
         }
-        if (unlockStatusCoroutine != null)
-            StopCoroutine(unlockStatusCoroutine);
-        unlockStatusCoroutine = StartCoroutine(UnlockStatus());
+
+        unlockStatusCoroutine = StartCoroutine(UnlockStatusRoutine());
     }
 
-    public void OnDuelStart(DuelMode mode) 
+    #endregion
+
+    #region Ball and Status Control
+
+    public void StartBallTravel()
+    {
+        BallBehavior.Instance.ReleasePossession();
+        BallBehavior.Instance.StartTravelToPoint(ShootTriangle.Instance.GetRandomPoint());
+    }
+
+    private void StopAndCleanupUnlockStatus()
     {
         if (unlockStatusCoroutine != null)
         {
             StopCoroutine(unlockStatusCoroutine);
             unlockStatusCoroutine = null;
-    
-            UIManager.Instance.HideStatus();
-            if (BallBehavior.Instance.PossessionPlayer != null) {
-                UIManager.Instance.SetStatusPlayer(BallBehavior.Instance.PossessionPlayer);
-            }
         }
-
-        UIManager.Instance.LockStatus();
-        ResetDuel();
-        duel.Mode = mode;
+        UIManager.Instance.HideStatus();
+        if (BallBehavior.Instance.PossessionPlayer != null)
+            UIManager.Instance.SetStatusPlayer(BallBehavior.Instance.PossessionPlayer);
     }
 
-    public void ResetDuel() 
+    private IEnumerator UnlockStatusRoutine()
     {
-        stagedParticipants.Clear();
-        duel.ResetDuel();
+        const float unlockDelay = 2f;
+        yield return new WaitForSeconds(unlockDelay);
+
+        StopAndCleanupUnlockStatus(); // <--- Now call it AFTER delay
+
+        UIManager.Instance.UnlockStatus();
     }
 
-    public bool GetDuelIsResolved() 
-    {
-        return duel.IsResolved;
-    }
+    #endregion
 
-    public DuelMode GetDuelMode() 
-    {
-        return duel.Mode;
-    }
+    #region Participant Registration
 
-    public List<DuelParticipant> GetDuelParticipants() {
-        return duel.Parts;
-    }
-
-    public void StartBallTravel() 
-    {
-        BallBehavior.Instance.ReleasePossession();
-        BallBehavior.Instance.StartTravelToPoint(
-            ShootTriangle.Instance.GetRandomPoint()
-        );
-    }
-
-    public DuelParticipant GetLastOff() {
-        return duel.LastOff;
-    }
-
-    public DuelParticipant GetLastDef() {
-        return duel.LastDef;
-    }
-
-    // Call this when a GameObject enters the trigger
     public void RegisterTrigger(GameObject obj)
     {
-        var pd = new DuelParticipantData { gameObj = obj };
+        var pd = new DuelParticipantData { GameObject = obj };
         stagedParticipants.Add(pd);
         TryFinalizeParticipant(pd);
     }
 
-    // Call this when UI is confirmed for a participant (provide index if needed)
-    public void RegisterUISelections(
-        int participantIndex,
-        Category cat,
-        DuelAction act,
-        DuelCommand cmd,
-        Secret secret)
+    public void RegisterUISelections(int index, Category category, DuelAction action, DuelCommand command, Secret secret)
     {
-        if(participantIndex < 0 || participantIndex >= stagedParticipants.Count)
+        if (index < 0 || index >= stagedParticipants.Count)
         {
             Debug.LogError("Invalid participant index");
             return;
         }
-        var pd = stagedParticipants[participantIndex];
-        pd.category = cat;
-        pd.action = act;
-        pd.command = cmd;
-        pd.secret = secret;
+        var pd = stagedParticipants[index];
+        pd.Category = category;
+        pd.Action = action;
+        pd.Command = command;
+        pd.Secret = secret;
         TryFinalizeParticipant(pd);
     }
 
     private void TryFinalizeParticipant(DuelParticipantData pd)
     {
-        if (pd.IsComplete)
-        {
-            // Create the real DuelParticipant
-            DuelParticipant participant = new DuelParticipant(
-                pd.gameObj,
-                pd.category.Value,
-                pd.action.Value,
-                pd.command.Value,
-                pd.secret);
+        if (!pd.IsComplete) return;
 
-            Debug.Log($"Created participant: {participant.Player.name}");
-            AddParticipantToDuel(duel, participant);
+        var participant = new DuelParticipant(
+            pd.GameObject,
+            pd.Category.Value,
+            pd.Action.Value,
+            pd.Command.Value,
+            pd.Secret
+        );
 
-        }
+        Debug.Log($"Created participant: {participant.Player.name}");
+        AddParticipantToDuel(participant);
     }
 
-    private IEnumerator UnlockStatus()
-    {
-        float duration = 2f;
-        yield return new WaitForSeconds(duration);
-        // Put the code here that you want to run after 1 second
-        Debug.Log("UnlockStatus: Status unlocked after " + duration + " seconds.");
-        UIManager.Instance.HideStatus();
-        if (BallBehavior.Instance.PossessionPlayer != null) {
-            UIManager.Instance.SetStatusPlayer(BallBehavior.Instance.PossessionPlayer);
-        }
-        UIManager.Instance.UnlockStatus();
-    }
-
+    #endregion
 }

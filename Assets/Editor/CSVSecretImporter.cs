@@ -7,7 +7,7 @@ public class CSVSecretImporter
     [MenuItem("Tools/Import Secrets From CSV")]
     public static void ImportSecretsFromCSV()
     {
-        string defaultPath = Application.dataPath + "/Excel";
+        string defaultPath = Application.dataPath + "/Csv";
         string path = EditorUtility.OpenFilePanel("Select CSV File", defaultPath, "csv");
         if (string.IsNullOrEmpty(path))
         {

@@ -186,7 +186,7 @@ Transform:
   m_GameObject: {fileID: 2191305603820323760}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.15}
+  m_LocalPosition: {x: 0, y: 0, z: -0.1}
   m_LocalScale: {x: 0.3, y: 0.3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -618,7 +618,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4308870595955406433}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -634,7 +634,7 @@ Transform:
   - {fileID: 5164878107712340106}
   - {fileID: 5093496520630187804}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!114 &3313887409289005239
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -650,6 +650,8 @@ MonoBehaviour:
   IsAlly: 0
   IsAi: 0
   IsPossession: 0
+  IsKeeper: 0
+  defaultYPosition: 0
   playerId: 
   playerNameEn: 
   playerNameJa: 
@@ -672,6 +674,14 @@ MonoBehaviour:
   currStats: 000000000000000000000000000000000000000000000000000000000000000000000000
   baseFreedom: 0
   currFreedom: 0
+  speedBaseUser: 0.2
+  speedBaseAi: 0.15
+  speedMultiplier: 0.02
+  speedDebuffDefault: 1
+  speedDebuffLow: 0.5
+  speedDebuffHigh: 0.2
+  hpThresholdLow: 10
+  hpThresholdHigh: 30
 --- !u!1 &5004266937282601860
 GameObject:
   m_ObjectHideFlags: 0
@@ -777,12 +787,6 @@ MonoBehaviour:
   isDragging: 0
   isMoving: 0
   moveTolerance: 0.1
-  hpThresholdLow: 10
-  hpThresholdHigh: 30
-  speedMultiplier: 0.02
-  speedDebuffDefault: 1
-  speedDebuffLow: 0.5
-  speedDebuffHigh: 0.2
   minSegmentDistance: 0.3
   maxLineLength: 6
   ignoreLayer:
@@ -835,9 +839,7 @@ LineRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Positions:
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 1}
+  m_Positions: []
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1

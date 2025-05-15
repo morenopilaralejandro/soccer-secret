@@ -7,7 +7,7 @@ public class CSVPlayerImporter
     [MenuItem("Tools/Import Players From CSV")]
     public static void ImportPlayersFromCSV()
     {
-        string defaultPath = Application.dataPath + "/Excel";
+        string defaultPath = Application.dataPath + "/Csv";
         string path = EditorUtility.OpenFilePanel("Select CSV File", defaultPath, "csv");
         if (string.IsNullOrEmpty(path))
         {

@@ -1,87 +1,99 @@
 using UnityEngine;
 using System;
 
+[RequireComponent(typeof(Collider))]
 public class ComboCollider : MonoBehaviour
 {
     private Player cachedPlayer;
 
     public static event Action<Player> OnSetStatusPlayer;
 
-    void Awake()
+    private void Awake()
     {
         cachedPlayer = GetComponentInParent<Player>();
+        if (cachedPlayer == null)
+            Debug.LogError($"{nameof(ComboCollider)} could not find Player in parent.");
     }
 
-    void OnTriggerEnter(Collider other)
-    {
-        HandleTrigger(other);
-    }
+    private void OnTriggerEnter(Collider other) => TryHandleTrigger(other);
 
-    private void HandleTrigger(Collider otherCollider)
+    private void TryHandleTrigger(Collider otherCollider)
     {
         Debug.Log("ComboCollider OnTriggerEnter");
-        if (!DuelManager.Instance.GetDuelIsResolved() && !GameManager.Instance.IsMovementFrozen && cachedPlayer != DuelManager.Instance.GetLastOff().Player) 
+
+        // Basic conditions before progressing
+        if (DuelManager.Instance.IsDuelResolved()
+            || GameManager.Instance.IsMovementFrozen
+            || cachedPlayer == null)
+            return;
+
+        DuelParticipant lastOffense = DuelManager.Instance.GetLastOffense();
+        DuelParticipant lastDefense = DuelManager.Instance.GetLastDefense();
+
+        // Prevent repeat triggers by the same defense player
+        if (lastDefense != null && lastDefense.Player == cachedPlayer)
+            return;
+
+        if (lastOffense == null || cachedPlayer == lastOffense.Player)
+            return;
+
+        // Only respond to ball collision
+        if (!otherCollider.transform.root.CompareTag("Ball"))
+            return;
+
+        int participantIndex = DuelManager.Instance.GetDuelParticipants().Count;
+        DuelManager.Instance.RegisterTrigger(cachedPlayer.gameObject);
+        OnSetStatusPlayer?.Invoke(cachedPlayer);
+
+        // Role assignment based on previous play and ai/user
+        AssignComboRoles(lastOffense.Player, participantIndex);
+    }
+
+    private void AssignComboRoles(Player lastOffensePlayer, int idx)
+    {
+        bool isUser = !cachedPlayer.IsAi;
+
+        if (lastOffensePlayer.IsAlly)
         {
-            if (DuelManager.Instance.GetLastDef() != null && DuelManager.Instance.GetLastDef().Player == cachedPlayer)
-                return;
-
-            GameObject thisRootObj = cachedPlayer.gameObject;
-            GameObject otherRootObj = otherCollider.transform.root.gameObject;
-
-
-            if (otherRootObj.tag != "Ball")
-                return;
-
-
-            Player lastOff = DuelManager.Instance.GetLastOff().Player;
-            int currentIndex = DuelManager.Instance.GetDuelParticipants().Count;
-
-            DuelManager.Instance.RegisterTrigger(thisRootObj);
-            ComboCollider.OnSetStatusPlayer?.Invoke(cachedPlayer);
-
-
-
-
-            if (lastOff.IsAlly)
+            // Allies were last offense; defense blocks, chain offense can be user or ai
+            if (cachedPlayer.IsAi)
             {
-                if (cachedPlayer.IsAi) {
-                    //ai block
-                    DuelManager.Instance.RegisterUISelections(
-                    currentIndex,
+                DuelManager.Instance.RegisterUISelections(
+                    idx,
                     Category.Block,
                     DuelAction.Defense,
                     DuelCommand.Phys,
                     null);
-                } else {
-                    //user chain
-                    GameManager.Instance.FreezeGame();
-                    BallBehavior.Instance.PauseTravel();
-                    UIManager.Instance.UserCategory = Category.Shoot;
-                    UIManager.Instance.UserIndex = currentIndex;
-                    UIManager.Instance.UserPlayer = cachedPlayer;
-                    UIManager.Instance.UserAction = DuelAction.Offense;
-                    UIManager.Instance.SetButtonDuelToggleVisible(true);
-                }
-            } else {
-                if (cachedPlayer.IsAi) {
-                    //ai chain
-                    DuelManager.Instance.RegisterUISelections(
-                    currentIndex,
+            }
+            else
+            {
+                HandleUserChain(idx, Category.Shoot, cachedPlayer, DuelAction.Offense);
+            }
+        }
+        else
+        {
+            // Opponent was last offense; so now chain or block
+            if (cachedPlayer.IsAi)
+            {
+                DuelManager.Instance.RegisterUISelections(
+                    idx,
                     Category.Shoot,
                     DuelAction.Offense,
                     DuelCommand.Phys,
                     null);
-                } else {
-                    //user block
-                    GameManager.Instance.FreezeGame();
-                    BallBehavior.Instance.PauseTravel();
-                    UIManager.Instance.UserCategory = Category.Block;
-                    UIManager.Instance.UserIndex = currentIndex;
-                    UIManager.Instance.UserPlayer = cachedPlayer;
-                    UIManager.Instance.UserAction = DuelAction.Defense;
-                    UIManager.Instance.SetButtonDuelToggleVisible(true);
-                }
+            }
+            else
+            {
+                HandleUserChain(idx, Category.Block, cachedPlayer, DuelAction.Defense);
             }
         }
+    }
+
+    private void HandleUserChain(int index, Category category, Player cachedPlayer, DuelAction action)
+    {
+        GameManager.Instance.FreezeGame();
+        BallBehavior.Instance.PauseTravel();
+        UIManager.Instance.SetUserRole(category, index, cachedPlayer, action);
+        UIManager.Instance.SetButtonDuelToggleVisible(true);
     }
 }

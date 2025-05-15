@@ -39,7 +39,7 @@ public class Player : MonoBehaviour
     [SerializeField] private Sprite spritePlayer;
     [SerializeField] private Sprite spritePortrait;
     [SerializeField] private string pathPlayer = "Player/";
-    [SerializeField] private string pathPortrait = "PlayerPortrait/";
+    [SerializeField] private string pathPortrait = "";
     [SerializeField] private const int MAX_LV = 99;
     [SerializeField] private const int MAX_MORE = 50;
     [SerializeField] [Range(0f, 1f)] private float minStatRatio = 0.1f; // Value at level 1 is 10% of max stat
@@ -55,6 +55,20 @@ public class Player : MonoBehaviour
     private int maxSp;
 
     private Collider[] colliders;
+
+    [Header("Movement Parameters")]
+    [SerializeField] private float speedBaseUser = 0.2f;
+    [SerializeField] private float speedBaseAi = 0.15f;
+    [SerializeField] private float speedMultiplier = 0.02f;
+    [SerializeField] private float speedDebuffDefault = 1f;
+    [SerializeField] private float speedDebuffLow = 0.5f;
+    [SerializeField] private float speedDebuffHigh = 0.2f;
+    [SerializeField] private int hpThresholdLow = 10;
+    [SerializeField] private int hpThresholdHigh = 30;
+
+    // Remember the last calculated speedDebuff for reuse
+    private float _lastSpeedDebuff = 1f;
+    private int _lastHpChecked = int.MinValue;
 
 
     public void Initialize(PlayerData playerData)
@@ -342,6 +356,29 @@ public class Player : MonoBehaviour
             }
         }
         return secrets;
+    }
+
+    // Call this before movement to ensure debuff is correct
+    public void UpdateSpeedDebuff()
+    {
+        int playerHp = GetStat(PlayerStats.Hp);
+        if (playerHp == _lastHpChecked) return; // avoid unnecessary recalculation
+
+        _lastHpChecked = playerHp;
+        if (playerHp <= hpThresholdLow)
+            _lastSpeedDebuff = speedDebuffLow;
+        else if (playerHp <= hpThresholdHigh)
+            _lastSpeedDebuff = speedDebuffHigh;
+        else
+            _lastSpeedDebuff = speedDebuffDefault;
+    }
+
+    // Calculate final speed this frame (already includes deltaTime for direct use with MoveTowards)
+    public float GetMoveSpeed()
+    {
+        UpdateSpeedDebuff();
+        float speedBase = IsAi ? speedBaseAi : speedBaseUser; 
+        return (GetStat(PlayerStats.Speed) * speedMultiplier + speedBase) * _lastSpeedDebuff * Time.deltaTime;
     }
 
     public PlayerSaveData ToSaveData()

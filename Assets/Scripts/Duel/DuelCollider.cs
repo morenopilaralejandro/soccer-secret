@@ -1,83 +1,94 @@
 using UnityEngine;
 using System;
 
+[RequireComponent(typeof(Collider))]
 public class DuelCollider : MonoBehaviour
 {
-    [SerializeField] private float duelCooldown = 0.2f; // cooldown in seconds
+    [Header("Duel Settings")]
+    [SerializeField] private float duelCooldown = 0.2f;
+
     private float nextDuelAllowedTime = 0f;
     private Player cachedPlayer;
 
     public static event Action<Player> OnSetStatusPlayer;
 
-    void Awake()
+    private void Awake()
     {
         cachedPlayer = GetComponentInParent<Player>();
+        if (cachedPlayer == null)
+            Debug.LogError("DuelCollider could not find attached Player component in parent.");
     }
 
-    void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other) => TryStartDuel(other);
+    private void OnTriggerStay(Collider other) => TryStartDuel(other);
+
+    private void TryStartDuel(Collider otherCollider)
     {
-        HandleTrigger(other);
-    }
+        if (!CanStartDuel()) return;
 
-    void OnTriggerStay(Collider other)
-    {
-        HandleTrigger(other);
-    }
+        var otherPlayer = otherCollider.GetComponentInParent<Player>();
+        if (otherPlayer == null || otherPlayer == cachedPlayer)
+            return;
 
-    private void HandleTrigger(Collider otherDuelCollider)
-    {
-        // Check cooldown and movement freeze first!
-        if (Time.time < nextDuelAllowedTime) return;
-        if (GameManager.Instance.IsMovementFrozen) return;
+        // Tag logic: You could refactor these if you’re consistently using tags or layer masks elsewhere
+        string thisTag = CompareTag("Ally") ? "Ally" : (CompareTag("Opp") ? "Opp" : string.Empty);
+        string otherTag = otherCollider.CompareTag("Ally") ? "Ally" : (otherCollider.CompareTag("Opp") ? "Opp" : string.Empty);
 
-        GameObject thisRootObj = cachedPlayer.gameObject;
-        GameObject otherRootObj = otherDuelCollider.transform.root.gameObject;
-
-        string possessionPlayerTag = tag;
-        string otherPlayerTag = otherDuelCollider.tag;
-
-        if (cachedPlayer.IsPossession
-            && possessionPlayerTag != null
-            && (otherPlayerTag == "Ally" || otherPlayerTag == "Opp")
-            && possessionPlayerTag != otherPlayerTag
-            && DuelManager.Instance.GetDuelIsResolved())
+        if (
+            cachedPlayer.IsPossession &&
+            !string.IsNullOrEmpty(thisTag) &&
+            !string.IsNullOrEmpty(otherTag) &&
+            thisTag != otherTag &&
+            DuelManager.Instance.IsDuelResolved()
+        )
         {
-            // SET COOLDOWN ONLY WHEN A DUEL IS STARTED!
-            nextDuelAllowedTime = Time.time + duelCooldown;
+            SetDuelCooldown();
 
             GameManager.Instance.FreezeGame();
-            DuelManager.Instance.OnDuelStart(DuelMode.Field);
-            DuelManager.Instance.RegisterTrigger(thisRootObj);
-            DuelManager.Instance.RegisterTrigger(otherRootObj);
-            DuelCollider.OnSetStatusPlayer?.Invoke(cachedPlayer);
-            DuelCollider.OnSetStatusPlayer?.Invoke(otherRootObj.GetComponent<Player>());
+            DuelManager.Instance.StartDuel(DuelMode.Field);
+            DuelManager.Instance.RegisterTrigger(cachedPlayer.gameObject);
+            DuelManager.Instance.RegisterTrigger(otherPlayer.gameObject);
 
-            if (cachedPlayer.IsAi) {
-                // ai
-                DuelManager.Instance.RegisterUISelections(
-                    0,
-                    Category.Dribble,
-                    DuelAction.Offense,
-                    DuelCommand.Phys,
-                    null);
+            OnSetStatusPlayer?.Invoke(cachedPlayer);
+            OnSetStatusPlayer?.Invoke(otherPlayer);
 
-                UIManager.Instance.UserCategory = Category.Block;
-                UIManager.Instance.UserIndex = 1;
-                UIManager.Instance.UserPlayer = otherRootObj.GetComponent<Player>();
-                UIManager.Instance.UserAction = DuelAction.Defense;
-            }
-            else {
-                UIManager.Instance.UserCategory = Category.Dribble;
-                UIManager.Instance.UserIndex = 0;
-                UIManager.Instance.UserPlayer = cachedPlayer;
-                UIManager.Instance.UserAction = DuelAction.Offense;
-
-                UIManager.Instance.AiCategory = Category.Block;
-                UIManager.Instance.AiIndex = 1;
-                UIManager.Instance.AiPlayer = otherRootObj.GetComponent<Player>();
-                UIManager.Instance.AiAction = DuelAction.Defense;
-            }
+            AssignUserAndAiRoles(otherPlayer);
             UIManager.Instance.SetButtonDuelToggleVisible(true);
+        }
+    }
+
+    private bool CanStartDuel()
+    {
+        return Time.time >= nextDuelAllowedTime && !GameManager.Instance.IsMovementFrozen;
+    }
+
+    private void SetDuelCooldown()
+    {
+        nextDuelAllowedTime = Time.time + duelCooldown;
+    }
+
+    /// <summary>
+    /// Assigns categories and roles for UI and Duel participants, depending on which is AI/user.
+    /// </summary>
+    private void AssignUserAndAiRoles(Player otherPlayer)
+    {
+        // If this player is AI, they're the offense, other is defense (human)
+        if (cachedPlayer.IsAi)
+        {
+            DuelManager.Instance.RegisterUISelections(
+                0,
+                Category.Dribble,          // Example offense
+                DuelAction.Offense,
+                DuelCommand.Phys,
+                null                      // Replace with secret if needed
+            );
+
+            UIManager.Instance.SetUserRole(Category.Block, 1, otherPlayer, DuelAction.Defense);
+        }
+        else
+        {
+            UIManager.Instance.SetUserRole(Category.Dribble, 0, cachedPlayer, DuelAction.Offense);
+            UIManager.Instance.SetAiRole(Category.Block, 1, otherPlayer, DuelAction.Defense);
         }
     }
 }

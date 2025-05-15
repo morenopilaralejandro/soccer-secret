@@ -14,17 +14,6 @@ public class DrawLineOnDrag : MonoBehaviour
     [SerializeField] private bool isMoving = false;
     [SerializeField] private float moveTolerance = 0.1f;
 
-
-    private float lastHpValue = float.MinValue;
-    [SerializeField] private int hpThresholdLow = 10;
-    [SerializeField] private int hpThresholdHigh = 30;
-    private float speedBase = 0.2f;
-    [SerializeField] private float speedMultiplier = 0.02f;
-    private float speedDebuff = 1f;
-    [SerializeField] private float speedDebuffDefault = 1f;
-    [SerializeField] private float speedDebuffLow = 0.5f;
-    [SerializeField] private float speedDebuffHigh = 0.2f;
-
     [SerializeField] private float minSegmentDistance = 0.3f;
     [SerializeField] private float maxLineLength = 6f;
     private bool awaitingFirstSegment = false;
@@ -123,7 +112,6 @@ public class DrawLineOnDrag : MonoBehaviour
 
         if (isMoving && !GameManager.Instance.IsMovementFrozen)
         {
-            CalcSpeedDebuff(player);
             MoveAlongLine();
         }
     }
@@ -187,10 +175,8 @@ public class DrawLineOnDrag : MonoBehaviour
        if (currentPointIndex < linePoints.Count)
         {
             Vector3 targetPosition = linePoints[currentPointIndex];
-            float speed = CalcSpeed(player);
-            //Debug.Log("speed:" + speed);
-            //Debug.Log("speedDebuff:" + speedDebuff);
-            Vector3 newPosition = Vector3.MoveTowards(transform.position, targetPosition, speed);
+            float moveSpeed = player.GetMoveSpeed();
+            Vector3 newPosition = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed);
             transform.position = newPosition;
 
             if (Vector3.Distance(transform.position, targetPosition) < moveTolerance)
@@ -206,20 +192,4 @@ public class DrawLineOnDrag : MonoBehaviour
         }
     }
 
-    private float CalcSpeed(Player player) {
-        return (player.GetStat(PlayerStats.Speed) * speedMultiplier + speedBase) * speedDebuff * Time.deltaTime;
-    }
-
-    private void CalcSpeedDebuff(Player player)
-    {
-        int playerHp = player.GetStat(PlayerStats.Hp);
-        // Only recalculate if HP actually changed (if not, skip assignment, saves possible further calcs/use)
-        if (Mathf.Approximately(playerHp, lastHpValue)) return;
-
-        lastHpValue = playerHp; // update cache
-
-        speedDebuff = playerHp <= hpThresholdLow ? speedDebuffLow :
-                      playerHp <= hpThresholdHigh ? speedDebuffHigh :
-                      speedDebuffDefault;
-    }
 }

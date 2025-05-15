@@ -1,6 +1,4 @@
 using UnityEngine;
-using System.Collections.Generic;
-using System.Collections;
 using System.Linq;
 
 public class UIManager : MonoBehaviour
@@ -8,16 +6,18 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance { get; private set; }
     public bool IsStatusLocked { get; private set; } = false;
 
-    public int UserIndex { get; set; }
-    public Player UserPlayer { get; set; }
-    public DuelAction UserAction { get; set; }
-    public Category UserCategory { get; set; }
+    // User and AI selection data
+    public int UserIndex { get; private set; }
+    public Player UserPlayer { get; private set; }
+    public DuelAction UserAction { get; private set; }
+    public Category UserCategory { get; private set; }
 
-    public int AiIndex { get; set; }
-    public Player AiPlayer { get; set; }
-    public DuelAction AiAction { get; set; }
-    public Category AiCategory { get; set; }
+    public int AiIndex { get; private set; }
+    public Player AiPlayer { get; private set; }
+    public DuelAction AiAction { get; private set; }
+    public Category AiCategory { get; private set; }
 
+    [Header("Panels & UI Elements")]
     [SerializeField] private GameObject panelSecret;
     [SerializeField] private GameObject panelCommand;
     [SerializeField] private PanelStatusSide panelStatusSideAlly;
@@ -27,12 +27,14 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject textWin;
     [SerializeField] private GameObject textLose;
 
+    #region Unity Lifecycle
+
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            // Uncomment next line if you want it to persist across scenes:
+            // Uncomment to persist across scenes if required
             // DontDestroyOnLoad(gameObject);
         }
         else
@@ -40,14 +42,11 @@ public class UIManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
         HideStatus();
     }
 
     private void OnEnable() => SubscribeEvents(true);
-
     private void OnDisable() => SubscribeEvents(false);
-
     private void OnDestroy() => SubscribeEvents(false);
 
     private void SubscribeEvents(bool subscribe)
@@ -69,9 +68,16 @@ public class UIManager : MonoBehaviour
             DuelManager.OnSetStatusPlayerAndCommand -= SetStatusPlayerAndCommand;
         }
     }
+    #endregion
+
+    #region Status Panel Lock/Unlock
 
     public void LockStatus() => IsStatusLocked = true;
     public void UnlockStatus() => IsStatusLocked = false;
+
+    #endregion
+
+    #region Panel & Button Visibility
 
     public void SetPanelSecretVisible(bool visible) => SetActiveSafe(panelSecret, visible);
     public void SetPanelCommandVisible(bool visible) => SetActiveSafe(panelCommand, visible);
@@ -88,17 +94,17 @@ public class UIManager : MonoBehaviour
         SetPanelCommandVisible(false);
         SetButtonDuelToggleVisible(false);
     }
-    // Button events
+
+    #endregion
+
+    #region Duel Toggle & Command Button Logic
+
     public void OnButtonDuelToggleTapped()
     {
         Debug.Log("ButtonDuelToggle tapped!");
-        bool panelSecretActive = panelSecret != null && panelSecret.activeSelf;
-        bool panelCommandActive = panelCommand != null && panelCommand.activeSelf;
-
-        if (!panelSecretActive && !panelCommandActive)
-        {
+        // Toggle open/close dual panels
+        if (!IsPanelActive(panelSecret) && !IsPanelActive(panelCommand))
             SetPanelCommandVisible(true);
-        }
         else
         {
             SetPanelCommandVisible(false);
@@ -161,77 +167,122 @@ public class UIManager : MonoBehaviour
             GameManager.Instance.UnfreezeGame();
     }
 
-    public void OnSecretCommandSlotTapped(SecretCommandSlot secretCommandSlot)
+public void OnSecretCommandSlotTapped(SecretCommandSlot secretCommandSlot)
     {
-        Debug.Log("SecretCommandSlot tapped! " + secretCommandSlot.name);
-        if (secretCommandSlot.Secret != null) {
-            SetPanelSecretVisible(true);
-            SetPanelCommandVisible(false);
-            //GameManager.Instance.ExecuteDuel(UserIndex, 0, secretCommandSlot.Secret);
-        }
-    }
+        Debug.Log("SecretCommandSlot tapped: " + secretCommandSlot.name);
+        if (secretCommandSlot.Secret == null)
+            return;
 
-    // Register
-    public void RegisterUserSelections(DuelCommand command, Secret secret) 
+        SetPanelSecretVisible(false);
+        SetPanelCommandVisible(false);
+
+        if (UserCategory == Category.Shoot && !DuelManager.Instance.GetDuelParticipants().Any())
+            DuelManager.Instance.StartBallTravel();
+
+        RegisterUserSelections(DuelCommand.Secret, secretCommandSlot.Secret);
+
+        if (UserCategory == Category.Dribble)
+            RegisterAiSelections(DuelCommand.Phys, null);
+
+        HideDuelUi();
+        if (GameManager.Instance != null)
+            GameManager.Instance.UnfreezeGame();
+    }
+    #endregion
+
+    #region Selection Registration
+
+    public void RegisterUserSelections(DuelCommand command, Secret secret)
     {
         if (DuelManager.Instance != null)
             DuelManager.Instance.RegisterUISelections(UserIndex, UserCategory, UserAction, command, secret);
     }
 
-    public void RegisterAiSelections(DuelCommand command, Secret secret) 
+    public void RegisterAiSelections(DuelCommand command, Secret secret)
     {
         if (DuelManager.Instance != null)
             DuelManager.Instance.RegisterUISelections(AiIndex, AiCategory, AiAction, command, secret);
     }
 
-    // Status
-    public void ShowTextDuelResult(DuelParticipant winningPart) {
-        if (winningPart.Player.IsAlly) {
-            textWin.SetActive(true);
-        } else {
-            textLose.SetActive(true);
-        }
+    public void SetUserRole(Category category, int index, Player player, DuelAction action)
+    {
+        UserCategory = category;
+        UserIndex = index;
+        UserPlayer = player;
+        UserAction = action;
+    }
+    public void SetAiRole(Category category, int index, Player player, DuelAction action)
+    {
+        AiCategory = category;
+        AiIndex = index;
+        AiPlayer = player;
+        AiAction = action;
+    }
+    #endregion
+
+    #region Duel Status Display
+
+    public void ShowTextDuelResult(DuelParticipant winningPart)
+    {
+        if (winningPart?.Player == null)
+            return;
+        SetActiveSafe(textWin, winningPart.Player.IsAlly);
+        SetActiveSafe(textLose, !winningPart.Player.IsAlly);
     }
 
-    public void HideStatus() 
+    public void HideStatus()
     {
-        if(panelStatusSideAlly != null) panelStatusSideAlly.SetPlayer(null);
-        if(panelStatusSideOpp != null) panelStatusSideOpp.SetPlayer(null);
-        if(textWin != null) textWin.SetActive(false);
-        if(textLose != null) textLose.SetActive(false);
+        panelStatusSideAlly?.SetPlayer(null);
+        panelStatusSideOpp?.SetPlayer(null);
+        SetActiveSafe(textWin, false);
+        SetActiveSafe(textLose, false);
     }
 
-    public void HideStatusPlayer(Player player) 
+    public void HideStatusPlayer(Player player)
     {
-        if(player == null) return;
-        if(player.IsAlly && panelStatusSideAlly != null) 
-            panelStatusSideAlly.SetPlayer(null);
-        else if(panelStatusSideOpp != null) 
-            panelStatusSideOpp.SetPlayer(null);
+        if (player == null) return;
+        if (player.IsAlly)
+            panelStatusSideAlly?.SetPlayer(null);
+        else
+            panelStatusSideOpp?.SetPlayer(null);
     }
 
-    public void SetStatusPlayer(Player player) 
+    public void SetStatusPlayer(Player player)
     {
-        if(player == null) return;
-        if(player.IsAlly && panelStatusSideAlly != null) 
-            panelStatusSideAlly.SetPlayer(player);
-        else if(panelStatusSideOpp != null) 
-            panelStatusSideOpp.SetPlayer(player);
+        if (player == null) return;
+        if (player.IsAlly)
+            panelStatusSideAlly?.SetPlayer(player);
+        else
+            panelStatusSideOpp?.SetPlayer(player);
     }
 
-    public void SetStatusPlayerAndCommand(DuelParticipant duelParticipant, float attackPressure) 
+    public void SetStatusPlayerAndCommand(DuelParticipant duelParticipant, float attackPressure)
     {
-        if(duelParticipant?.Player == null) return;
-        if(duelParticipant.Player.IsAlly && panelStatusSideAlly != null)
-            panelStatusSideAlly.SetPlayerAndCommand(duelParticipant, attackPressure);
-        else if(panelStatusSideOpp != null)
-            panelStatusSideOpp.SetPlayerAndCommand(duelParticipant, attackPressure);
+        var player = duelParticipant?.Player;
+        if (player == null) return;
+        if (player.IsAlly)
+            panelStatusSideAlly?.SetPlayerAndCommand(duelParticipant, attackPressure);
+        else
+            panelStatusSideOpp?.SetPlayerAndCommand(duelParticipant, attackPressure);
+    }
+    #endregion
+
+    #region Utility
+
+    /// <summary>
+    /// Sets a GameObject active only if it exists and if the state is different than desired
+    /// </summary>
+    private void SetActiveSafe(GameObject obj, bool shouldBeActive)
+    {
+        if (obj != null && obj.activeSelf != shouldBeActive)
+            obj.SetActive(shouldBeActive);
     }
 
-    // Utility
-    private void SetActiveSafe(GameObject obj, bool value)
-    {
-        if (obj != null && obj.activeSelf != value)
-            obj.SetActive(value);
-    }
+    /// <summary>
+    /// Returns true if a panel GameObject is non-null and active.
+    /// </summary>
+    private bool IsPanelActive(GameObject obj) => obj != null && obj.activeSelf;
+
+    #endregion
 }
+
