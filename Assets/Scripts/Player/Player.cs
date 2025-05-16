@@ -6,11 +6,14 @@ using System.IO;
 
 public enum PlayerStats { Hp, Sp, Kick, Body, Control, Guard, Speed, Stamina, Courage }
 
+public enum Size { Small, MediumF, MediumM, Large }
+
 public class Player : MonoBehaviour
 {   
     public string PlayerId => playerId;
     public string PlayerNameEn => playerNameEn;
     public string PlayerNameJa => playerNameJa;
+    public Size Size => size;
     public Gender Gender => gender;
     public Element Element => element;
     public Position Position => position;
@@ -21,25 +24,33 @@ public class Player : MonoBehaviour
     public bool IsStunned => isStunned;
     public bool IsKicking => isKicking;
     public int Lv => lv;
-    public Sprite SpritePlayer => spritePlayer;
-    public Sprite SpritePortrait => spritePortrait;
     public List<Secret> CurrentSecret => currentSecret;
     public List<Secret> LearnedSecret => learnedSecret;
+    public Sprite SpritePlayerPortrait => spritePlayerPortrait;
+    public Sprite SpriteWearPortrait => spriteWearPortrait;
+
+    [SerializeField] private SpriteRenderer spriteRendererHair;
+    [SerializeField] private SpriteRenderer spriteRendererSkin;
+    [SerializeField] private SpriteRenderer spriteRendererWear;
+    [SerializeField] private Sprite spritePlayerPortrait;
+    [SerializeField] private Sprite spriteWearPortrait;
+    [SerializeField] private string pathHair = "Hair/";
+    [SerializeField] private string pathSkin = "Skin/";
+    [SerializeField] private string pathWear = "Wear/";
+    [SerializeField] private string pathPlayerPortrait = "PlayerPortrait/";
+    [SerializeField] private string pathWearPortrait = "WearPortrait/";
 
     [SerializeField] private float defaultYPosition = 0f;    
     [SerializeField] private string playerId;
     [SerializeField] private string playerNameEn;
     [SerializeField] private string playerNameJa;
     [SerializeField] private int lv;
+    [SerializeField] private Size size;
     [SerializeField] private Gender gender;
     [SerializeField] private Element element;
     [SerializeField] private Position position;
     [SerializeField] private bool isStunned;
     [SerializeField] private bool isKicking;
-    [SerializeField] private Sprite spritePlayer;
-    [SerializeField] private Sprite spritePortrait;
-    [SerializeField] private string pathPlayer = "Player/";
-    [SerializeField] private string pathPortrait = "";
     [SerializeField] private const int MAX_LV = 99;
     [SerializeField] private const int MAX_MORE = 50;
     [SerializeField] [Range(0f, 1f)] private float minStatRatio = 0.1f; // Value at level 1 is 10% of max stat
@@ -107,6 +118,16 @@ public class Player : MonoBehaviour
             position = Position.Fw;
         }
 
+        auxString = playerData.size;
+        Size auxSize;
+        isValid = Enum.TryParse(auxString, true, out auxSize); // case-insensitive parse
+        if (isValid)
+        {
+            size = auxSize;
+        } else {
+            size = Size.Small;
+        }
+
         IsAlly = true;
         IsAi = false;
         IsPossession = false;
@@ -140,26 +161,50 @@ public class Player : MonoBehaviour
         //sprite
         Sprite spriteAux = null;
 
-        spriteAux = Resources.Load<Sprite>(pathPlayer + "player");
-        if (spriteAux != null)
+        spriteAux = Resources.Load<Sprite>(pathHair + playerData.hair);
+        if (spriteRendererHair != null)
         {
-            spritePlayer = spriteAux;
+            if (spriteAux != null)
+            {
+                spriteRendererHair.sprite = spriteAux;
+            }
+            else
+            {
+                Debug.LogWarning($"Hair sprite not found: {pathHair}{playerData.hair} for player {playerData.playerId}");
+            }
         }
         else
         {
-            Debug.LogWarning("Sprite not found for portrait: " + playerData.playerId);
+            Debug.LogWarning("SpriteRendererHair reference is missing!");
         }
 
-        spriteAux = Resources.Load<Sprite>(pathPortrait + playerData.playerId);
-        if (spriteAux != null)
+        spriteAux = Resources.Load<Sprite>(pathSkin + playerData.skin);
+        if (spriteRendererSkin != null)
         {
-            spritePortrait = spriteAux;
+            if (spriteAux != null)
+            {
+                spriteRendererSkin.sprite = spriteAux;
+            }
+            else
+            {
+                Debug.LogWarning($"Skin sprite not found: {pathSkin}{playerData.skin} for player {playerData.playerId}");
+            }
         }
         else
         {
-            spriteAux = Resources.Load<Sprite>(pathPortrait + "default");
-            spritePortrait = spriteAux;
-            Debug.LogWarning("Sprite not found for portrait: " + playerData.playerId);
+            Debug.LogWarning("SpriteRendererSkin reference is missing!");
+        }
+
+        spriteAux = Resources.Load<Sprite>(pathPlayerPortrait + playerData.playerId);
+        if (spriteAux != null)
+        {
+            spritePlayerPortrait = spriteAux;
+        }
+        else
+        {
+            spriteAux = Resources.Load<Sprite>(pathPlayerPortrait + "P1");
+            spritePlayerPortrait = spriteAux;
+            Debug.LogWarning("SpritePlayerPortrait not found for player id: " + playerData.playerId);
         }
 
         // Additional initialization logic can go here
@@ -410,5 +455,37 @@ public class Player : MonoBehaviour
             .ConvertAll(id => SecretManager.Instance.GetSecretById(id)) ?? new List<Secret>();
         
         UpdateStats();
+    }
+
+    public void SetWear(Team team) 
+    {
+        Sprite spriteAux = Resources.Load<Sprite>(pathWear + team.TeamId);
+        if (spriteRendererWear != null)
+        {
+            if (spriteAux != null)
+            {
+                spriteRendererWear.sprite = spriteAux;
+            }
+            else
+            {
+                Debug.LogWarning($"Wear sprite not found for team {team.TeamId}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("SpriteRendererWear reference is missing!");
+        }
+
+        spriteAux = Resources.Load<Sprite>(pathWearPortrait + size + "/" + team.TeamId);
+        if (spriteAux != null)
+        {
+            spriteWearPortrait = spriteAux;
+        }
+        else
+        {
+            //spriteAux = Resources.Load<Sprite>(pathPortrait + "P1");
+            spriteWearPortrait = spriteAux;
+            Debug.LogWarning($"SpriteWearPortrait not found for team {pathWearPortrait}{size}/{team.TeamId}");
+        }
     }
 }
