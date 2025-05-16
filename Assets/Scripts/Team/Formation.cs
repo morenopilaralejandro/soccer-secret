@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 
-public class Formation : MonoBehaviour
+public class Formation
 {
     public string FormationId => formationId;
     public string FormationNameEn => formationNameEn;
@@ -14,7 +14,7 @@ public class Formation : MonoBehaviour
     [SerializeField] private string formationId;
     [SerializeField] private string formationNameEn;
     [SerializeField] private string formationNameJa;
-    [SerializeField] private List<Vector3> coords;
+    [SerializeField] private List<Vector3> coords = new List<Vector3>(4);
     [SerializeField] private int kickOff;
 
 

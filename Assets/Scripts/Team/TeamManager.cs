@@ -31,18 +31,14 @@ public class TeamManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
-
-        // Load and cache all TeamData
-        TeamData[] allTeamData = Resources.LoadAll<TeamData>(pathScriptableObjects + pathTeam);
-        foreach (TeamData td in allTeamData)
-        {
-            AddTeamDataToDict(td);
-            // Optionally: create Team from TeamData
-            Team team = new Team();
-            team.Initialize(td);
-            AddTeamToDict(team);
-        }
         
+        // Load and cache all CoordData
+        CoordData[] allCoordData = Resources.LoadAll<CoordData>(pathScriptableObjects + pathCoord);
+        foreach (CoordData cd in allCoordData)
+        {
+            AddCoordDataToDict(cd);
+        }
+
         // Load and cache all FormationData
         FormationData[] allFormationData = Resources.LoadAll<FormationData>(pathScriptableObjects + pathFormation);
         foreach (FormationData fd in allFormationData)
@@ -53,11 +49,15 @@ public class TeamManager : MonoBehaviour
             AddFormationToDict(formation);
         }
 
-        // Load and cache all CoordData
-        CoordData[] allCoordData = Resources.LoadAll<CoordData>(pathScriptableObjects + pathCoord);
-        foreach (CoordData cd in allCoordData)
+        // Load and cache all TeamData
+        TeamData[] allTeamData = Resources.LoadAll<TeamData>(pathScriptableObjects + pathTeam);
+        foreach (TeamData td in allTeamData)
         {
-            AddCoordDataToDict(cd);
+            AddTeamDataToDict(td);
+            // Optionally: create Team from TeamData
+            Team team = new Team();
+            team.Initialize(td);
+            AddTeamToDict(team);
         }
     }
 

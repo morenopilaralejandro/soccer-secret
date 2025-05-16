@@ -23,7 +23,7 @@ public class Player : MonoBehaviour
     public bool IsKeeper;
     public bool IsStunned => isStunned;
     public bool IsKicking => isKicking;
-    public int Lv => lv;
+    public int Lv;
     public List<Secret> CurrentSecret => currentSecret;
     public List<Secret> LearnedSecret => learnedSecret;
     public Sprite SpritePlayerPortrait => spritePlayerPortrait;
@@ -32,6 +32,7 @@ public class Player : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRendererHair;
     [SerializeField] private SpriteRenderer spriteRendererSkin;
     [SerializeField] private SpriteRenderer spriteRendererWear;
+    [SerializeField] private SpriteRenderer spriteRendererElement;
     [SerializeField] private Sprite spritePlayerPortrait;
     [SerializeField] private Sprite spriteWearPortrait;
     [SerializeField] private string pathHair = "Hair/";
@@ -44,7 +45,6 @@ public class Player : MonoBehaviour
     [SerializeField] private string playerId;
     [SerializeField] private string playerNameEn;
     [SerializeField] private string playerNameJa;
-    [SerializeField] private int lv;
     [SerializeField] private Size size;
     [SerializeField] private Gender gender;
     [SerializeField] private Element element;
@@ -134,7 +134,7 @@ public class Player : MonoBehaviour
         isStunned = false;
         IsKeeper = false;
 
-        lv = 99;
+        Lv = 99;
 
         baseStats[0] = playerData.hp;
         baseStats[1] = playerData.sp;
@@ -195,6 +195,24 @@ public class Player : MonoBehaviour
             Debug.LogWarning("SpriteRendererSkin reference is missing!");
         }
 
+
+        spriteAux = ElementManager.Instance.GetElementIcon(element);
+        if (spriteRendererElement != null)
+        {
+            if (spriteAux != null)
+            {
+                spriteRendererElement.sprite = spriteAux;
+            }
+            else
+            {
+                Debug.LogWarning($"Element sprite not found: {element} for player {playerData.playerId}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("SpriteRendererElement reference is missing!");
+        }
+
         spriteAux = Resources.Load<Sprite>(pathPlayerPortrait + playerData.playerId);
         if (spriteAux != null)
         {
@@ -206,6 +224,7 @@ public class Player : MonoBehaviour
             spritePlayerPortrait = spriteAux;
             Debug.LogWarning("SpritePlayerPortrait not found for player id: " + playerData.playerId);
         }
+
 
         // Additional initialization logic can go here
         UpdateStats();
@@ -294,7 +313,7 @@ public class Player : MonoBehaviour
     {
         if(Lv < MAX_LV)
         {
-            lv++;
+            Lv++;
             UpdateStats();
         }
     }
@@ -382,7 +401,7 @@ public class Player : MonoBehaviour
     {
         foreach (var entry in learnSet)
         {
-            if (lv == entry.lv && entry.secretId != null)
+            if (Lv == entry.lv && entry.secretId != null)
             {
                 learnedSecret.Add(SecretManager.Instance.GetSecretById(entry.secretId));
             }
@@ -395,7 +414,7 @@ public class Player : MonoBehaviour
         List<Secret> secrets = new List<Secret>();
         foreach (var entry in learnSet)
         {
-            if (lv >= entry.lv && entry.secretId != null)
+            if (Lv >= entry.lv && entry.secretId != null)
             {
                 secrets.Add(SecretManager.Instance.GetSecretById(entry.secretId));
             }
@@ -431,7 +450,7 @@ public class Player : MonoBehaviour
         return new PlayerSaveData
         {
             playerId = this.playerId,
-            lv = this.lv,
+            lv = this.Lv,
             moreStats = (int[])this.moreStats.Clone(), // Deep copy
             currFreedom = this.currFreedom,
             currentSecretIds = this.currentSecret?.ConvertAll(sec => sec.SecretId) ?? new List<string>(),
@@ -443,7 +462,7 @@ public class Player : MonoBehaviour
     {
         Initialize(template);  // Reset everything (or just set the parts that never change)
 
-        this.lv = data.lv;
+        this.Lv = data.lv;
 
         Array.Copy(data.moreStats, this.moreStats, Mathf.Min(data.moreStats.Length, this.moreStats.Length));
         this.currFreedom = data.currFreedom;
@@ -483,7 +502,7 @@ public class Player : MonoBehaviour
         }
         else
         {
-            //spriteAux = Resources.Load<Sprite>(pathPortrait + "P1");
+            spriteAux = Resources.Load<Sprite>(pathWearPortrait + "Small" + "/" + "T1");
             spriteWearPortrait = spriteAux;
             Debug.LogWarning($"SpriteWearPortrait not found for team {pathWearPortrait}{size}/{team.TeamId}");
         }

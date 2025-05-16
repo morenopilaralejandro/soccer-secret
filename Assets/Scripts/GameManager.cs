@@ -8,30 +8,16 @@ public class GameManager : MonoBehaviour
     public bool IsMovementFrozen { get; private set; } = false;
     public bool IsTimeFrozen { get; private set; } = false;
 
-    [SerializeField] private Transform[] players; // Array of player transforms
+    [SerializeField] private Team team0;
+    [SerializeField] private Team team1;
+    [SerializeField] private List<Player> allyPlayers;
+    [SerializeField] private List<Player> oppPlayers;
     [SerializeField] private Transform ball; // Transform of the ball
     [SerializeField] private Transform goalTop;
     [SerializeField] private Transform goalBottom;
-    [SerializeField] private Transform[] initialPlayerPositions; // Array to store initial player positions
     [SerializeField] private Vector3 initialBallPosition; // Vector3 to store initial ball position
     [SerializeField] private float timeRemaining = 180f; // 3 minutes
     [SerializeField] private TextMeshProUGUI timerText;
-
-    [SerializeField] private PlayerCard playerCard0;
-    [SerializeField] private PlayerCard playerCard1;
-    [SerializeField] private Bar barHp0;
-    [SerializeField] private Bar barHp1;
-    [SerializeField] private Bar barSp0;
-    [SerializeField] private Bar barSp1;
-    [SerializeField] private GameObject imagePossesion0;
-    [SerializeField] private GameObject imagePossesion1;
-
-    private GameObject[] duelPlayers = new GameObject[2];
-    private int duelType;
-    private int[] duelAction = new int[2];
-    private int[] duelCommand = new int[2];
-    private Secret[] duelSecret = new Secret[2];
-    private float[] duelDamage = new float[2];
 
     private void Awake()
     {
@@ -42,17 +28,18 @@ public class GameManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(this.gameObject);
+
+        team0 =  TeamManager.Instance.GetTeamById("T1");
+        team1 = TeamManager.Instance.GetTeamById("T2");
+
+        InitializeTeamPlayers(team0, allyPlayers, true);
+        InitializeTeamPlayers(team1, oppPlayers, false);
     }
 
     void Start()
     {
         UpdateTimerDisplay(timeRemaining);
-
-        // Store initial positions
-        StoreInitialPositions();
-
-        // Reset positions at the start of the game
-        ResetPositions();
+        StartBattle(team0, team1);
     }
 
 
@@ -83,27 +70,49 @@ public class GameManager : MonoBehaviour
         timerText.text = string.Format("{0:00}:{1:00}", minutes, secs);
     }
 
-    void StoreInitialPositions()
+    public void StartBattle(Team teamA, Team teamB)
     {
-        initialPlayerPositions = new Transform[players.Length];
-        for (int i = 0; i < players.Length; i++)
-        {
-            initialPlayerPositions[i] = players[i];
-        }
-        initialBallPosition = ball.position;
+        ResetDefaultPositions();
+        // Reset timer and game state
+        timeRemaining = 180f;
+        IsTimeFrozen = false;
+        IsMovementFrozen = false;
+        // Optionally, show battle start UI, play audio, etc
     }
 
-    public void ResetPositions()
+    public void InitializeTeamPlayers(Team team, List<Player> players, bool isAlly)
     {
-        // Reset player positions
-        for (int i = 0; i < players.Length; i++)
-        {
-            players[i].position = initialPlayerPositions[i].position;
+        for (int i = 0; i < players.Count; i++) {
+            Player player = players[i];
+            PlayerData playerData = team.PlayerDataList[i];
+            player.Initialize(playerData);
+            player.SetWear(team);
+            player.Lv = team.Lv;
+            player.IsAlly = isAlly;
+            player.IsAi = !isAlly;       
         }
+    }
 
-        // Reset ball position
-        ball.position = initialBallPosition;
-        ball.GetComponent<Rigidbody>().velocity = Vector3.zero; // Stop the ball
+    public void ResetDefaultPositions() 
+    {
+        ResetPlayerPositions(team0, allyPlayers, true);
+        ResetPlayerPositions(team1, oppPlayers, false);
+        ball.transform.position = initialBallPosition;
+    }
+
+    public void ResetPlayerPositions(Team team, List<Player> players, bool isAlly)
+    {
+        for (int i = 0; i < players.Count; i++) 
+        {
+            Player player = players[i];
+            player.transform.position = team.Formation.Coords[i];
+            if (!isAlly) 
+            {
+                Vector3 pos = player.transform.position;
+                pos.z = pos.z * -1;
+                player.transform.position = pos;
+            }
+        }
     }
 
     public void FreezeGame()
@@ -127,7 +136,7 @@ public class GameManager : MonoBehaviour
     {
         //TODO
         // Reset positions after a goal
-        ResetPositions();
+        ResetDefaultPositions();
 
         // Additional logic for handling a goal (e.g., updating score) can be added here
     }
