@@ -40,6 +40,8 @@ public class Player : MonoBehaviour
     [SerializeField] private string pathWear = "Wear/";
     [SerializeField] private string pathPlayerPortrait = "PlayerPortrait/";
     [SerializeField] private string pathWearPortrait = "WearPortrait/";
+    [SerializeField] private string pathField = "Field/";
+    [SerializeField] private string pathKeeper = "Keeper/";
 
     [SerializeField] private float defaultYPosition = 0f;    
     [SerializeField] private string playerId;
@@ -478,7 +480,9 @@ public class Player : MonoBehaviour
 
     public void SetWear(Team team) 
     {
-        Sprite spriteAux = Resources.Load<Sprite>(pathWear + team.TeamId);
+        string pathFolder = IsKeeper ? pathKeeper : pathField;
+    
+        Sprite spriteAux = Resources.Load<Sprite>(pathWear + pathFolder + team.TeamId);
         if (spriteRendererWear != null)
         {
             if (spriteAux != null)
@@ -487,7 +491,7 @@ public class Player : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"Wear sprite not found for team {team.TeamId}");
+                Debug.LogWarning($"Wear sprite not found for team {pathWear}{pathFolder}{team.TeamId}");
             }
         }
         else
@@ -495,16 +499,16 @@ public class Player : MonoBehaviour
             Debug.LogWarning("SpriteRendererWear reference is missing!");
         }
 
-        spriteAux = Resources.Load<Sprite>(pathWearPortrait + size + "/" + team.TeamId);
+        spriteAux = Resources.Load<Sprite>(pathWearPortrait + size + "/" + pathFolder + team.TeamId);
         if (spriteAux != null)
         {
             spriteWearPortrait = spriteAux;
         }
         else
         {
-            spriteAux = Resources.Load<Sprite>(pathWearPortrait + "Small" + "/" + "T1");
+            spriteAux = Resources.Load<Sprite>(pathWearPortrait + "Small" + "/" + pathFolder + "T1");
             spriteWearPortrait = spriteAux;
-            Debug.LogWarning($"SpriteWearPortrait not found for team {pathWearPortrait}{size}/{team.TeamId}");
+            Debug.LogWarning($"SpriteWearPortrait not found for team {pathWearPortrait}{size}/{pathFolder}{team.TeamId}");
         }
     }
 }

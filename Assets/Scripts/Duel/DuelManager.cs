@@ -16,6 +16,8 @@ public class DuelManager : MonoBehaviour
     private List<DuelParticipantData> stagedParticipants = new List<DuelParticipantData>();
     private Duel currentDuel = new Duel();
     private Coroutine unlockStatusCoroutine;
+    private float keeperBonus = 50f;
+    private float keeperGoalDistance = 0.5f;
 
     #region Unity Lifecycle
 
@@ -93,6 +95,12 @@ public class DuelManager : MonoBehaviour
         currentDuel.LastDefense = defender;
 
         ApplyElementalEffectiveness(currentDuel.LastOffense, defender);
+
+        if (defender.Category == Category.Block && defender.Player.IsKeeper && GameManager.Instance.GetDistanceToAllyGoal(defender.Player) < keeperGoalDistance)
+        {
+            defender.Damage *= keeperBonus;
+            Debug.Log("Keeper gets a block bonus!");
+        }
 
         if (defender.Damage >= currentDuel.AttackPressure)
         {

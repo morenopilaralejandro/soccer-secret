@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     public bool IsMovementFrozen { get; private set; } = false;
     public bool IsTimeFrozen { get; private set; } = false;
+    public bool IsKickOff { get; private set; } = false;
 
     [SerializeField] private Team team0;
     [SerializeField] private Team team1;
@@ -16,8 +17,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform goalTop;
     [SerializeField] private Transform goalBottom;
     [SerializeField] private Vector3 initialBallPosition; // Vector3 to store initial ball position
+    [SerializeField] private Vector3 centerKickOffPosition = Vector3.zero;
     [SerializeField] private float timeRemaining = 180f; // 3 minutes
     [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private TextMeshProUGUI textScore0;
+    [SerializeField] private TextMeshProUGUI textScore1;
+    private int score0 = 0;
+    private int score1 = 0;
 
     private void Awake()
     {
@@ -32,12 +38,16 @@ public class GameManager : MonoBehaviour
         team0 =  TeamManager.Instance.GetTeamById("T1");
         team1 = TeamManager.Instance.GetTeamById("T2");
 
+        goalBottom.GetComponent<GoalTrigger>().Team = team0;
+        goalTop.GetComponent<GoalTrigger>().Team = team1;
+
         InitializeTeamPlayers(team0, allyPlayers, true);
         InitializeTeamPlayers(team1, oppPlayers, false);
     }
 
     void Start()
     {
+        UpdateScoreDisplay();
         UpdateTimerDisplay(timeRemaining);
         StartBattle(team0, team1);
     }
@@ -70,14 +80,16 @@ public class GameManager : MonoBehaviour
         timerText.text = string.Format("{0:00}:{1:00}", minutes, secs);
     }
 
+    private void UpdateScoreDisplay()
+    {
+        textScore0.text = score0.ToString();
+        textScore1.text = score1.ToString();
+    }
+
     public void StartBattle(Team teamA, Team teamB)
     {
-        ResetDefaultPositions();
-        // Reset timer and game state
+        StartKickOff(teamA);
         timeRemaining = 180f;
-        IsTimeFrozen = false;
-        IsMovementFrozen = false;
-        // Optionally, show battle start UI, play audio, etc
     }
 
     public void InitializeTeamPlayers(Team team, List<Player> players, bool isAlly)
@@ -86,10 +98,14 @@ public class GameManager : MonoBehaviour
             Player player = players[i];
             PlayerData playerData = team.PlayerDataList[i];
             player.Initialize(playerData);
-            player.SetWear(team);
+            if (i == 0) 
+            {
+                player.IsKeeper = true;
+            }  
             player.Lv = team.Lv;
             player.IsAlly = isAlly;
-            player.IsAi = !isAlly;       
+            player.IsAi = !isAlly; 
+            player.SetWear(team);    
         }
     }
 
@@ -115,6 +131,24 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void StartKickOff(Team kickOffTeam)
+    {
+        FreezeGame();   
+        IsKickOff = true;     
+        ResetDefaultPositions();
+
+        // Optionally: Move one of the kickOffTeam's players (usually a striker or midfielder) to be on the center spot
+        // Let's assume player 1 is the kick-off taker:
+        List<Player> kickOffPlayers = (kickOffTeam == team0) ? allyPlayers : oppPlayers;
+        if (kickOffPlayers.Count > 0)
+        {
+            Player kickOffPlayer = kickOffPlayers[kickOffTeam.Formation.KickOff];
+            kickOffPlayer.transform.position = centerKickOffPosition;
+            BallBehavior.Instance.GainPossession(kickOffPlayer);
+        }
+
+    }
+
     public void FreezeGame()
     {
         IsMovementFrozen = true;
@@ -127,20 +161,25 @@ public class GameManager : MonoBehaviour
     {
         IsMovementFrozen = false;
         IsTimeFrozen = false;
+        IsKickOff = false;
         // Hide your UI here, e.g.:
         // UIManager.Instance.HideFreezePanel();
     }
 
-    // Call this method when a goal is scored
-    public void OnGoalScored()
+    public void OnGoalScored(Team scoringTeam)
     {
-        //TODO
-        // Reset positions after a goal
-        ResetDefaultPositions();
+        if (scoringTeam == team0)
+            score0++;
+        else if (scoringTeam == team1)
+            score1++;
 
-        // Additional logic for handling a goal (e.g., updating score) can be added here
+        UpdateScoreDisplay();
+
+        Team kickOffTeam = (scoringTeam == team0) ? team1 : team0;
+        StartKickOff(kickOffTeam);
     }
 
+    
     public float GetDistanceToOppGoal(Player player) 
     {
         Transform goal = player.IsAlly ? goalTop : goalBottom;

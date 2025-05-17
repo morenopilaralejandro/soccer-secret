@@ -2534,7 +2534,7 @@ PrefabInstance:
     - target: {fileID: 1273373189928147067, guid: aa2275c79da51bb7b8f5dc1562fb2501,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.86
+      value: -1.11
       objectReference: {fileID: 0}
     - target: {fileID: 1273373189928147067, guid: aa2275c79da51bb7b8f5dc1562fb2501,
         type: 3}
@@ -3212,8 +3212,11 @@ MonoBehaviour:
   goalTop: {fileID: 1950543440}
   goalBottom: {fileID: 1040424307}
   initialBallPosition: {x: 0, y: 0, z: 0}
+  centerKickOffPosition: {x: 0, y: 0, z: 0}
   timeRemaining: 180
   timerText: {fileID: 1305269842}
+  textScore0: {fileID: 949522891}
+  textScore1: {fileID: 1107934091}
 --- !u!4 &986222093
 Transform:
   m_ObjectHideFlags: 0
@@ -6177,7 +6180,7 @@ PrefabInstance:
     - target: {fileID: 1273373189928147067, guid: aa2275c79da51bb7b8f5dc1562fb2501,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1
+      value: -1.8
       objectReference: {fileID: 0}
     - target: {fileID: 1273373189928147067, guid: aa2275c79da51bb7b8f5dc1562fb2501,
         type: 3}

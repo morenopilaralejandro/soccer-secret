@@ -153,6 +153,9 @@ public class BallBehavior : MonoBehaviour
 
                         crosshairImage.transform.position = touchEndPos;
                         crosshairImage.enabled = true;
+                        if (GameManager.Instance.IsKickOff) {
+                            GameManager.Instance.UnfreezeGame();
+                        }
                         if (!GameManager.Instance.IsMovementFrozen)
                         {
                             KickBallTo(touchEndPos);
@@ -245,6 +248,7 @@ public class BallBehavior : MonoBehaviour
 
     public void GainPossession(Player player)
     {
+        ReleasePossession();
         PossessionPlayer = player;
         PossessionPlayer.IsPossession = true;
         if (!UIManager.Instance.IsStatusLocked) {
