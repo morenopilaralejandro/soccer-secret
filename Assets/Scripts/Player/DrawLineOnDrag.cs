@@ -177,7 +177,7 @@ public class DrawLineOnDrag : MonoBehaviour
             Vector3 targetPosition = linePoints[currentPointIndex];
             float moveSpeed = player.GetMoveSpeed();
             Vector3 newPosition = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed);
-            transform.position = newPosition;
+            player.transform.position = newPosition;
 
             if (Vector3.Distance(transform.position, targetPosition) < moveTolerance)
             {
