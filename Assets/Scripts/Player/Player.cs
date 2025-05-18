@@ -68,6 +68,7 @@ public class Player : MonoBehaviour
     private int maxSp;
 
     private Collider[] colliders;
+    private Coroutine stunRoutine;
 
     [Header("Movement Parameters")]
     [SerializeField] private float speedBaseUser = 0.2f;
@@ -240,12 +241,35 @@ public class Player : MonoBehaviour
         colliders = GetComponentsInChildren<Collider>(true);
     }
     //stun
-    public IEnumerator Stun()
+    public void Stun()
     {
-        if (isStunned)
-            yield break; // Prevent stun-stacking
+        // In case a stun is in progress, stop it before starting a new one
+        if (stunRoutine != null)
+        {
+            StopCoroutine(stunRoutine);
+        }
+        stunRoutine = StartCoroutine(StunPlayer());
+    }
+
+    public void Unstun()
+    {
+        if (stunRoutine != null)
+        {
+            StopCoroutine(stunRoutine);
+            stunRoutine = null;
+        }
+
+        isStunned = false;
+        SetAllCollidersEnabled(true);
+        SetYPosition(defaultYPosition);
+    }
+
+    public IEnumerator StunPlayer()
+    {
 
         float duration = 3f;
+        if (isStunned)
+            yield break;
         isStunned = true;
         SetAllCollidersEnabled(false);
         StartCoroutine(BlinkEffect(duration));
@@ -261,6 +285,7 @@ public class Player : MonoBehaviour
         SetAllCollidersEnabled(true);
         isStunned = false;
         SetYPosition(defaultYPosition);
+        stunRoutine = null;
     }
 
     private void SetAllCollidersEnabled(bool enabled)
@@ -297,7 +322,7 @@ public class Player : MonoBehaviour
 
     public IEnumerator KickCoroutine()
     {
-        float duration = 0.3f;
+        float duration = 0.2f;
         isKicking = true;
         yield return new WaitForSeconds(duration);
         isKicking = false;

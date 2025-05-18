@@ -133,7 +133,7 @@ public class BallBehavior : MonoBehaviour
                         if (Physics.Raycast(ray, out hitGoal, Mathf.Infinity, goalLayerMask))
                         {
                             Debug.Log($"Raycast hit: {hitGoal.collider.name} on layer {LayerMask.LayerToName(hitGoal.collider.gameObject.layer)} Tag={hitGoal.collider.tag}");
-                            if (GameManager.Instance.GetDistanceToOppGoal(PossessionPlayer) < 2.2f && hitGoal.collider.CompareTag("Opp") && DuelManager.Instance.IsDuelResolved())
+                            if (GameManager.Instance.GetDistanceToOppGoal(PossessionPlayer) < 2.2f && hitGoal.collider.CompareTag("Opp") && DuelManager.Instance.IsDuelResolved() && !GameManager.Instance.IsMovementFrozen)
                             {
                                 Debug.Log("Tap on OPP GOAL detected. Initiating Duel.");
                                 GameManager.Instance.FreezeGame();

@@ -16,6 +16,7 @@ public class DuelManager : MonoBehaviour
     private List<DuelParticipantData> stagedParticipants = new List<DuelParticipantData>();
     private Duel currentDuel = new Duel();
     private Coroutine unlockStatusCoroutine;
+    private float hpMultiplier = 0.1f;
     private float keeperBonus = 50f;
     private float keeperGoalDistance = 0.5f;
 
@@ -71,6 +72,14 @@ public class DuelManager : MonoBehaviour
 
         currentDuel.Participants.Add(participant);
 
+        if (participant.Secret != null)
+        {
+            Vector3 playerPos = participant.Player.transform.position; // Or however you get the player's position
+            SecretManager.Instance.PlaySecretEffect(participant.Secret, playerPos);
+        }
+
+        participant.Player.ReduceHp(Mathf.RoundToInt(participant.Player.Lv * hpMultiplier));
+
         if (participant.Action == DuelAction.Offense)
         {
             currentDuel.AttackPressure += participant.Damage;
@@ -114,7 +123,7 @@ public class DuelManager : MonoBehaviour
             OnSetStatusPlayerAndCommand?.Invoke(defender, 0f);
             Debug.Log($"Partial block. Attack pressure now {currentDuel.AttackPressure}");
 
-            StartCoroutine(defender.Player.Stun());
+            defender.Player.Stun();
 
             if (currentDuel.Mode == DuelMode.Field || defender.Category == Category.Catch)
             {
@@ -146,13 +155,14 @@ public class DuelManager : MonoBehaviour
 
     private void EndDuel(DuelParticipant winningParticipant, DuelAction winnerAction)
     {
+        winningParticipant.Player.ReduceHp(Mathf.RoundToInt(winningParticipant.Player.Lv * hpMultiplier));
         currentDuel.IsResolved = true;
         UIManager.Instance.ShowTextDuelResult(winningParticipant);
         ShootTriangle.Instance.SetTriangleVisible(false);
 
         if (winnerAction == DuelAction.Defense)
         {
-            StartCoroutine(currentDuel.LastOffense.Player.Stun());
+            currentDuel.LastOffense.Player.Stun();
             BallBehavior.Instance.GainPossession(winningParticipant.Player);
         }
 

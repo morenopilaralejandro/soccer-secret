@@ -13,6 +13,8 @@ public class SecretManager : MonoBehaviour
     private Dictionary<string, SecretData> secretDataDict = new Dictionary<string, SecretData>();
     private Dictionary<string, Secret> secretDict = new Dictionary<string, Secret>();
 
+    [SerializeField] private string effectPrefabPath = "Effects/Secret/";
+
     [SerializeField] private Sprite[] categoryIcons;
     [SerializeField] private Color[] categoryColors = {
         new Color(0.906f, 0.420f, 0.482f, 1.0f),
@@ -108,6 +110,43 @@ public class SecretManager : MonoBehaviour
         else
         {
             return new Color();
+        }
+    }
+
+    /*
+    public void PlaySecretEffect(string secretId, Vector3 position)
+    {
+        SecretData secretData = GetSecretDataById(secretId);
+        if (secretData != null && !string.IsNullOrEmpty(secretData.effectPrefabPath))
+        {
+            // If using Resources folder:
+            GameObject effectPrefab = Resources.Load<GameObject>(secretData.effectPrefabPath);
+            if (effectPrefab != null)
+                Instantiate(effectPrefab, position, Quaternion.identity);
+            else
+                Debug.LogWarning("Effect prefab not found at: " + secretData.effectPrefabPath);
+        }
+        else
+        {
+            Debug.LogWarning("Effect prefab path not assigned for secretId: " + secretId);
+        }
+    }
+    */
+
+    public void PlaySecretEffect(Secret secret, Vector3 position)
+    {
+        if (secret != null && !string.IsNullOrEmpty(effectPrefabPath))
+        {
+            // If using Resources folder:
+            GameObject effectPrefab = Resources.Load<GameObject>(effectPrefabPath + secret.Element);
+            if (effectPrefab != null)
+                Instantiate(effectPrefab, position, Quaternion.identity);
+            else
+                Debug.LogWarning("Effect prefab not found at: " + effectPrefabPath + secret.Element);
+        }
+        else
+        {
+            Debug.LogWarning("Effect prefab path not assigned for secretId: " + secret.SecretId);
         }
     }
 }

@@ -1,4 +1,6 @@
 using UnityEngine;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro; // Needed for TextMeshProUGUI
 
@@ -20,6 +22,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Vector3 centerKickOffPosition = Vector3.zero;
     [SerializeField] private float timeRemaining = 180f; // 3 minutes
     [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private GameObject panelGoalMessage;
+    [SerializeField] private Animator textGoalMessage;
     [SerializeField] private TextMeshProUGUI textScore0;
     [SerializeField] private TextMeshProUGUI textScore1;
     private int score0 = 0;
@@ -121,6 +125,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < players.Count; i++) 
         {
             Player player = players[i];
+            player.Unstun();
             player.transform.position = team.Formation.Coords[i];
             if (!isAlly) 
             {
@@ -166,16 +171,28 @@ public class GameManager : MonoBehaviour
         // UIManager.Instance.HideFreezePanel();
     }
 
-    public void OnGoalScored(Team scoringTeam)
+    public void OnGoalScored(Team scoredTeam)
     {
-        if (scoringTeam == team0)
-            score0++;
-        else if (scoringTeam == team1)
+        if (scoredTeam == team0)
             score1++;
+        else if (scoredTeam == team1)
+            score0++;
 
         UpdateScoreDisplay();
 
-        Team kickOffTeam = (scoringTeam == team0) ? team1 : team0;
+        StartCoroutine(GoalSequence(scoredTeam));
+    }
+
+    private IEnumerator GoalSequence(Team kickOffTeam)
+    {
+        IsTimeFrozen = true;
+        float goalDuration = 2f;
+        panelGoalMessage.SetActive(true);
+        textGoalMessage.Play("TextGoalSlide", -1, 0f);
+        
+        yield return new WaitForSeconds(goalDuration);
+        panelGoalMessage.SetActive(false);
+        IsTimeFrozen = false;
         StartKickOff(kickOffTeam);
     }
 
