@@ -23,6 +23,7 @@ public class Player : MonoBehaviour
     public bool IsKeeper;
     public bool IsStunned => isStunned;
     public bool IsKicking => isKicking;
+    public bool IsControlling => isControlling;
     public int Lv;
     public List<Secret> CurrentSecret => currentSecret;
     public List<Secret> LearnedSecret => learnedSecret;
@@ -37,11 +38,7 @@ public class Player : MonoBehaviour
     [SerializeField] private Sprite spriteWearPortrait;
     [SerializeField] private string pathHair = "Hair/";
     [SerializeField] private string pathSkin = "Skin/";
-    [SerializeField] private string pathWear = "Wear/";
     [SerializeField] private string pathPlayerPortrait = "PlayerPortrait/";
-    [SerializeField] private string pathWearPortrait = "WearPortrait/";
-    [SerializeField] private string pathField = "Field/";
-    [SerializeField] private string pathKeeper = "Keeper/";
 
     [SerializeField] private float defaultYPosition = 0f;    
     [SerializeField] private string playerId;
@@ -53,6 +50,7 @@ public class Player : MonoBehaviour
     [SerializeField] private Position position;
     [SerializeField] private bool isStunned;
     [SerializeField] private bool isKicking;
+    [SerializeField] private bool isControlling;
     [SerializeField] private const int MAX_LV = 99;
     [SerializeField] private const int MAX_MORE = 50;
     [SerializeField] [Range(0f, 1f)] private float minStatRatio = 0.1f; // Value at level 1 is 10% of max stat
@@ -320,12 +318,25 @@ public class Player : MonoBehaviour
         SetYPosition(defaultYPosition);
     }
 
-    public IEnumerator KickCoroutine()
+    public void Kick()
     {
-        float duration = 0.2f;
-        isKicking = true;
+        StartCoroutine(StopPlayerByControl());
+    }
+
+    public void Control()
+    {
+        StartCoroutine(StopPlayerByControl());
+    }
+
+    private IEnumerator StopPlayerByControl()
+    {
+        float controlMultiplier = 0.01f;
+        float duration = 0.2f - (GetStat(PlayerStats.Control) * controlMultiplier);
+        float durationMin = 0.1f;
+        duration = Mathf.Max(duration, durationMin);
+        isControlling = true;
         yield return new WaitForSeconds(duration);
-        isKicking = false;
+        isControlling = false;
     }
 
     private void SetYPosition(float yVal)
@@ -508,17 +519,13 @@ public class Player : MonoBehaviour
         WearRole role = IsKeeper ? WearRole.Keeper : WearRole.Field;
         WearVariant variant = isHome ? WearVariant.Home : WearVariant.Away;
     
-        Sprite spriteAux = Resources.Load<Sprite>("" + "" + team.TeamId);
+        Sprite spriteAux = WearManager.Instance.GetWearSprite(team.TeamId, role, variant);
         if (spriteRendererWear != null)
         {
             if (spriteAux != null)
-            {
                 spriteRendererWear.sprite = spriteAux;
-            }
             else
-            {
-                Debug.LogWarning($"Wear sprite not found for team");
-            }
+                Debug.LogWarning("No matching wear sprite found for {role}/{variant}/{team.TeamId}");
         }
         else
         {

@@ -54,9 +54,11 @@ public class PanelStatusSide : MonoBehaviour
             {
                 case DuelCommand.Phys:
                     textCommand.text = "Phys.";
+                    textCommand.color = Color.white;
                     break;
                 case DuelCommand.Skill:
                     textCommand.text = "Skill";
+                    textCommand.color = Color.white;
                     break;
                 case DuelCommand.Secret:
                     textCommand.text = duelParticipant.Secret.SecretNameEn;

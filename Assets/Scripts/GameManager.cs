@@ -196,16 +196,15 @@ public class GameManager : MonoBehaviour
         StartKickOff(kickOffTeam);
     }
 
-    
     public float GetDistanceToOppGoal(Player player) 
     {
         Transform goal = player.IsAlly ? goalTop : goalBottom;
-        return Vector3.Distance(player.transform.position, goal.position);
+        return Mathf.Abs(player.transform.position.z - goal.position.z);
     }
 
     public float GetDistanceToAllyGoal(Player player) 
     {
         Transform goal = player.IsAlly ? goalBottom : goalTop;
-        return Vector3.Distance(player.transform.position, goal.position);
+        return Mathf.Abs(player.transform.position.z - goal.position.z);
     }
 }

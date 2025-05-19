@@ -16,7 +16,7 @@ public class WearPortraitLibrary : ScriptableObject
             w => w.sprite);
     }
 
-    public Sprite GetWearSprite(string teamId, Size size, WearRole role, WearVariant variant)
+    public Sprite GetWearPortraitSprite(string teamId, Size size, WearRole role, WearVariant variant)
     {
         WearPortraitEntry entry = wearPortraits.FirstOrDefault(w =>
             w.teamId == teamId &&

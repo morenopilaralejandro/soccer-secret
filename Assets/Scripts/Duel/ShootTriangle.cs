@@ -6,6 +6,8 @@ public class ShootTriangle : MonoBehaviour
     public static ShootTriangle Instance { get; private set; }
     [Header("Reference")]
     [SerializeField] private Camera mainCamera;
+    [SerializeField] private BoxCollider boundTop;
+    [SerializeField] private BoxCollider boundBottom;
 
     [Header("Triangle Vertices (XY ignored at runtime)")]
     [SerializeField] private Vector3 vertex0;
@@ -14,7 +16,7 @@ public class ShootTriangle : MonoBehaviour
 
     [Header("Triangle Settings")]
     [SerializeField] private float coordY = 0.02f;
-    [SerializeField] private float baseOffsetMin = 0.15f;
+    [SerializeField] private float baseOffsetMin = 0.5f;
     [SerializeField] private float controlFactor = 0.05f; 
     [SerializeField] private float rangeMin = 1f;
     [SerializeField] private float rangeMax = 2.5f; 
@@ -103,8 +105,10 @@ public class ShootTriangle : MonoBehaviour
         float offsetAmount2 = Mathf.Max(baseOffsetMin, randomValue2 - control);
         vertex2 = touchWorld - perp * offsetAmount2;
 
-        vertex1.z = touchWorld.z;
-        vertex2.z = touchWorld.z;
+        // --- The only change: set z to border's z
+        float borderZ = (touchWorld.z >= 0f) ? boundTop.bounds.min.z : boundBottom.bounds.max.z;
+        vertex1.z = borderZ;
+        vertex2.z = borderZ;
 
         UpdateMesh();
     }

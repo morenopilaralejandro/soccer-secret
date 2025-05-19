@@ -76,6 +76,7 @@ public class DuelManager : MonoBehaviour
         {
             Vector3 playerPos = participant.Player.transform.position; // Or however you get the player's position
             SecretManager.Instance.PlaySecretEffect(participant.Secret, playerPos);
+            participant.Player.ReduceSp(participant.Secret.Cost);
         }
 
         participant.Player.ReduceHp(Mathf.RoundToInt(participant.Player.Lv * hpMultiplier));
@@ -162,8 +163,9 @@ public class DuelManager : MonoBehaviour
 
         if (winnerAction == DuelAction.Defense)
         {
-            currentDuel.LastOffense.Player.Stun();
+            BallBehavior.Instance.CancelTravel();
             BallBehavior.Instance.GainPossession(winningParticipant.Player);
+            currentDuel.LastOffense.Player.Stun();
         }
 
         unlockStatusCoroutine = StartCoroutine(UnlockStatusRoutine());

@@ -8,6 +8,7 @@ public class WearManager : MonoBehaviour
 
     public static WearManager Instance { get; private set; }
     public WearPortraitLibrary wearPortraitLibrary; // Drag your asset here in inspector
+    public WearLibrary wearLibrary; // Drag your asset here in inspector
 
     private void Awake()
     {
@@ -27,6 +28,14 @@ public class WearManager : MonoBehaviour
         WearRole role,
         WearVariant variant)
     {
-        return wearPortraitLibrary.GetWearSprite(teamId, size, role, variant);
+        return wearPortraitLibrary.GetWearPortraitSprite(teamId, size, role, variant);
+    }
+
+    public Sprite GetWearSprite(
+        string teamId,
+        WearRole role,
+        WearVariant variant)
+    {
+        return wearLibrary.GetWearSprite(teamId, role, variant);
     }
 }

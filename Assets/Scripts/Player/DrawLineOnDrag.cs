@@ -107,7 +107,7 @@ public class DrawLineOnDrag : MonoBehaviour
             }
         }
 
-        if (player.IsStunned || player.IsKicking)
+        if (player.IsStunned || player.IsKicking || player.IsControlling)
             return; // Don't process movement
 
         if (isMoving && !GameManager.Instance.IsMovementFrozen)

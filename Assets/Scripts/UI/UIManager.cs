@@ -167,10 +167,12 @@ public class UIManager : MonoBehaviour
             GameManager.Instance.UnfreezeGame();
     }
 
-public void OnSecretCommandSlotTapped(SecretCommandSlot secretCommandSlot)
+    public void OnSecretCommandSlotTapped(SecretCommandSlot secretCommandSlot)
     {
         Debug.Log("SecretCommandSlot tapped: " + secretCommandSlot.name);
         if (secretCommandSlot.Secret == null)
+            return;
+        if (UserPlayer.GetStat(PlayerStats.Sp) < secretCommandSlot.Secret.Cost) 
             return;
 
         SetPanelSecretVisible(false);

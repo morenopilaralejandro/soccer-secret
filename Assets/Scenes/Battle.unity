@@ -5273,6 +5273,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   wearPortraitLibrary: {fileID: 11400000, guid: b7d42abc6a9e5c72799cff2f30576197,
     type: 2}
+  wearLibrary: {fileID: 11400000, guid: 8908c8c8b95bd81459182d8845cf24c1, type: 2}
 --- !u!4 &1434613040
 Transform:
   m_ObjectHideFlags: 0
@@ -7582,6 +7583,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1590060371247122036, guid: cd906f2de13b4a9a28f383c5af286c7c,
         type: 3}
+      propertyPath: m_Layer
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 1590060371247122036, guid: cd906f2de13b4a9a28f383c5af286c7c,
+        type: 3}
       propertyPath: m_TagString
       value: Ally
       objectReference: {fileID: 0}
@@ -8795,11 +8801,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 1412624558}
+  boundTop: {fileID: 513570712}
+  boundBottom: {fileID: 1210914613}
   vertex0: {x: 1.5, y: 0, z: -0.5}
   vertex1: {x: -1, y: 0, z: 2}
   vertex2: {x: 1, y: 1, z: 2}
   coordY: 0.02
-  baseOffsetMin: 0.15
+  baseOffsetMin: 0.5
   controlFactor: 0.05
   rangeMin: 1
   rangeMax: 2.5
@@ -8890,6 +8898,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_TagString
       value: Opp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1590060371247122036, guid: cd906f2de13b4a9a28f383c5af286c7c,
+        type: 3}
+      propertyPath: m_Layer
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 2885296705148593001, guid: cd906f2de13b4a9a28f383c5af286c7c,
         type: 3}

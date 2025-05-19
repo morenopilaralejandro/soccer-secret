@@ -128,7 +128,7 @@ public class BallBehavior : MonoBehaviour
                         Ray ray = mainCamera.ScreenPointToRay(touchEndPos);
                         Debug.DrawRay(ray.origin, ray.direction * Mathf.Infinity, Color.red, 2f); // <--- Add this line
                         RaycastHit hitGoal;
-                        int goalLayerMask = LayerMask.GetMask("Goal");
+                        int goalLayerMask = LayerMask.GetMask("GoalTouchArea");
                         Debug.Log($"Attempting to raycast to Goal layer. Mask={goalLayerMask}, TapPos={touchEndPos}");
                         if (Physics.Raycast(ray, out hitGoal, Mathf.Infinity, goalLayerMask))
                         {
@@ -185,17 +185,17 @@ public class BallBehavior : MonoBehaviour
         Vector3 targetPosition = PossessionPlayer.gameObject.transform.position + PossessionPlayer.gameObject.transform.forward * 0.5f;
         targetPosition.x += 0.1f;
         targetPosition.y = transform.position.y;
-        targetPosition.z -= 0.2f;
+        targetPosition.z -= 0.1f;
         transform.position = Vector3.Lerp(transform.position, targetPosition, dribbleSpeed * Time.deltaTime);
     }
-
+    
     public void KickBallTo(Vector2 targetScreenPosition) //touchEnd
     {
         isPossessed = false;
         rb.isKinematic = false;
 
         if (PossessionPlayer != null)
-            StartCoroutine(PossessionPlayer.KickCoroutine());
+            PossessionPlayer.Kick();
 
         // Convert the screen position to a world position
         Vector3 touchPosition = mainCamera.ScreenToWorldPoint(new Vector3(targetScreenPosition.x, targetScreenPosition.y, mainCamera.nearClipPlane));
@@ -258,6 +258,7 @@ public class BallBehavior : MonoBehaviour
         Debug.Log("Possession granted to: " + PossessionPlayer.PlayerNameEn);
         isPossessed = true;
         rb.isKinematic = true;
+        PossessionPlayer.Control();
 
         Vector3 immediatePosition = PossessionPlayer.gameObject.transform.position + PossessionPlayer.gameObject.transform.forward * 0.5f;
         immediatePosition.y = transform.position.y;
