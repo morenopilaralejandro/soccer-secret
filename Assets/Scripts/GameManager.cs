@@ -109,7 +109,7 @@ public class GameManager : MonoBehaviour
             player.Lv = team.Lv;
             player.IsAlly = isAlly;
             player.IsAi = !isAlly; 
-            player.SetWear(team);    
+            player.SetWear(team, true);    
         }
     }
 

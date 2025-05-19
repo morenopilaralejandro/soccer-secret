@@ -503,11 +503,12 @@ public class Player : MonoBehaviour
         UpdateStats();
     }
 
-    public void SetWear(Team team) 
+    public void SetWear(Team team, bool isHome) 
     {
-        string pathFolder = IsKeeper ? pathKeeper : pathField;
+        WearRole role = IsKeeper ? WearRole.Keeper : WearRole.Field;
+        WearVariant variant = isHome ? WearVariant.Home : WearVariant.Away;
     
-        Sprite spriteAux = Resources.Load<Sprite>(pathWear + pathFolder + team.TeamId);
+        Sprite spriteAux = Resources.Load<Sprite>("" + "" + team.TeamId);
         if (spriteRendererWear != null)
         {
             if (spriteAux != null)
@@ -516,7 +517,7 @@ public class Player : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"Wear sprite not found for team {pathWear}{pathFolder}{team.TeamId}");
+                Debug.LogWarning($"Wear sprite not found for team");
             }
         }
         else
@@ -524,16 +525,10 @@ public class Player : MonoBehaviour
             Debug.LogWarning("SpriteRendererWear reference is missing!");
         }
 
-        spriteAux = Resources.Load<Sprite>(pathWearPortrait + size + "/" + pathFolder + team.TeamId);
+        spriteAux = WearManager.Instance.GetWearPortraitSprite(team.TeamId, size, role, variant);
         if (spriteAux != null)
-        {
             spriteWearPortrait = spriteAux;
-        }
         else
-        {
-            spriteAux = Resources.Load<Sprite>(pathWearPortrait + "Small" + "/" + pathFolder + "T1");
-            spriteWearPortrait = spriteAux;
-            Debug.LogWarning($"SpriteWearPortrait not found for team {pathWearPortrait}{size}/{pathFolder}{team.TeamId}");
-        }
+            Debug.LogWarning("No matching wear portrait sprite found for {size}/{role}/{variant}/{team.TeamId}");
     }
 }
