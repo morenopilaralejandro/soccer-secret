@@ -53,7 +53,9 @@ public class Player : MonoBehaviour
     [SerializeField] private bool isControlling;
     [SerializeField] private const int MAX_LV = 99;
     [SerializeField] private const int MAX_MORE = 50;
-    [SerializeField] [Range(0f, 1f)] private float minStatRatio = 0.1f; // Value at level 1 is 10% of max stat
+    [SerializeField] [Range(0f, 1f)] private float minStatRatioHp = 0.4f; // 40% of base at level 1
+    [SerializeField] [Range(0f, 1f)] private float minStatRatioSp = 0.4f; // 40% of base at level 1
+    [SerializeField] [Range(0f, 1f)] private float minStatRatioOther = 0.1f; // 10% of base at level 1
     [SerializeField] private List<Secret> currentSecret;
     [SerializeField] private List<Secret> learnedSecret;
     [SerializeField] private List<SecretLearnEntry> learnSet;
@@ -356,13 +358,33 @@ public class Player : MonoBehaviour
         }
     }
 
-    private int ScaleStat(int maxStat)
+private int ScaleStat(int maxStat, PlayerStats stat)
+{
+    float t = (float)(Lv - 1) / (MAX_LV - 1);
+
+    // HP and SP - Linear scaling
+    if (stat == PlayerStats.Hp)
     {
-        // Linear down-scaling: at lvl 1 it's minStatRatio, at 99 it's 1.0 of maxStat
-        float t = (float)(Lv - 1) / (MAX_LV - 1);
-        float statValue = maxStat * Mathf.Lerp(minStatRatio, 1f, t);
-        return Mathf.RoundToInt(statValue);
+        float minRatio = minStatRatioHp; // Example: 0.4f for 40 at lvl 1 if maxStat is 100
+        float value = maxStat * Mathf.Lerp(minRatio, 1f, t);
+        return Mathf.RoundToInt(value);
     }
+    if (stat == PlayerStats.Sp)
+    {
+        float minRatio = minStatRatioSp;
+        float value = maxStat * Mathf.Lerp(minRatio, 1f, t);
+        return Mathf.RoundToInt(value);
+    }
+
+    // Other stats - Quadratic scaling
+    {
+        float minRatio = minStatRatioOther; // Example: 0.1f for 10 at lvl 1 if maxStat is 100
+        // Quadratic interpolation between minRatio and 1, more curve!
+        float q = t * t; // Quadratic interpolation (t squared)
+        float value = maxStat * Mathf.Lerp(minRatio, 1f, q);
+        return Mathf.RoundToInt(value);
+    }
+}
 
     public int GetStat(PlayerStats stat) => currStats[(int)stat];
 
@@ -379,7 +401,7 @@ public class Player : MonoBehaviour
     public void UpdateStats()
     {
         for (int i = 0; i < baseStats.Length; i++)
-            currStats[i] = ScaleStat(baseStats[i]) + moreStats[i];
+            currStats[i] = ScaleStat(baseStats[i], (PlayerStats)i) + moreStats[i];
         maxHp = currStats[(int)PlayerStats.Hp];
         maxSp = currStats[(int)PlayerStats.Sp];
     }

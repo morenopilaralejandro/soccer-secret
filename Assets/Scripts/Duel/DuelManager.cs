@@ -53,6 +53,13 @@ public class DuelManager : MonoBehaviour
         currentDuel.Reset();
     }
 
+    public void CancelDuel()
+    {
+        currentDuel.IsResolved = true;
+        ShootTriangle.Instance.SetTriangleVisible(false);    
+        unlockStatusCoroutine = StartCoroutine(UnlockStatusRoutine());    
+    }
+
     public bool IsDuelResolved() => currentDuel.IsResolved;
     public DuelMode GetDuelMode() => currentDuel.Mode;
     public List<DuelParticipant> GetDuelParticipants() => currentDuel.Participants;

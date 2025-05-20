@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 3724610719471092189}
   m_Layer: 15
   m_Name: KeeperCollider
-  m_TagString: Ally
+  m_TagString: PlayerKeeperCollider
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -60,7 +60,7 @@ Rigidbody:
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!136 &5846033343397277840
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -80,7 +80,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.4
+  m_Radius: 0.6
   m_Height: 0.1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
@@ -830,9 +830,7 @@ MonoBehaviour:
   spriteWearPortrait: {fileID: 0}
   pathHair: Hair/
   pathSkin: Skin/
-  pathWear: Wear/
   pathPlayerPortrait: PlayerPortrait/
-  pathWearPortrait: WearPortrait/
   defaultYPosition: 0
   playerId: 
   playerNameEn: 
@@ -843,7 +841,10 @@ MonoBehaviour:
   position: 0
   isStunned: 0
   isKicking: 0
-  minStatRatio: 0.1
+  isControlling: 0
+  minStatRatioHp: 0.4
+  minStatRatioSp: 0.4
+  minStatRatioOther: 0.1
   currentSecret: []
   learnedSecret: []
   learnSet: []

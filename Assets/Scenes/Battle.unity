@@ -358,21 +358,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 1412624558}
   rb: {fileID: 112661219}
-  isPossessed: 0
-  isDragging: 0
-  touchStartPos: {x: 0, y: 0}
-  touchEndPos: {x: 0, y: 0}
+  crosshairImage: {fileID: 1332661631}
   dragThreshold: 2
   kickForce: 2
   maxForceDistance: 3
   maxVelocity: 10
   dribbleSpeed: 10
   possessionCooldown: 0.2
-  PossessionPlayer: {fileID: 0}
-  lastPossessionPlayer: {fileID: 0}
-  crosshairImage: {fileID: 1332661631}
   crosshairDisplayDuration: 0.2
-  wasMovementFrozen: 0
+  travelSpeed: 4
+  PossessionPlayer: {fileID: 0}
 --- !u!1 &117029089
 GameObject:
   m_ObjectHideFlags: 0
@@ -2647,6 +2642,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1627508298454399923, guid: aa2275c79da51bb7b8f5dc1562fb2501,
+        type: 3}
+      propertyPath: m_TagString
+      value: PlayerKeeperCollider
+      objectReference: {fileID: 0}
     - target: {fileID: 4308870595955406433, guid: aa2275c79da51bb7b8f5dc1562fb2501,
         type: 3}
       propertyPath: m_Name
@@ -2677,6 +2677,11 @@ PrefabInstance:
       propertyPath: boundBottom
       value: 
       objectReference: {fileID: 1210914613}
+    - target: {fileID: 5274832963666710612, guid: aa2275c79da51bb7b8f5dc1562fb2501,
+        type: 3}
+      propertyPath: m_CollisionDetection
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 3607539515346500612, guid: aa2275c79da51bb7b8f5dc1562fb2501, type: 3}
@@ -5787,6 +5792,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1322802591813773263, guid: 9e6723ba46099224d9c2fc6105c8f58c,
+        type: 3}
+      propertyPath: m_TagString
+      value: PlayerKeeperCollider
+      objectReference: {fileID: 0}
     - target: {fileID: 1542049618143282183, guid: 9e6723ba46099224d9c2fc6105c8f58c,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -5841,6 +5851,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: PlayerOpp (0)
+      objectReference: {fileID: 0}
+    - target: {fileID: 4540109065729436189, guid: 9e6723ba46099224d9c2fc6105c8f58c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
@@ -8893,6 +8908,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Layer
       value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 568632067439917548, guid: cd906f2de13b4a9a28f383c5af286c7c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 568632067439917548, guid: cd906f2de13b4a9a28f383c5af286c7c,
         type: 3}

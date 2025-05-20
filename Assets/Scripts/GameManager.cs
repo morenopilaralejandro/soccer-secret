@@ -205,6 +205,6 @@ public class GameManager : MonoBehaviour
     public float GetDistanceToAllyGoal(Player player) 
     {
         Transform goal = player.IsAlly ? goalBottom : goalTop;
-        return Mathf.Abs(player.transform.position.z - goal.position.z);
+        return Vector3.Distance(player.transform.position, goal.position);
     }
 }
