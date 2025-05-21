@@ -58,6 +58,7 @@ public class DuelManager : MonoBehaviour
     {
         currentDuel.IsResolved = true;
         ShootTriangle.Instance.SetTriangleVisible(false);    
+        BallTrail.Instance.SetTrailVisible(false);
         unlockStatusCoroutine = StartCoroutine(UnlockStatusRoutine());    
     }
 
@@ -85,6 +86,15 @@ public class DuelManager : MonoBehaviour
             Vector3 playerPos = participant.Player.transform.position; // Or however you get the player's position
             SecretManager.Instance.PlaySecretEffect(participant.Secret, playerPos);
             participant.Player.ReduceSp(participant.Secret.Cost);
+            if (participant.Category == Category.Shoot) 
+            {
+                BallTrail.Instance.SetTrailMaterial(participant.Secret.Element);
+            }
+        }
+
+        if (participant.Category == Category.Shoot)
+        {
+            BallTrail.Instance.SetTrailMaterial(participant.CurrentElement);
         }
 
         participant.Player.ReduceHp(Mathf.RoundToInt(participant.Player.Lv * hpMultiplier));
@@ -170,6 +180,7 @@ public class DuelManager : MonoBehaviour
         currentDuel.IsResolved = true;
         UIManager.Instance.ShowTextDuelResult(winningParticipant);
         ShootTriangle.Instance.SetTriangleVisible(false);
+        BallTrail.Instance.SetTrailVisible(false);
 
         if (winnerAction == DuelAction.Defense)
         {
