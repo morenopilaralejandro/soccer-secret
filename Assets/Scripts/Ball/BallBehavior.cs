@@ -145,7 +145,7 @@ private void HandleTravel()
         if (wasMovementFrozen && !nowFrozen && pendingKickTarget.HasValue)
         {
             Vector2 kickTarget = pendingKickTarget.Value;
-            bool triggeredDuel = TryStartGoalDuelIfValid(kickTarget);
+            bool triggeredDuel = TryStartGoalDuelIfValid(kickTarget, false);
             if (!triggeredDuel)
             {
                 KickBallTo(kickTarget);
@@ -192,9 +192,11 @@ private void HandleTravel()
         touchEndPos = touch.position;
         bool isTap = !isDragging && Vector2.Distance(touchStartPos, touchEndPos) < dragThreshold;
 
+        // 1. If a shoot duel is currently resolving, abort
         if (!DuelManager.Instance.IsDuelResolved() && DuelManager.Instance.GetDuelMode() == DuelMode.Shoot)
             return;
 
+        // 2. If movement is frozen and user touches the crosshair, cancel pending kick
         if (GameManager.Instance.IsMovementFrozen && IsTouchingCrosshair(touchEndPos))
         {
             pendingKickTarget = null;
@@ -202,7 +204,7 @@ private void HandleTravel()
             return;
         }
 
-        // Ally queued kick when ball is not possessed but an ally last touched it
+        // 3. If not possessed, last toucher was ally, not frozen, and tap: queue an ally kick
         if (!isPossessed
             && lastPossessionPlayer != null
             && lastPossessionPlayer.GetComponent<Player>().IsAlly
@@ -210,31 +212,44 @@ private void HandleTravel()
             && isTap)
         {
             QueueAllyPendingKick(touchEndPos);
+            return;
         }
 
-        // Only allies in possession can kick
+        // 4. If ally is in possession and tap: handle kick or queue pending kick
         if (isPossessed && PossessionPlayer && PossessionPlayer.IsAlly && isTap)
         {
-            if (!TryStartGoalDuelIfValid(touchEndPos))
+            if (TryStartGoalDuelIfValid(touchEndPos, false))
+                return;
+
+            crosshairImage.transform.position = touchEndPos;
+            crosshairImage.enabled = true;
+
+            if (GameManager.Instance.IsKickOff)
+                GameManager.Instance.UnfreezeGame();
+
+            if (!GameManager.Instance.IsMovementFrozen)
             {
-                crosshairImage.transform.position = touchEndPos;
-                crosshairImage.enabled = true;
-
-                if (GameManager.Instance.IsKickOff)
-                    GameManager.Instance.UnfreezeGame();
-
-                if (!GameManager.Instance.IsMovementFrozen)
-                {
-                    KickBallTo(touchEndPos);
-                    if (hideCrosshairCoroutine != null)
-                        StopCoroutine(hideCrosshairCoroutine);
-                    hideCrosshairCoroutine = StartCoroutine(HideCrosshairAfterDelay());
-                }
-                else
-                {
-                    pendingKickTarget = touchEndPos;
-                }
+                KickBallTo(touchEndPos);
+                if (hideCrosshairCoroutine != null)
+                    StopCoroutine(hideCrosshairCoroutine);
+                hideCrosshairCoroutine = StartCoroutine(HideCrosshairAfterDelay());
             }
+            else
+            {
+                //during offense duel
+                pendingKickTarget = touchEndPos;
+            }
+            return;
+        }
+
+        // 5. If non-ally possesses ball, game frozen, and tap: enable crosshair and queue kick (your newly added case)
+        if (PossessionPlayer && !PossessionPlayer.IsAlly && isTap && GameManager.Instance.IsMovementFrozen) 
+        {
+            //during defense duel
+            crosshairImage.transform.position = touchEndPos;
+            crosshairImage.enabled = true;
+            pendingKickTarget = touchEndPos;
+            return;
         }
     }
 
@@ -328,7 +343,7 @@ private void HandleTravel()
     {
         if (allyPendingKickTarget.HasValue && player.IsAlly)
         {
-            if (!TryStartGoalDuelIfValid(allyPendingKickTarget.Value))
+            if (!TryStartGoalDuelIfValid(allyPendingKickTarget.Value, true))
             {
                 Debug.Log("Detected pending ally kick. Kicking to target: " + allyPendingKickTarget.Value);
                 KickBallTo(allyPendingKickTarget.Value);
@@ -362,7 +377,7 @@ private void HandleTravel()
 
     #region Crosshair, Duel, and Utility
 
-    private bool TryStartGoalDuelIfValid(Vector2 screenPos)
+    private bool TryStartGoalDuelIfValid(Vector2 screenPos, bool isDirect)
     {
         Ray ray = mainCamera.ScreenPointToRay(screenPos);
         Debug.DrawRay(ray.origin, ray.direction * Mathf.Infinity, Color.red, 2f);
@@ -381,7 +396,7 @@ private void HandleTravel()
                 Debug.Log("Tap on OPP GOAL detected. Initiating Duel.");
                 GameManager.Instance.FreezeGame();
                 DuelManager.Instance.StartDuel(DuelMode.Shoot);
-                DuelManager.Instance.RegisterTrigger(PossessionPlayer.gameObject);
+                DuelManager.Instance.RegisterTrigger(PossessionPlayer.gameObject, isDirect);
                 UIManager.Instance.SetButtonDuelToggleVisible(true);
                 UIManager.Instance.SetUserRole(Category.Shoot, 0, PossessionPlayer, DuelAction.Offense);
                 ShootTriangle.Instance.SetTriangleFromPlayer(PossessionPlayer, screenPos);

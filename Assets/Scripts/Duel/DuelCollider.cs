@@ -46,8 +46,8 @@ public class DuelCollider : MonoBehaviour
 
             GameManager.Instance.FreezeGame();
             DuelManager.Instance.StartDuel(DuelMode.Field);
-            DuelManager.Instance.RegisterTrigger(cachedPlayer.gameObject);
-            DuelManager.Instance.RegisterTrigger(otherPlayer.gameObject);
+            DuelManager.Instance.RegisterTrigger(cachedPlayer.gameObject, false);
+            DuelManager.Instance.RegisterTrigger(otherPlayer.gameObject, false);
 
             OnSetStatusPlayer?.Invoke(cachedPlayer);
             OnSetStatusPlayer?.Invoke(otherPlayer);

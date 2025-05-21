@@ -12,6 +12,7 @@ public class DuelParticipant
     public DuelCommand Command;
     public Element CurrentElement;
     public Secret Secret;
+    public bool IsDirect;
     public float Damage;
 
     public Dictionary<(Category, DuelCommand), Func<Player, Secret, float>> damageFormulas =
@@ -135,13 +136,15 @@ public class DuelParticipant
         Category category,
         DuelAction action,
         DuelCommand command,
-        Secret secret)
+        Secret secret,
+        bool isDirect)
     {
         GameObj = gameObj;
         Category = category;
         Action = action;
         Command = command;
         Secret = secret;
+        IsDirect = isDirect;
 
         Player = gameObj.GetComponent<Player>();
         CurrentElement = Secret == null ? Player.Element : Secret.Element;

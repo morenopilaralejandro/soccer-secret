@@ -17,6 +17,7 @@ public class DuelManager : MonoBehaviour
     private Duel currentDuel = new Duel();
     private Coroutine unlockStatusCoroutine;
     private float hpMultiplier = 0.1f;
+    private float directBonus = 20f;
     private float keeperBonus = 50f;
     private float keeperGoalDistance = 0.5f;
 
@@ -91,6 +92,8 @@ public class DuelManager : MonoBehaviour
         if (participant.Action == DuelAction.Offense)
         {
             currentDuel.AttackPressure += participant.Damage;
+            if (participant.Category == Category.Shoot && participant.IsDirect) 
+                currentDuel.AttackPressure += directBonus;
             currentDuel.LastOffense = participant;
             OnSetStatusPlayerAndCommand?.Invoke(participant, currentDuel.AttackPressure);
             Debug.Log($"Offense action increases attack pressure +{participant.Damage}");
@@ -214,9 +217,9 @@ public class DuelManager : MonoBehaviour
 
     #region Participant Registration
 
-    public void RegisterTrigger(GameObject obj)
+    public void RegisterTrigger(GameObject obj, bool isDirect)
     {
-        var pd = new DuelParticipantData { GameObject = obj };
+        var pd = new DuelParticipantData { GameObject = obj, IsDirect = isDirect };
         stagedParticipants.Add(pd);
         TryFinalizeParticipant(pd);
     }
@@ -245,7 +248,8 @@ public class DuelManager : MonoBehaviour
             pd.Category.Value,
             pd.Action.Value,
             pd.Command.Value,
-            pd.Secret
+            pd.Secret,
+            pd.IsDirect
         );
 
         Debug.Log($"Created participant: {participant.Player.name}");

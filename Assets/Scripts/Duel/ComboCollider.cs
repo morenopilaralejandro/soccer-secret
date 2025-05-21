@@ -42,7 +42,7 @@ public class ComboCollider : MonoBehaviour
             return;
 
         int participantIndex = DuelManager.Instance.GetDuelParticipants().Count;
-        DuelManager.Instance.RegisterTrigger(cachedPlayer.gameObject);
+        DuelManager.Instance.RegisterTrigger(cachedPlayer.gameObject, false);
         OnSetStatusPlayer?.Invoke(cachedPlayer);
 
         // Role assignment based on previous play and ai/user

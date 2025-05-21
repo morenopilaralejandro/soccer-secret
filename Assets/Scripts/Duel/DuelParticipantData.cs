@@ -7,6 +7,7 @@ public class DuelParticipantData
     public DuelAction? Action;
     public DuelCommand? Command;
     public Secret Secret;
+    public bool IsDirect;
 
     public bool IsComplete =>
         GameObject != null &&
