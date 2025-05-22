@@ -68,6 +68,15 @@ public class DuelManager : MonoBehaviour
     public DuelParticipant GetLastOffense() => currentDuel.LastOffense;
     public DuelParticipant GetLastDefense() => currentDuel.LastDefense;
 
+    public DuelAction GetActionByCategory(Category category) 
+    {
+        if (category == Category.Block || category == Category.Catch) {
+            return DuelAction.Defense;
+        } else {
+            return DuelAction.Offense;
+        }
+    }
+
     #endregion
 
     #region Duel Participation
@@ -88,13 +97,12 @@ public class DuelManager : MonoBehaviour
             participant.Player.ReduceSp(participant.Secret.Cost);
             if (participant.Category == Category.Shoot) 
             {
+                BallTrail.Instance.SetTrailVisible(true);
                 BallTrail.Instance.SetTrailMaterial(participant.Secret.Element);
             }
-        }
-
-        if (participant.Category == Category.Shoot)
-        {
-            BallTrail.Instance.SetTrailMaterial(participant.CurrentElement);
+        } else {
+            if (participant.Category == Category.Shoot) 
+                BallTrail.Instance.SetTrailVisible(false);
         }
 
         participant.Player.ReduceHp(Mathf.RoundToInt(participant.Player.Lv * hpMultiplier));

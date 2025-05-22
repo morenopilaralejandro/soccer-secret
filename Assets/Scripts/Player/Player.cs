@@ -17,6 +17,7 @@ public class Player : MonoBehaviour
     public Gender Gender => gender;
     public Element Element => element;
     public Position Position => position;
+    public Vector3 DefaultPosition;
     public bool IsAlly;
     public bool IsAi;
     public bool IsPossession;
@@ -30,14 +31,16 @@ public class Player : MonoBehaviour
     public Sprite SpritePlayerPortrait => spritePlayerPortrait;
     public Sprite SpriteWearPortrait => spriteWearPortrait;
 
-    [SerializeField] private SpriteRenderer spriteRendererHair;
     [SerializeField] private SpriteRenderer spriteRendererSkin;
+    [SerializeField] private SpriteRenderer spriteRendererHair;
+    [SerializeField] private SpriteRenderer spriteRendererAccessory;
     [SerializeField] private SpriteRenderer spriteRendererWear;
     [SerializeField] private SpriteRenderer spriteRendererElement;
     [SerializeField] private Sprite spritePlayerPortrait;
     [SerializeField] private Sprite spriteWearPortrait;
-    [SerializeField] private string pathHair = "Hair/";
     [SerializeField] private string pathSkin = "Skin/";
+    [SerializeField] private string pathHair = "Hair/";
+    [SerializeField] private string pathAccessory = "Accessory/";
     [SerializeField] private string pathPlayerPortrait = "PlayerPortrait/";
 
     [SerializeField] private float defaultYPosition = 0f;    
@@ -72,7 +75,7 @@ public class Player : MonoBehaviour
 
     [Header("Movement Parameters")]
     [SerializeField] private float speedBaseUser = 0.2f;
-    [SerializeField] private float speedBaseAi = 0.15f;
+    [SerializeField] private float speedBaseAi = 100f;
     [SerializeField] private float speedMultiplier = 0.02f;
     [SerializeField] private float speedDebuffDefault = 1f;
     [SerializeField] private float speedDebuffLow = 0.5f;
@@ -164,6 +167,23 @@ public class Player : MonoBehaviour
         //sprite
         Sprite spriteAux = null;
 
+        spriteAux = Resources.Load<Sprite>(pathSkin + playerData.skin);
+        if (spriteRendererSkin != null)
+        {
+            if (spriteAux != null)
+            {
+                spriteRendererSkin.sprite = spriteAux;
+            }
+            else
+            {
+                Debug.LogWarning($"Skin sprite not found: {pathSkin}{playerData.skin} for player {playerData.playerId}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("SpriteRendererSkin reference is missing!");
+        }
+
         spriteAux = Resources.Load<Sprite>(pathHair + playerData.hair);
         if (spriteRendererHair != null)
         {
@@ -181,21 +201,22 @@ public class Player : MonoBehaviour
             Debug.LogWarning("SpriteRendererHair reference is missing!");
         }
 
-        spriteAux = Resources.Load<Sprite>(pathSkin + playerData.skin);
-        if (spriteRendererSkin != null)
+        spriteAux = Resources.Load<Sprite>(pathAccessory + playerData.accessory);
+        if (spriteRendererAccessory != null)
         {
-            if (spriteAux != null)
+            if (spriteAux != null && playerData.accessory != "none")
             {
-                spriteRendererSkin.sprite = spriteAux;
+                spriteRendererAccessory.sprite = spriteAux;
             }
             else
             {
-                Debug.LogWarning($"Skin sprite not found: {pathSkin}{playerData.skin} for player {playerData.playerId}");
+                spriteRendererAccessory.enabled = false;
+                Debug.LogWarning($"Accessory sprite not found: {pathAccessory}{playerData.accessory} for player {playerData.playerId}");
             }
         }
         else
         {
-            Debug.LogWarning("SpriteRendererSkin reference is missing!");
+            Debug.LogWarning("SpriteRendererAccessory reference is missing!");
         }
 
 
@@ -358,33 +379,33 @@ public class Player : MonoBehaviour
         }
     }
 
-private int ScaleStat(int maxStat, PlayerStats stat)
-{
-    float t = (float)(Lv - 1) / (MAX_LV - 1);
+    private int ScaleStat(int maxStat, PlayerStats stat)
+    {
+        float t = (float)(Lv - 1) / (MAX_LV - 1);
 
-    // HP and SP - Linear scaling
-    if (stat == PlayerStats.Hp)
-    {
-        float minRatio = minStatRatioHp; // Example: 0.4f for 40 at lvl 1 if maxStat is 100
-        float value = maxStat * Mathf.Lerp(minRatio, 1f, t);
-        return Mathf.RoundToInt(value);
-    }
-    if (stat == PlayerStats.Sp)
-    {
-        float minRatio = minStatRatioSp;
-        float value = maxStat * Mathf.Lerp(minRatio, 1f, t);
-        return Mathf.RoundToInt(value);
-    }
+        // HP and SP - Linear scaling
+        if (stat == PlayerStats.Hp)
+        {
+            float minRatio = minStatRatioHp; // Example: 0.4f for 40 at lvl 1 if maxStat is 100
+            float value = maxStat * Mathf.Lerp(minRatio, 1f, t);
+            return Mathf.RoundToInt(value);
+        }
+        if (stat == PlayerStats.Sp)
+        {
+            float minRatio = minStatRatioSp;
+            float value = maxStat * Mathf.Lerp(minRatio, 1f, t);
+            return Mathf.RoundToInt(value);
+        }
 
-    // Other stats - Quadratic scaling
-    {
-        float minRatio = minStatRatioOther; // Example: 0.1f for 10 at lvl 1 if maxStat is 100
-        // Quadratic interpolation between minRatio and 1, more curve!
-        float q = t * t; // Quadratic interpolation (t squared)
-        float value = maxStat * Mathf.Lerp(minRatio, 1f, q);
-        return Mathf.RoundToInt(value);
+        // Other stats - Quadratic scaling
+        {
+            float minRatio = minStatRatioOther; // Example: 0.1f for 10 at lvl 1 if maxStat is 100
+            // Quadratic interpolation between minRatio and 1, more curve!
+            float q = t * t; // Quadratic interpolation (t squared)
+            float value = maxStat * Mathf.Lerp(minRatio, 1f, q);
+            return Mathf.RoundToInt(value);
+        }
     }
-}
 
     public int GetStat(PlayerStats stat) => currStats[(int)stat];
 

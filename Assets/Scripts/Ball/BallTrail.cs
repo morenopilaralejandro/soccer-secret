@@ -6,7 +6,7 @@ public class BallTrail : MonoBehaviour
 
     [SerializeField] private TrailRenderer trailRenderer;
     [SerializeField] private Material material;
-    [SerializeField] private string pathMaterial = "Materials/Trail";
+    [SerializeField] private string pathMaterial = "Materials/Trail/";
 
     void Awake()
     {
@@ -22,6 +22,7 @@ public class BallTrail : MonoBehaviour
         {
             Debug.LogError("No TrailRenderer found on this GameObject!");
         }
+        SetTrailVisible(false);
     }
 
     public bool IsEmitting()

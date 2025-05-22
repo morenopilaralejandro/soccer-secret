@@ -21,8 +21,9 @@ public class BallBehavior : MonoBehaviour
     [SerializeField] private float dribbleSpeed = 10f;
     [SerializeField] private float possessionCooldown = 0.2f;
     [SerializeField] private float keeperGoalDistance = 0.5f;
+    [SerializeField] private float shootGoalDistance = 2.2f;
     [SerializeField] private float crosshairDisplayDuration = 0.2f;
-    [SerializeField] private float travelSpeed = 4f;
+    [SerializeField] private float travelSpeed = 3f;
     private Vector3 travelVelocity;
 
     [Header("State")]
@@ -388,7 +389,7 @@ private void HandleTravel()
         {
             Debug.Log($"Raycast hit: {hitGoal.collider.name} on layer {LayerMask.LayerToName(hitGoal.collider.gameObject.layer)} Tag={hitGoal.collider.tag}");
             if (
-                GameManager.Instance.GetDistanceToOppGoal(PossessionPlayer) < 2.2f
+                GameManager.Instance.GetDistanceToOppGoal(PossessionPlayer) < shootGoalDistance
                 && hitGoal.collider.CompareTag("Opp")
                 && DuelManager.Instance.IsDuelResolved()
                 && !GameManager.Instance.IsMovementFrozen)
@@ -399,7 +400,7 @@ private void HandleTravel()
                 DuelManager.Instance.RegisterTrigger(PossessionPlayer.gameObject, isDirect);
                 UIManager.Instance.SetButtonDuelToggleVisible(true);
                 UIManager.Instance.SetUserRole(Category.Shoot, 0, PossessionPlayer, DuelAction.Offense);
-                ShootTriangle.Instance.SetTriangleFromPlayer(PossessionPlayer, screenPos);
+                ShootTriangle.Instance.SetTriangleFromUser(PossessionPlayer, screenPos);
                 ShootTriangle.Instance.SetTriangleVisible(true);
                 return true;
             }
@@ -458,6 +459,7 @@ private void HandleTravel()
         else if (
             collider.CompareTag("PlayerKeeperCollider") &&
             playerComp != null &&
+            lastPossessionPlayer.GetComponent<Player>().IsAlly != playerComp.IsAlly && //keeper won't stop a pass from a player in it's same team
             GameManager.Instance.GetDistanceToAllyGoal(playerComp) < keeperGoalDistance)
         {
             validPossession = true;

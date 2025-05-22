@@ -67,8 +67,9 @@ public class ShootTriangle : MonoBehaviour
         meshRenderer.enabled = visible;
     }
 
-    public void SetTriangleFromPlayer(Player player, Vector2 touchPosition)
+    public void SetTriangleFromUser(Player player, Vector2 touchPosition)
     {
+        Debug.Log("ShootTriangle touchPosition: " + touchPosition);
         // 1. Player's world position
         vertex0 = player.transform.position;
 
@@ -89,24 +90,32 @@ public class ShootTriangle : MonoBehaviour
             touchWorld = vertex0 + ray.direction * 2f; // fallback
         }
 
-        // 3. Find direction from player to touched world point
-        Vector3 dir = (touchWorld - vertex0).normalized;
+        SetTriangleFromPlayer(player, touchWorld);
+    }
 
-        // 4. Compute perpendicular (on XZ plane)
+    public void SetTriangleFromPlayer(Player player, Vector3 worldCoord)
+    {
+        // 1. Player's world position
+        vertex0 = player.transform.position;
+
+        // 2. Find direction from player to touched world point
+        Vector3 dir = (worldCoord - vertex0).normalized;
+
+        // 3. Compute perpendicular (on XZ plane)
         Vector3 perp = Vector3.Cross(dir, Vector3.up).normalized;
 
-        // 5. Set vertex1 and vertex2, offsetting them perpendicular
+        // 4. Set vertex1 and vertex2, offsetting them perpendicular
         float control = player.GetStat(PlayerStats.Control) * controlFactor;
         float randomValue1 = Random.Range(rangeMin, rangeMax);
         float offsetAmount1 = Mathf.Max(baseOffsetMin, randomValue1 - control);
-        vertex1 = touchWorld + perp * offsetAmount1;
+        vertex1 = worldCoord + perp * offsetAmount1;
 
         float randomValue2 = Random.Range(rangeMin, rangeMax);
         float offsetAmount2 = Mathf.Max(baseOffsetMin, randomValue2 - control);
-        vertex2 = touchWorld - perp * offsetAmount2;
+        vertex2 = worldCoord - perp * offsetAmount2;
 
         // --- The only change: set z to border's z
-        float borderZ = (touchWorld.z >= 0f) ? boundTop.bounds.min.z : boundBottom.bounds.max.z;
+        float borderZ = (worldCoord.z >= 0f) ? boundTop.bounds.min.z : boundBottom.bounds.max.z;
         vertex1.z = borderZ;
         vertex2.z = borderZ;
 

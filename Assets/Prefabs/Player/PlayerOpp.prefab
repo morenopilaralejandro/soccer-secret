@@ -92,5 +92,42 @@ PrefabInstance:
     m_RemovedGameObjects:
     - {fileID: 6926927551590348990, guid: aa2275c79da51bb7b8f5dc1562fb2501, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4308870595955406433, guid: aa2275c79da51bb7b8f5dc1562fb2501,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 222440221557019514}
   m_SourcePrefab: {fileID: 100100000, guid: aa2275c79da51bb7b8f5dc1562fb2501, type: 3}
+--- !u!114 &2968101766863181003 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3313887409289005239, guid: aa2275c79da51bb7b8f5dc1562fb2501,
+    type: 3}
+  m_PrefabInstance: {fileID: 346104125493697660}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4540109065729436189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a3364437eb4fe4babb2dd6981eb6f99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &4540109065729436189 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4308870595955406433, guid: aa2275c79da51bb7b8f5dc1562fb2501,
+    type: 3}
+  m_PrefabInstance: {fileID: 346104125493697660}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &222440221557019514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4540109065729436189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 587ce09fb7cefda598f3b9849fd8bc39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 2968101766863181003}
+  ballTransform: {fileID: 0}
+  ballCloseDistance: 0
