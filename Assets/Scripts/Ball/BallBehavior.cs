@@ -75,32 +75,32 @@ public class BallBehavior : MonoBehaviour
 
     #region Travel Logic
 
-private void HandleTravel()
-{
-    if (!isTravelingToPoint || isTravelPaused) return;
-
-    // Store previous position to compute velocity
-    Vector3 previousPosition = transform.position;
-
-    float step = travelSpeed * Time.deltaTime;
-    transform.position = Vector3.MoveTowards(transform.position, currentTravelTarget, step);
-
-    // Calculate the velocity from previous to new position
-    travelVelocity = (transform.position - previousPosition) / Time.deltaTime;
-
-    if (Vector3.Distance(transform.position, currentTravelTarget) < 0.01f)
+    private void HandleTravel()
     {
-        isTravelingToPoint = false;
-        rb.isKinematic = false;
+        if (!isTravelingToPoint || isTravelPaused) return;
 
-        // Optionally clamp to maxVelocity
-        if (travelVelocity.magnitude > maxVelocity)
-            travelVelocity = travelVelocity.normalized * maxVelocity;
-        rb.velocity = travelVelocity;
+        // Store previous position to compute velocity
+        Vector3 previousPosition = transform.position;
 
-        DuelManager.Instance.CancelDuel();
+        float step = travelSpeed * Time.deltaTime;
+        transform.position = Vector3.MoveTowards(transform.position, currentTravelTarget, step);
+
+        // Calculate the velocity from previous to new position
+        travelVelocity = (transform.position - previousPosition) / Time.deltaTime;
+
+        if (Vector3.Distance(transform.position, currentTravelTarget) < 0.01f)
+        {
+            isTravelingToPoint = false;
+            rb.isKinematic = false;
+
+            // Optionally clamp to maxVelocity
+            if (travelVelocity.magnitude > maxVelocity)
+                travelVelocity = travelVelocity.normalized * maxVelocity;
+            rb.velocity = travelVelocity;
+
+            DuelManager.Instance.CancelDuel();
+        }
     }
-}
 
     public void StartTravelToPoint(Vector3 targetPoint)
     {
@@ -216,6 +216,13 @@ private void HandleTravel()
             return;
         }
 
+        if (GameManager.Instance.IsKickOffPhase && !GameManager.Instance.IsKickOffReady && isTap)
+        {
+            GameManager.Instance.SetIsKickOffReady(true);
+            if (PossessionPlayer && !PossessionPlayer.IsAlly)
+                return;
+        }
+
         // 4. If ally is in possession and tap: handle kick or queue pending kick
         if (isPossessed && PossessionPlayer && PossessionPlayer.IsAlly && isTap)
         {
@@ -225,7 +232,7 @@ private void HandleTravel()
             crosshairImage.transform.position = touchEndPos;
             crosshairImage.enabled = true;
 
-            if (GameManager.Instance.IsKickOff)
+            if (GameManager.Instance.IsKickOffPhase && GameManager.Instance.IsKickOffReady)
                 GameManager.Instance.UnfreezeGame();
 
             if (!GameManager.Instance.IsMovementFrozen)
@@ -279,12 +286,17 @@ private void HandleTravel()
 
     public void KickBallTo(Vector2 targetScreenPosition)
     {
+        Vector3 touchWorldPos = mainCamera.ScreenToWorldPoint(new Vector3(targetScreenPosition.x, targetScreenPosition.y, mainCamera.nearClipPlane));
+        KickBall(touchWorldPos);    
+    }
+
+    public void KickBall(Vector3 touchWorldPos)
+    {
         isPossessed = false;
         rb.isKinematic = false;
 
         PossessionPlayer?.Kick();
-
-        Vector3 touchWorldPos = mainCamera.ScreenToWorldPoint(new Vector3(targetScreenPosition.x, targetScreenPosition.y, mainCamera.nearClipPlane));
+ 
         Vector3 direction = touchWorldPos - transform.position;
         Vector3 rayDirection = direction.normalized;
         float kickDistance = direction.magnitude;

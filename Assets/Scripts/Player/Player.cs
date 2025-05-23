@@ -17,6 +17,7 @@ public class Player : MonoBehaviour
     public Gender Gender => gender;
     public Element Element => element;
     public Position Position => position;
+    public float DefaultYPosition => defaultYPosition;  
     public Vector3 DefaultPosition;
     public bool IsAlly;
     public bool IsAi;
@@ -72,11 +73,12 @@ public class Player : MonoBehaviour
 
     private Collider[] colliders;
     private Coroutine stunRoutine;
+    private Coroutine blinkRoutine;
 
     [Header("Movement Parameters")]
-    [SerializeField] private float speedBaseUser = 0.2f;
-    [SerializeField] private float speedBaseAi = 100f;
-    [SerializeField] private float speedMultiplier = 0.02f;
+    [SerializeField] private float speedBase = 0.2f;
+    [SerializeField] private float speedMultiplierUser = 0.02f;
+    [SerializeField] private float speedMultiplierAi = 0.006f;
     [SerializeField] private float speedDebuffDefault = 1f;
     [SerializeField] private float speedDebuffLow = 0.5f;
     [SerializeField] private float speedDebuffHigh = 0.2f;
@@ -280,6 +282,13 @@ public class Player : MonoBehaviour
             stunRoutine = null;
         }
 
+        // Stop the blink effect if it's running
+        if (blinkRoutine != null)
+        {
+            StopCoroutine(blinkRoutine);
+            blinkRoutine = null;
+        }
+
         isStunned = false;
         SetAllCollidersEnabled(true);
         SetYPosition(defaultYPosition);
@@ -287,13 +296,13 @@ public class Player : MonoBehaviour
 
     public IEnumerator StunPlayer()
     {
-
         float duration = 3f;
         if (isStunned)
             yield break;
         isStunned = true;
         SetAllCollidersEnabled(false);
-        StartCoroutine(BlinkEffect(duration));
+        // Start and remember the blink coroutine
+        blinkRoutine = StartCoroutine(BlinkEffect(duration));
 
         float elapsed = 0f;
         while (elapsed < duration)
@@ -303,6 +312,12 @@ public class Player : MonoBehaviour
             yield return null;
         }
 
+        // Clean up at the end of the stun
+        if (blinkRoutine != null)
+        {
+            StopCoroutine(blinkRoutine);
+            blinkRoutine = null;
+        }
         SetAllCollidersEnabled(true);
         isStunned = false;
         SetYPosition(defaultYPosition);
@@ -522,7 +537,7 @@ public class Player : MonoBehaviour
     public float GetMoveSpeed()
     {
         UpdateSpeedDebuff();
-        float speedBase = IsAi ? speedBaseAi : speedBaseUser; 
+        float speedMultiplier = IsAi ? speedMultiplierAi : speedMultiplierUser; 
         return (GetStat(PlayerStats.Speed) * speedMultiplier + speedBase) * _lastSpeedDebuff * Time.deltaTime;
     }
 

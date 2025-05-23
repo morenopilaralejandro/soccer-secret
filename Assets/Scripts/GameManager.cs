@@ -9,7 +9,8 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     public bool IsMovementFrozen { get; private set; } = false;
     public bool IsTimeFrozen { get; private set; } = false;
-    public bool IsKickOff { get; private set; } = false;
+    public bool IsKickOffPhase { get; private set; } = false;
+    public bool IsKickOffReady { get; private set; } = false;
 
     [SerializeField] private Team team0;
     [SerializeField] private Team team1;
@@ -77,6 +78,19 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public List<Player> GetAllyPlayers() {
+        return allyPlayers;
+    }
+
+    public List<Player> GetOppPlayers() {
+        return oppPlayers;
+    }
+
+    public void SetIsKickOffReady(bool ready)
+    {
+        IsKickOffReady = ready;
+    }
+
     void UpdateTimerDisplay(float seconds)
     {
         int minutes = Mathf.FloorToInt(seconds / 60f);
@@ -140,7 +154,8 @@ public class GameManager : MonoBehaviour
     public void StartKickOff(Team kickOffTeam)
     {
         FreezeGame();   
-        IsKickOff = true;     
+        IsKickOffPhase = true;     
+        IsKickOffReady = false;
         ResetDefaultPositions();
 
         // Optionally: Move one of the kickOffTeam's players (usually a striker or midfielder) to be on the center spot
@@ -167,7 +182,7 @@ public class GameManager : MonoBehaviour
     {
         IsMovementFrozen = false;
         IsTimeFrozen = false;
-        IsKickOff = false;
+        IsKickOffPhase = false;
         // Hide your UI here, e.g.:
         // UIManager.Instance.HideFreezePanel();
     }

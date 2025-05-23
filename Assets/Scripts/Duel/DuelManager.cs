@@ -42,6 +42,7 @@ public class DuelManager : MonoBehaviour
 
     public void StartDuel(DuelMode mode)
     {
+        Debug.Log("Duel started");
         StopAndCleanupUnlockStatus();
         UIManager.Instance.LockStatus();
         ResetDuel();
@@ -188,7 +189,6 @@ public class DuelManager : MonoBehaviour
         currentDuel.IsResolved = true;
         UIManager.Instance.ShowTextDuelResult(winningParticipant);
         ShootTriangle.Instance.SetTriangleVisible(false);
-        BallTrail.Instance.SetTrailVisible(false);
 
         if (winnerAction == DuelAction.Defense)
         {
@@ -197,7 +197,9 @@ public class DuelManager : MonoBehaviour
             currentDuel.LastOffense.Player.Stun();
         }
 
+        BallTrail.Instance.SetTrailVisible(false);
         unlockStatusCoroutine = StartCoroutine(UnlockStatusRoutine());
+        Debug.Log("Duel ended");
     }
 
     #endregion

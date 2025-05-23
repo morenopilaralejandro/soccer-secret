@@ -10,6 +10,7 @@ ScriptsOnlyBuild:
     - WearPortraitLibrary
     Assembly-CSharp.dll:
     - BallBehavior
+    - BallTrail
     - Bar
     - CameraFOVAdjuster
     - ComboCollider
@@ -25,6 +26,7 @@ ScriptsOnlyBuild:
     - KeeperCollider
     - PanelStatusSide
     - Player
+    - PlayerAi
     - PlayerCard
     - PlayerData
     - PlayerManager
@@ -47,13 +49,9 @@ ScriptsOnlyBuild:
     - UnityEngine.AdaptivePerformance.Google.Android.GoogleAndroidProviderSettings
     Unity.AdaptivePerformance.Samsung.Android.dll:
     - UnityEngine.AdaptivePerformance.Samsung.Android.SamsungAndroidProviderSettings
-    Unity.AdaptivePerformance.Simulator.Editor.dll:
-    - UnityEditor.AdaptivePerformance.Simulator.Editor.SimulatorProviderSettings
     Unity.AdaptivePerformance.dll:
     - UnityEngine.AdaptivePerformance.AdaptivePerformanceGeneralSettings
     - UnityEngine.AdaptivePerformance.AdaptivePerformanceManagerSettings
-    Unity.Mobile.AndroidLogcat.Editor.dll:
-    - Unity.Android.Logcat.AndroidLogcatManager
     Unity.Rider.Editor.dll:
     - Packages.Rider.Editor.UnitTesting.CallbackData
     Unity.TextMeshPro:
@@ -193,6 +191,8 @@ ScriptsOnlyBuild:
       Script: {instanceID: 0}
     - Class: 95
       Script: {instanceID: 0}
+    - Class: 96
+      Script: {instanceID: 0}
     - Class: 104
       Script: {instanceID: 0}
     - Class: 108
@@ -206,81 +206,85 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 17332}
     - Class: 114
-      Script: {instanceID: 17460}
+      Script: {instanceID: 17336}
     - Class: 114
-      Script: {instanceID: 17564}
+      Script: {instanceID: 17462}
     - Class: 114
-      Script: {instanceID: 17638}
+      Script: {instanceID: 17566}
     - Class: 114
-      Script: {instanceID: 17796}
+      Script: {instanceID: 17640}
     - Class: 114
-      Script: {instanceID: 17832}
+      Script: {instanceID: 17798}
     - Class: 114
-      Script: {instanceID: 17944}
+      Script: {instanceID: 17834}
     - Class: 114
-      Script: {instanceID: 18014}
+      Script: {instanceID: 17946}
     - Class: 114
-      Script: {instanceID: 18296}
+      Script: {instanceID: 18016}
     - Class: 114
-      Script: {instanceID: 18326}
+      Script: {instanceID: 18298}
     - Class: 114
-      Script: {instanceID: 18832}
+      Script: {instanceID: 18328}
     - Class: 114
-      Script: {instanceID: 19066}
+      Script: {instanceID: 18716}
     - Class: 114
-      Script: {instanceID: 19224}
+      Script: {instanceID: 18836}
     - Class: 114
-      Script: {instanceID: 19250}
+      Script: {instanceID: 19070}
     - Class: 114
-      Script: {instanceID: 19346}
+      Script: {instanceID: 19228}
     - Class: 114
-      Script: {instanceID: 19382}
+      Script: {instanceID: 19254}
     - Class: 114
-      Script: {instanceID: 19652}
+      Script: {instanceID: 19350}
     - Class: 114
-      Script: {instanceID: 19760}
+      Script: {instanceID: 19386}
     - Class: 114
-      Script: {instanceID: 19814}
+      Script: {instanceID: 19656}
     - Class: 114
-      Script: {instanceID: 19892}
+      Script: {instanceID: 19764}
     - Class: 114
-      Script: {instanceID: 20404}
+      Script: {instanceID: 19818}
     - Class: 114
-      Script: {instanceID: 20508}
+      Script: {instanceID: 19896}
     - Class: 114
-      Script: {instanceID: 20518}
+      Script: {instanceID: 20408}
     - Class: 114
-      Script: {instanceID: 20866}
+      Script: {instanceID: 20512}
     - Class: 114
-      Script: {instanceID: 20880}
+      Script: {instanceID: 20522}
     - Class: 114
-      Script: {instanceID: 20984}
+      Script: {instanceID: 20870}
     - Class: 114
-      Script: {instanceID: 21122}
+      Script: {instanceID: 20884}
     - Class: 114
-      Script: {instanceID: 21148}
+      Script: {instanceID: 20988}
     - Class: 114
-      Script: {instanceID: 21500}
+      Script: {instanceID: 21126}
     - Class: 114
-      Script: {instanceID: 21806}
+      Script: {instanceID: 21152}
     - Class: 114
-      Script: {instanceID: 22320}
+      Script: {instanceID: 21504}
     - Class: 114
-      Script: {instanceID: 22356}
+      Script: {instanceID: 21810}
     - Class: 114
-      Script: {instanceID: 22558}
+      Script: {instanceID: 21894}
     - Class: 114
-      Script: {instanceID: 22730}
+      Script: {instanceID: 22326}
     - Class: 114
-      Script: {instanceID: 22762}
+      Script: {instanceID: 22362}
     - Class: 114
-      Script: {instanceID: 22954}
+      Script: {instanceID: 22564}
     - Class: 114
-      Script: {instanceID: 23332}
+      Script: {instanceID: 22736}
     - Class: 114
-      Script: {instanceID: 23374}
+      Script: {instanceID: 22768}
     - Class: 114
-      Script: {instanceID: 23420}
+      Script: {instanceID: 22960}
+    - Class: 114
+      Script: {instanceID: 23338}
+    - Class: 114
+      Script: {instanceID: 23380}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 120
@@ -398,7 +402,7 @@ ScriptsOnlyBuild:
     className: AndroidReceivedNotificationMainThreadDispatcher
   - hash:
       serializedVersion: 2
-      Hash: 32176a96e6c8bd51c25ded7b5eda34e1
+      Hash: 974790ae7897f0b467650e0b5174b311
     assemblyName: Assembly-CSharp
     namespaceName: 
     className: Player
@@ -414,6 +418,12 @@ ScriptsOnlyBuild:
     assemblyName: Unity.TextMeshPro
     namespaceName: TMPro
     className: TMP_StyleSheet
+  - hash:
+      serializedVersion: 2
+      Hash: 23eddcdeda7a476d8be2d3981070ec5f
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: BallTrail
   - hash:
       serializedVersion: 2
       Hash: ad49e20f31ed572e586aa8bbaafb591b
@@ -458,7 +468,7 @@ ScriptsOnlyBuild:
     className: GoalTrigger
   - hash:
       serializedVersion: 2
-      Hash: e29038127023fe619a399ea00e42c409
+      Hash: 082706fb1e3e262997f1754daaf3ab33
     assemblyName: Assembly-CSharp
     namespaceName: 
     className: PlayerData
@@ -602,7 +612,7 @@ ScriptsOnlyBuild:
     className: UnityOnDropdownValueChangedMessageListener
   - hash:
       serializedVersion: 2
-      Hash: fe710136c77c6ed952baa5d53588729a
+      Hash: 5891d04b6c9ad2fead0abfff467d7247
     assemblyName: Assembly-CSharp
     namespaceName: 
     className: BallBehavior
@@ -696,6 +706,12 @@ ScriptsOnlyBuild:
     assemblyName: UnityEngine.UI
     namespaceName: UnityEngine.EventSystems
     className: BaseInput
+  - hash:
+      serializedVersion: 2
+      Hash: e9446187d1cf6f2cf2162be13f2113b5
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: GameManager
   - hash:
       serializedVersion: 2
       Hash: e6f8333cc8a800e2866870a5ef7efc35
@@ -1196,6 +1212,12 @@ ScriptsOnlyBuild:
     className: Outline
   - hash:
       serializedVersion: 2
+      Hash: e81ab391561db3fc5c7282b716120196
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: PlayerAi
+  - hash:
+      serializedVersion: 2
       Hash: 17142b03663387290480c82303274c02
     assemblyName: Unity.VisualScripting.Core
     namespaceName: Unity.VisualScripting
@@ -1482,12 +1504,6 @@ ScriptsOnlyBuild:
     assemblyName: Unity.VisualScripting.Core
     namespaceName: Unity.VisualScripting
     className: UnityOnSliderValueChangedMessageListener
-  - hash:
-      serializedVersion: 2
-      Hash: e9446187d1cf6f2cf2162be13f2113b5
-    assemblyName: Assembly-CSharp
-    namespaceName: 
-    className: GameManager
   platform: 13
   scenePathNames:
   - Assets/Scenes/Battle.unity
