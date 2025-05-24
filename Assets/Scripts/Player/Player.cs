@@ -32,14 +32,14 @@ public class Player : MonoBehaviour
     public Sprite SpritePlayerPortrait => spritePlayerPortrait;
     public Sprite SpriteWearPortrait => spriteWearPortrait;
 
-    [SerializeField] private SpriteRenderer spriteRendererSkin;
+    [SerializeField] private SpriteRenderer spriteRendererPigment;
     [SerializeField] private SpriteRenderer spriteRendererHair;
     [SerializeField] private SpriteRenderer spriteRendererAccessory;
     [SerializeField] private SpriteRenderer spriteRendererWear;
     [SerializeField] private SpriteRenderer spriteRendererElement;
     [SerializeField] private Sprite spritePlayerPortrait;
     [SerializeField] private Sprite spriteWearPortrait;
-    [SerializeField] private string pathSkin = "Skin/";
+    [SerializeField] private string pathPigment = "Pigment/";
     [SerializeField] private string pathHair = "Hair/";
     [SerializeField] private string pathAccessory = "Accessory/";
     [SerializeField] private string pathPlayerPortrait = "PlayerPortrait/";
@@ -169,21 +169,21 @@ public class Player : MonoBehaviour
         //sprite
         Sprite spriteAux = null;
 
-        spriteAux = Resources.Load<Sprite>(pathSkin + playerData.skin);
-        if (spriteRendererSkin != null)
+        spriteAux = Resources.Load<Sprite>(pathPigment + playerData.pigment);
+        if (spriteRendererPigment != null)
         {
             if (spriteAux != null)
             {
-                spriteRendererSkin.sprite = spriteAux;
+                spriteRendererPigment.sprite = spriteAux;
             }
             else
             {
-                Debug.LogWarning($"Skin sprite not found: {pathSkin}{playerData.skin} for player {playerData.playerId}");
+                Debug.LogWarning($"Pigment sprite not found: {pathPigment}{playerData.pigment} for player {playerData.playerId}");
             }
         }
         else
         {
-            Debug.LogWarning("SpriteRendererSkin reference is missing!");
+            Debug.LogWarning("SpriteRendererPigment reference is missing!");
         }
 
         spriteAux = Resources.Load<Sprite>(pathHair + playerData.hair);

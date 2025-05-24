@@ -185,7 +185,6 @@ public class PlayerAi : MonoBehaviour
         ShootTriangle.Instance.SetTriangleFromPlayer(player, oppGoalTransform.position);
         ShootTriangle.Instance.SetTriangleVisible(true);
         RegisterAiSelections(0, Category.Shoot);
-        duel.StartBallTravel();
     }
 
     private void ActKickOff()

@@ -75,20 +75,13 @@ public class DuelCollider : MonoBehaviour
         // If this player is AI, they're the offense, other is defense (human)
         if (cachedPlayer.IsAi)
         {
-            DuelManager.Instance.RegisterUISelections(
-                0,
-                Category.Dribble,          // Example offense
-                DuelAction.Offense,
-                DuelCommand.Phys,
-                null                      // Replace with secret if needed
-            );
-
-            UIManager.Instance.SetUserRole(Category.Block, 1, otherPlayer, DuelAction.Defense);
+            cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(0, Category.Dribble);
+            UIManager.Instance.SetUserRole(Category.Block, 1, otherPlayer);
         }
         else
         {
-            UIManager.Instance.SetUserRole(Category.Dribble, 0, cachedPlayer, DuelAction.Offense);
-            UIManager.Instance.SetAiRole(Category.Block, 1, otherPlayer, DuelAction.Defense);
+            UIManager.Instance.SetUserRole(Category.Dribble, 0, cachedPlayer);
+            UIManager.Instance.SetAiRole(Category.Block, 1, otherPlayer);
         }
     }
 }

@@ -604,7 +604,7 @@ GameObject:
   - component: {fileID: 6791703029287587288}
   - component: {fileID: 1059926968183461035}
   m_Layer: 0
-  m_Name: Skin
+  m_Name: Pigment
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -818,19 +818,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a3364437eb4fe4babb2dd6981eb6f99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DefaultPosition: {x: 0, y: 0, z: 0}
   IsAlly: 0
   IsAi: 0
   IsPossession: 0
   IsKeeper: 0
   Lv: 0
-  spriteRendererSkin: {fileID: 1059926968183461035}
+  spriteRendererPigment: {fileID: 1059926968183461035}
   spriteRendererHair: {fileID: 4724248752453083682}
   spriteRendererAccessory: {fileID: 2522268471526517167}
   spriteRendererWear: {fileID: 4816422496020954305}
   spriteRendererElement: {fileID: 3639986401728118801}
   spritePlayerPortrait: {fileID: 0}
   spriteWearPortrait: {fileID: 0}
-  pathSkin: Skin/
+  pathPigment: Pigment/
   pathHair: Hair/
   pathAccessory: Accessory/
   pathPlayerPortrait: PlayerPortrait/
@@ -856,9 +857,9 @@ MonoBehaviour:
   currStats: 000000000000000000000000000000000000000000000000000000000000000000000000
   baseFreedom: 0
   currFreedom: 0
-  speedBaseUser: 0.2
-  speedBaseAi: 0.15
-  speedMultiplier: 0.02
+  speedBase: 0.2
+  speedMultiplierUser: 0.02
+  speedMultiplierAi: 0.006
   speedDebuffDefault: 1
   speedDebuffLow: 0.5
   speedDebuffHigh: 0.2

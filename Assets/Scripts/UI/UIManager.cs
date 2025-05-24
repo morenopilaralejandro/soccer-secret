@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Linq;
 
 public class UIManager : MonoBehaviour
@@ -9,12 +10,10 @@ public class UIManager : MonoBehaviour
     // User and AI selection data
     public int UserIndex { get; private set; }
     public Player UserPlayer { get; private set; }
-    public DuelAction UserAction { get; private set; }
     public Category UserCategory { get; private set; }
 
     public int AiIndex { get; private set; }
     public Player AiPlayer { get; private set; }
-    public DuelAction AiAction { get; private set; }
     public Category AiCategory { get; private set; }
 
     [Header("Panels & UI Elements")]
@@ -26,6 +25,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject buttonSwap;
     [SerializeField] private GameObject textWin;
     [SerializeField] private GameObject textLose;
+    [SerializeField] private Image imageCategory;
 
     #region Unity Lifecycle
 
@@ -78,7 +78,7 @@ public class UIManager : MonoBehaviour
     #endregion
 
     #region Panel & Button Visibility
-
+    public void SetImageCategoryVisible(bool visible) => SetActiveSafe(imageCategory.gameObject, visible);
     public void SetPanelSecretVisible(bool visible) => SetActiveSafe(panelSecret, visible);
     public void SetPanelCommandVisible(bool visible) => SetActiveSafe(panelCommand, visible);
 
@@ -86,6 +86,8 @@ public class UIManager : MonoBehaviour
     {
         SetActiveSafe(buttonDuelToggle, visible);
         SetActiveSafe(buttonSwap, visible);
+        SetImageCategoryVisible(true);
+        imageCategory.sprite = SecretManager.Instance.GetCategoryIcon(UserCategory);
     }
 
     public void HideDuelUi()
@@ -93,6 +95,7 @@ public class UIManager : MonoBehaviour
         SetPanelSecretVisible(false);
         SetPanelCommandVisible(false);
         SetButtonDuelToggleVisible(false);
+        SetImageCategoryVisible(false);
     }
 
     #endregion
@@ -135,36 +138,13 @@ public class UIManager : MonoBehaviour
     public void OnCommand1Tapped()
     {
         Debug.Log("Command1 tapped!");
-
-        if(UserCategory == Category.Shoot && !DuelManager.Instance.GetDuelParticipants().Any())
-            DuelManager.Instance.StartBallTravel();
-
-        RegisterUserSelections(DuelCommand.Phys, null);
-
-        if(UserCategory == Category.Dribble) 
-            RegisterAiSelections(DuelCommand.Phys, null);
-
-
-        HideDuelUi();
-        if (GameManager.Instance != null)
-            GameManager.Instance.UnfreezeGame();
+        HandleRegister(DuelCommand.Phys, null);
     }
 
     public void OnCommand2Tapped()
     {
         Debug.Log("Command2 tapped!");
-        if(UserCategory == Category.Shoot && !DuelManager.Instance.GetDuelParticipants().Any())
-            DuelManager.Instance.StartBallTravel();
-
-        RegisterUserSelections(DuelCommand.Skill, null);
-
-        if(UserCategory == Category.Dribble) 
-            RegisterAiSelections(DuelCommand.Skill, null);
-
-
-        HideDuelUi();
-        if (GameManager.Instance != null)
-            GameManager.Instance.UnfreezeGame();
+        HandleRegister(DuelCommand.Skill, null);
     }
 
     public void OnSecretCommandSlotTapped(SecretCommandSlot secretCommandSlot)
@@ -178,47 +158,48 @@ public class UIManager : MonoBehaviour
         SetPanelSecretVisible(false);
         SetPanelCommandVisible(false);
 
-        if (UserCategory == Category.Shoot && !DuelManager.Instance.GetDuelParticipants().Any())
-            DuelManager.Instance.StartBallTravel();
+        HandleRegister(DuelCommand.Secret, secretCommandSlot.Secret);
+    }
 
-        RegisterUserSelections(DuelCommand.Secret, secretCommandSlot.Secret);
+    #endregion
+
+    #region Selection Registration
+    private void HandleRegister(DuelCommand command, Secret secret) 
+    {
+        RegisterUserSelections(command, secret);
 
         if (UserCategory == Category.Dribble)
-            RegisterAiSelections(DuelCommand.Phys, null);
+            RegisterAiSelections();
 
         HideDuelUi();
         if (GameManager.Instance != null)
             GameManager.Instance.UnfreezeGame();
     }
-    #endregion
-
-    #region Selection Registration
 
     public void RegisterUserSelections(DuelCommand command, Secret secret)
     {
+        DuelAction action = DuelManager.Instance.GetActionByCategory(UserCategory);
         if (DuelManager.Instance != null)
-            DuelManager.Instance.RegisterUISelections(UserIndex, UserCategory, UserAction, command, secret);
+            DuelManager.Instance.RegisterUISelections(UserIndex, UserCategory, action, command, secret);
     }
 
-    public void RegisterAiSelections(DuelCommand command, Secret secret)
+    public void RegisterAiSelections()
     {
-        if (DuelManager.Instance != null)
-            DuelManager.Instance.RegisterUISelections(AiIndex, AiCategory, AiAction, command, secret);
+        if (AiPlayer != null)
+            AiPlayer.GetComponent<PlayerAi>().RegisterAiSelections(AiIndex, AiCategory);
     }
 
-    public void SetUserRole(Category category, int index, Player player, DuelAction action)
+    public void SetUserRole(Category category, int index, Player player)
     {
         UserCategory = category;
         UserIndex = index;
         UserPlayer = player;
-        UserAction = action;
     }
-    public void SetAiRole(Category category, int index, Player player, DuelAction action)
+    public void SetAiRole(Category category, int index, Player player)
     {
         AiCategory = category;
         AiIndex = index;
         AiPlayer = player;
-        AiAction = action;
     }
     #endregion
 

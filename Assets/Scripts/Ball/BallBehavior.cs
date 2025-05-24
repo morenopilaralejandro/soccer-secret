@@ -143,7 +143,7 @@ public class BallBehavior : MonoBehaviour
         if (isPossessed) HandlePossession();
 
         bool nowFrozen = GameManager.Instance.IsMovementFrozen;
-        if (wasMovementFrozen && !nowFrozen && pendingKickTarget.HasValue)
+        if (wasMovementFrozen && !nowFrozen && pendingKickTarget.HasValue && PossessionPlayer && PossessionPlayer.IsAlly && !PossessionPlayer.IsStunned)
         {
             Vector2 kickTarget = pendingKickTarget.Value;
             bool triggeredDuel = TryStartGoalDuelIfValid(kickTarget, false);
@@ -354,7 +354,7 @@ public class BallBehavior : MonoBehaviour
 
     private void HandleAllyPendingKickOrControl(Player player)
     {
-        if (allyPendingKickTarget.HasValue && player.IsAlly)
+        if (allyPendingKickTarget.HasValue && player.IsAlly && !player.IsStunned)
         {
             if (!TryStartGoalDuelIfValid(allyPendingKickTarget.Value, true))
             {
@@ -410,8 +410,8 @@ public class BallBehavior : MonoBehaviour
                 GameManager.Instance.FreezeGame();
                 DuelManager.Instance.StartDuel(DuelMode.Shoot);
                 DuelManager.Instance.RegisterTrigger(PossessionPlayer.gameObject, isDirect);
+                UIManager.Instance.SetUserRole(Category.Shoot, 0, PossessionPlayer);
                 UIManager.Instance.SetButtonDuelToggleVisible(true);
-                UIManager.Instance.SetUserRole(Category.Shoot, 0, PossessionPlayer, DuelAction.Offense);
                 ShootTriangle.Instance.SetTriangleFromUser(PossessionPlayer, screenPos);
                 ShootTriangle.Instance.SetTriangleVisible(true);
                 return true;

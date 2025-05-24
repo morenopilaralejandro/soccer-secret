@@ -7,7 +7,7 @@ public class PlayerData : ScriptableObject
     public string playerId;
     public string playerNameEn;
     public string playerNameJa;
-    public string skin;
+    public string pigment;
     public string hair;
     public string accessory;
     public string size;

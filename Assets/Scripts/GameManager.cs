@@ -25,6 +25,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private GameObject panelGoalMessage;
     [SerializeField] private Animator textGoalMessage;
+    [SerializeField] private GameObject textKickOff;
     [SerializeField] private TextMeshProUGUI textScore0;
     [SerializeField] private TextMeshProUGUI textScore1;
     private int score0 = 0;
@@ -89,6 +90,8 @@ public class GameManager : MonoBehaviour
     public void SetIsKickOffReady(bool ready)
     {
         IsKickOffReady = ready;
+        if (ready)
+            textKickOff.SetActive(false);
     }
 
     void UpdateTimerDisplay(float seconds)
@@ -154,6 +157,7 @@ public class GameManager : MonoBehaviour
     public void StartKickOff(Team kickOffTeam)
     {
         FreezeGame();   
+        textKickOff.SetActive(true);
         IsKickOffPhase = true;     
         IsKickOffReady = false;
         ResetDefaultPositions();

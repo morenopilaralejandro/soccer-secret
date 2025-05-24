@@ -61,18 +61,13 @@ public class KeeperCollider : MonoBehaviour
             // User must input "catch"
             GameManager.Instance.FreezeGame();
             BallBehavior.Instance.PauseTravel();
-            UIManager.Instance.SetUserRole(Category.Catch, index, cachedPlayer, DuelAction.Defense);
+            UIManager.Instance.SetUserRole(Category.Catch, index, cachedPlayer);
             UIManager.Instance.SetButtonDuelToggleVisible(true);
         }
         else
         {
             // AI automatically "catch"
-            DuelManager.Instance.RegisterUISelections(
-                index,
-                Category.Catch,
-                DuelAction.Defense,
-                DuelCommand.Phys,
-                null);
+            cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(index, Category.Catch);
         }
     }
 }

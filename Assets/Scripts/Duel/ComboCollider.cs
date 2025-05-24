@@ -58,16 +58,11 @@ public class ComboCollider : MonoBehaviour
             // Allies were last offense; defense blocks, chain offense can be user or ai
             if (cachedPlayer.IsAi)
             {
-                DuelManager.Instance.RegisterUISelections(
-                    idx,
-                    Category.Block,
-                    DuelAction.Defense,
-                    DuelCommand.Phys,
-                    null);
+                cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(idx, Category.Block);
             }
             else
             {
-                HandleUserChain(idx, Category.Shoot, cachedPlayer, DuelAction.Offense);
+                HandleUserChain(idx, Category.Shoot, cachedPlayer);
             }
         }
         else
@@ -75,25 +70,20 @@ public class ComboCollider : MonoBehaviour
             // Opponent was last offense; so now chain or block
             if (cachedPlayer.IsAi)
             {
-                DuelManager.Instance.RegisterUISelections(
-                    idx,
-                    Category.Shoot,
-                    DuelAction.Offense,
-                    DuelCommand.Phys,
-                    null);
+                cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(idx, Category.Shoot);
             }
             else
             {
-                HandleUserChain(idx, Category.Block, cachedPlayer, DuelAction.Defense);
+                HandleUserChain(idx, Category.Block, cachedPlayer);
             }
         }
     }
 
-    private void HandleUserChain(int index, Category category, Player cachedPlayer, DuelAction action)
+    private void HandleUserChain(int index, Category category, Player cachedPlayer)
     {
         GameManager.Instance.FreezeGame();
         BallBehavior.Instance.PauseTravel();
-        UIManager.Instance.SetUserRole(category, index, cachedPlayer, action);
+        UIManager.Instance.SetUserRole(category, index, cachedPlayer);
         UIManager.Instance.SetButtonDuelToggleVisible(true);
     }
 }

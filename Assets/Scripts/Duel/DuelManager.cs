@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public enum DuelMode { Field, Shoot }
@@ -89,7 +90,13 @@ public class DuelManager : MonoBehaviour
         if (currentDuel.IsResolved)
             return;
 
+        if (participant.Category == Category.Shoot) {
+            if (!currentDuel.Participants.Any())
+                StartBallTravel();
+        }
+
         currentDuel.Participants.Add(participant);
+
 
         if (participant.Secret != null)
         {
@@ -134,7 +141,6 @@ public class DuelManager : MonoBehaviour
         currentDuel.LastDefense = defender;
 
         ApplyElementalEffectiveness(currentDuel.LastOffense, defender);
-
         if (defender.Category == Category.Block && defender.Player.IsKeeper && GameManager.Instance.GetDistanceToAllyGoal(defender.Player) < keeperGoalDistance)
         {
             defender.Damage *= keeperBonus;
@@ -219,9 +225,11 @@ public class DuelManager : MonoBehaviour
             StopCoroutine(unlockStatusCoroutine);
             unlockStatusCoroutine = null;
         }
-        UIManager.Instance.HideStatus();
-        if (BallBehavior.Instance.PossessionPlayer != null)
-            UIManager.Instance.SetStatusPlayer(BallBehavior.Instance.PossessionPlayer);
+        if (currentDuel.IsResolved) {
+            UIManager.Instance.HideStatus();
+            if (BallBehavior.Instance.PossessionPlayer != null)
+                UIManager.Instance.SetStatusPlayer(BallBehavior.Instance.PossessionPlayer);
+        }
     }
 
     private IEnumerator UnlockStatusRoutine()
