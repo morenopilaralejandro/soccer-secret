@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
 using TMPro;
 
 public class PanelStatusSide : MonoBehaviour
@@ -13,6 +15,9 @@ public class PanelStatusSide : MonoBehaviour
     [SerializeField] private Bar barSp;
     [SerializeField] private TMP_Text textCommand;
     [SerializeField] private TMP_Text textDamage;
+
+    [SerializeField] private LocalizedString command1Label;
+    [SerializeField] private LocalizedString command2Label;
 
     // Start is called before the first frame update
     void Start()
@@ -53,11 +58,13 @@ public class PanelStatusSide : MonoBehaviour
             switch (duelParticipant.Command) 
             {
                 case DuelCommand.Phys:
-                    textCommand.text = "Phys.";
+                    command1Label.StringChanged += (value) => textCommand.text = value;
+                    command1Label.RefreshString();
                     textCommand.color = Color.white;
                     break;
                 case DuelCommand.Skill:
-                    textCommand.text = "Skill";
+                    command2Label.StringChanged += (value) => textCommand.text = value;
+                    command2Label.RefreshString();
                     textCommand.color = Color.white;
                     break;
                 case DuelCommand.Secret:

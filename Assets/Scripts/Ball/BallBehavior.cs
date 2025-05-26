@@ -16,6 +16,7 @@ public class BallBehavior : MonoBehaviour
     [Header("Gameplay Settings")]
     [SerializeField] private float dragThreshold = 2f;
     [SerializeField] private float kickForce = 2.0f;
+    [SerializeField] private float spinAmount = 5f;
     [SerializeField] private float maxForceDistance = 3f;
     [SerializeField] private float maxVelocity = 10.0f;
     [SerializeField] private float dribbleSpeed = 10f;
@@ -322,6 +323,7 @@ public class BallBehavior : MonoBehaviour
         Debug.DrawLine(transform.position, transform.position + direction * 2, presenceBlocking ? Color.yellow : Color.red, 5.0f);
 
         rb.AddForce(direction * actualKickForce, ForceMode.Impulse);
+        rb.AddTorque(Vector3.right * spinAmount, ForceMode.Impulse);
         if (rb.velocity.magnitude > actualMaxVelocity)
             rb.velocity = rb.velocity.normalized * actualMaxVelocity;
 

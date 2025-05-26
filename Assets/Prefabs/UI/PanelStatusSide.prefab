@@ -176,6 +176,27 @@ MonoBehaviour:
   barSp: {fileID: 2136522026231418772}
   textCommand: {fileID: 6386852259055432226}
   textDamage: {fileID: 1693695816710853017}
+  command1Label:
+    m_TableReference:
+      m_TableCollectionName: GUID:0eca869c35c3f59cb9badc2ec0e9e428
+    m_TableEntryReference:
+      m_KeyId: 27945361743874
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  command2Label:
+    m_TableReference:
+      m_TableCollectionName: GUID:0eca869c35c3f59cb9badc2ec0e9e428
+    m_TableEntryReference:
+      m_KeyId: 27945361743875
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  references:
+    version: 2
+    RefIds: []
 --- !u!1 &3859245882603220773
 GameObject:
   m_ObjectHideFlags: 0
@@ -243,8 +264,9 @@ MonoBehaviour:
       m_Calls: []
   m_text: 1000
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 146e55651dde9e542b3db25b2108b93c, type: 2}
+  m_sharedMaterial: {fileID: -3743113272235723599, guid: 146e55651dde9e542b3db25b2108b93c,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -377,8 +399,9 @@ MonoBehaviour:
       m_Calls: []
   m_text: Skill
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 146e55651dde9e542b3db25b2108b93c, type: 2}
+  m_sharedMaterial: {fileID: -3743113272235723599, guid: 146e55651dde9e542b3db25b2108b93c,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -402,7 +425,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 44.75
+  m_fontSize: 34.5
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
