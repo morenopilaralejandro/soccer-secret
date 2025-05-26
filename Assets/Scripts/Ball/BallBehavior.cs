@@ -341,7 +341,7 @@ public class BallBehavior : MonoBehaviour
             UIManager.Instance.HideStatus();
             OnSetStatusPlayer?.Invoke(PossessionPlayer);
         }
-        Debug.Log("Possession granted to: " + PossessionPlayer.PlayerNameEn);
+        Debug.Log("Possession granted to: " + PossessionPlayer.PlayerId);
 
         isPossessed = true;
         rb.isKinematic = true;
@@ -378,7 +378,7 @@ public class BallBehavior : MonoBehaviour
     {
         if (PossessionPlayer != null)
         {
-            Debug.Log("Possession taken from: " + PossessionPlayer.PlayerNameEn);
+            Debug.Log("Possession taken from: " + PossessionPlayer.PlayerId);
             lastPossessionPlayer = PossessionPlayer.gameObject;
             lastPossessionPlayerKickTime = Time.time;
             PossessionPlayer.IsPossession = false;

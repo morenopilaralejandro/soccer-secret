@@ -219,7 +219,6 @@ public class PlayerAi : MonoBehaviour
                 best = teammate;
             }
         }
-        Debug.Log(best.PlayerNameEn);
         return best;
     }
 

@@ -1,4 +1,7 @@
 using UnityEngine;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Components;
+using UnityEngine.Localization.Settings;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,8 +14,7 @@ public enum Size { Small, MediumF, MediumM, Large }
 public class Player : MonoBehaviour
 {   
     public string PlayerId => playerId;
-    public string PlayerNameEn => playerNameEn;
-    public string PlayerNameJa => playerNameJa;
+    public string PlayerName => playerName;
     public Size Size => size;
     public Gender Gender => gender;
     public Element Element => element;
@@ -43,11 +45,11 @@ public class Player : MonoBehaviour
     [SerializeField] private string pathHair = "Hair/";
     [SerializeField] private string pathAccessory = "Accessory/";
     [SerializeField] private string pathPlayerPortrait = "PlayerPortrait/";
+    [SerializeField] private string tableCollectionName = "PlayerNames";
 
     [SerializeField] private float defaultYPosition = 0f;    
     [SerializeField] private string playerId;
-    [SerializeField] private string playerNameEn;
-    [SerializeField] private string playerNameJa;
+    [SerializeField] private string playerName;
     [SerializeField] private Size size;
     [SerializeField] private Gender gender;
     [SerializeField] private Element element;
@@ -89,12 +91,28 @@ public class Player : MonoBehaviour
     private float _lastSpeedDebuff = 1f;
     private int _lastHpChecked = int.MinValue;
 
+    // Event
+    public event Action OnPlayerNameChanged;
+
+    private void Start()
+    {
+        UnityEngine.Localization.Settings.LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
+    }
+
+    private void OnLocaleChanged(UnityEngine.Localization.Locale obj)
+    {
+        // Update the text whenever the language changes
+        SetName();
+    }
+
+    private void OnDestroy()
+    {
+        UnityEngine.Localization.Settings.LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
+    }
 
     public void Initialize(PlayerData playerData)
     {
         playerId = playerData.playerId;
-        playerNameEn = playerData.playerNameEn;
-        playerNameJa = playerData.playerNameJa;
 
         string auxString = playerData.gender;
         Gender auxGender;
@@ -253,9 +271,26 @@ public class Player : MonoBehaviour
 
 
         // Additional initialization logic can go here
+        SetName();
         UpdateStats();
         learnedSecret = GetLearnedSecretByLv();
         currentSecret.AddRange(learnedSecret);
+    }
+
+    private async void SetName()
+    {
+        var handle = LocalizationSettings.StringDatabase.GetTableAsync(tableCollectionName);
+        await handle.Task;
+
+        var table = handle.Result;
+        playerName = playerId;
+        if (table != null)
+        {
+            var entry = table.GetEntry(playerId);
+            if (entry != null)
+                playerName = entry.GetLocalizedString();
+        }
+        OnPlayerNameChanged?.Invoke();
     }
 
     void Awake()

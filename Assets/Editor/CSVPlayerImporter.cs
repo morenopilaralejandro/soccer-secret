@@ -1,5 +1,8 @@
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Tables;
+using UnityEditor.Localization;
 using System.IO;
 
 public class CSVPlayerImporter
@@ -9,6 +12,17 @@ public class CSVPlayerImporter
     {
         string defaultPath = Application.dataPath + "/Csv";
         string path = EditorUtility.OpenFilePanel("Select CSV File", defaultPath, "csv");
+        string tableCollectionName = "PlayerNames";
+        string tablePath = "Assets/Localization/StringTables/" + tableCollectionName + "/";
+
+        var locales = LocalizationEditorSettings.GetLocales();
+        var collection = LocalizationEditorSettings.GetStringTableCollection(tableCollectionName);
+        if (collection == null)
+        {
+            collection = LocalizationEditorSettings.CreateStringTableCollection(tableCollectionName, tablePath);
+        }
+
+
         if (string.IsNullOrEmpty(path))
         {
             Debug.LogWarning("No CSV file selected.");
@@ -98,6 +112,20 @@ public class CSVPlayerImporter
             string safeName = playerData.playerId.Replace(" ", "_").Replace("/", "_");
             string assetPath = $"{assetFolder}/{safeName}.asset";
             AssetDatabase.CreateAsset(playerData, assetPath);
+
+
+            foreach (var locale in locales)
+            {
+                var table = collection.GetTable(locale.Identifier) as StringTable;
+                if (table == null)
+                {
+                    var tableAsset = collection.AddNewTable(locale.Identifier) as StringTable;
+                    table = tableAsset;
+                }
+                table.AddEntry(playerData.playerId, locale.Identifier.Code == "ja" ? playerData.playerNameJa : playerData.playerNameEn);
+                EditorUtility.SetDirty(table);
+            }
+
         }
 
         AssetDatabase.SaveAssets();
