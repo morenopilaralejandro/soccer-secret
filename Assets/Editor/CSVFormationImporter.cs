@@ -1,5 +1,8 @@
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Tables;
+using UnityEditor.Localization;
 using System.IO;
 
 public class CSVFormationImporter
@@ -9,6 +12,16 @@ public class CSVFormationImporter
     {
         string defaultPath = Application.dataPath + "/Csv";
         string path = EditorUtility.OpenFilePanel("Select Formation CSV File", defaultPath, "csv");
+        string tableCollectionName = "FormationNames";
+        string tablePath = "Assets/Localization/StringTables/" + tableCollectionName + "/";
+
+        var locales = LocalizationEditorSettings.GetLocales();
+        var collection = LocalizationEditorSettings.GetStringTableCollection(tableCollectionName);
+        if (collection == null)
+        {
+            collection = LocalizationEditorSettings.CreateStringTableCollection(tableCollectionName, tablePath);
+        }
+
         if (string.IsNullOrEmpty(path))
         {
             Debug.LogWarning("No CSV file selected.");
@@ -69,6 +82,18 @@ public class CSVFormationImporter
             string safeName = formationData.formationId.Replace(" ", "_").Replace("/", "_");
             string assetPath = $"{assetFolder}/{safeName}.asset";
             AssetDatabase.CreateAsset(formationData, assetPath);
+
+            foreach (var locale in locales)
+            {
+                var table = collection.GetTable(locale.Identifier) as StringTable;
+                if (table == null)
+                {
+                    var tableAsset = collection.AddNewTable(locale.Identifier) as StringTable;
+                    table = tableAsset;
+                }
+                table.AddEntry(formationData.formationId, locale.Identifier.Code == "ja" ? formationData.formationNameJa : formationData.formationNameEn);
+                EditorUtility.SetDirty(table);
+            }
         }
 
         AssetDatabase.SaveAssets();

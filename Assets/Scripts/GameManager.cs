@@ -150,6 +150,10 @@ public class GameManager : MonoBehaviour
                 pos.z = pos.z * -1;
                 player.transform.position = pos;
             }
+            Debug.Log("***" + player.PlayerId);
+            if (!player.IsAi) {
+                player.transform.Find("Line").GetComponent<DrawLineOnDrag>().ResetLine();
+            }
             player.DefaultPosition = player.transform.position;
         }
     }

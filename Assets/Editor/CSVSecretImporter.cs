@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEditor;
 using System.IO;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Tables;
+using UnityEditor.Localization;
 
 public class CSVSecretImporter
 {
@@ -9,6 +12,16 @@ public class CSVSecretImporter
     {
         string defaultPath = Application.dataPath + "/Csv";
         string path = EditorUtility.OpenFilePanel("Select CSV File", defaultPath, "csv");
+        string tableCollectionName = "SecretNames";
+        string tablePath = "Assets/Localization/StringTables/" + tableCollectionName + "/";
+
+        var locales = LocalizationEditorSettings.GetLocales();
+        var collection = LocalizationEditorSettings.GetStringTableCollection(tableCollectionName);
+        if (collection == null)
+        {
+            collection = LocalizationEditorSettings.CreateStringTableCollection(tableCollectionName, tablePath);
+        }
+
         if (string.IsNullOrEmpty(path))
         {
             Debug.LogWarning("No CSV file selected.");
@@ -62,6 +75,18 @@ public class CSVSecretImporter
             string safeName = secretData.secretId.Replace(" ", "_").Replace("/", "_");
             string assetPath = $"{assetFolder}/{safeName}.asset";
             AssetDatabase.CreateAsset(secretData, assetPath);
+
+            foreach (var locale in locales)
+            {
+                var table = collection.GetTable(locale.Identifier) as StringTable;
+                if (table == null)
+                {
+                    var tableAsset = collection.AddNewTable(locale.Identifier) as StringTable;
+                    table = tableAsset;
+                }
+                table.AddEntry(secretData.secretId, locale.Identifier.Code == "ja" ? secretData.secretNameJa : secretData.secretNameEn);
+                EditorUtility.SetDirty(table);
+            }
         }
 
         AssetDatabase.SaveAssets();

@@ -192,4 +192,9 @@ public class DrawLineOnDrag : MonoBehaviour
         }
     }
 
+    public void ResetLine() {
+        linePoints.Clear();
+        lineRenderer.positionCount = 0;
+    }
+
 }

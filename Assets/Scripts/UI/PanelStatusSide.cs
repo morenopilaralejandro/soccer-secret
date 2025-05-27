@@ -68,7 +68,7 @@ public class PanelStatusSide : MonoBehaviour
                     textCommand.color = Color.white;
                     break;
                 case DuelCommand.Secret:
-                    textCommand.text = duelParticipant.Secret.SecretNameEn;
+                    textCommand.text = duelParticipant.Secret.SecretName;
                     textCommand.color = ElementManager.Instance.GetElementColor(duelParticipant.Secret.Element);
                     break;
             }

@@ -30,7 +30,7 @@ public class SecretCommandSlot : MonoBehaviour
         if (secret != null)
         {
             Secret = secret;
-            textName.text = secret.SecretNameEn;
+            textName.text = secret.SecretName;
             textName.color = ElementManager.Instance.GetElementColor(secret.Element);
             textCost.text = $"{secret.Cost}";
         }

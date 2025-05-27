@@ -18,7 +18,7 @@
 - **Image Generation:** DALL·E 3  
 - **Music Generation:** [Enzostvs Ai-jukebox](https://huggingface.co/spaces/enzostvs/ai-jukebox)
 - **SFX Generation:** *Placeholder*
-![Screenshot](Assets/Screenshots/menu1.png)
+![Screenshot](Assets/Screenshots/gpt.png)
 
 ---
 
@@ -35,8 +35,9 @@
 
 Here are some in-game screenshots to give you a taste of the action:
 
-![Gameplay Screenshot](Assets/Screenshots/gameplay1.png)
-![Menu Screenshot](Assets/Screenshots/menu1.png)
+![Gameplay Screenshot](Assets/Screenshots/promo1.png)
+![Menu Screenshot](Assets/Screenshots/promo2.png)
+![Menu Screenshot](Assets/Screenshots/prome3.png)
 
 ---
 
@@ -54,16 +55,13 @@ Here are some in-game screenshots to give you a taste of the action:
 2. By modifying attributes such as speed, control, or learnable special moves directly within the sheet, the process of editing and balancing stats becomes much more efficient and manageable than traditional manual data entry.
 3. The updated data is then exported as a CSV file. 
 4. Within the Unity Editor, the Player Importer tool is used to load and apply these parameters to the game.
-![Screenshot](Assets/Screenshots/menu1.png)
+![Screenshot](Assets/Screenshots/sheet.png)
 
+---
 
-### Editing Character Parameters (Development Process)
-
-During development, character parameters are managed using a shared Google Sheet. 
-Attributes (such as speed, control, or special moves that can be learned) are modified directly in the sheet, making it much easier to edit and balance stats compared to manual editing. 
-The updated data is then exported as a CSV file. Within the Unity Editor, the Player Importer tool is used to load and apply these parameters to the game.
-
-Attributes—such as speed, control, or special moves that can be learned—are modified directly in the sheet. This streamlined approach greatly simplifies the process of editing and balancing stats, making it significantly more efficient than manual data entry.
+## Localization (Development Process)
+This project supports both English and Japanese languages. The Japanese character atlas is generated automatically using the Atlas Generator tool. It scans the text content from the project's String Tables and compiles a texture atlas containing only the necessary Japanese characters, optimizing performance and memory usage.
+![Screenshot](Assets/Screenshots/localization.png)
 
 ---
 
