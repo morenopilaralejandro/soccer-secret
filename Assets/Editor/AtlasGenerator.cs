@@ -62,7 +62,7 @@ public static class AtlasGenerator
 
         // Add a few always‑useful characters
         //characters.Add(' ');   // space
-        //characters.Add('\n'); // newline
+        //characters.Add('\n');
 
         // Sort for consistency --------------------------------------------------------------
         var sortedCharacters = characters.ToList();
