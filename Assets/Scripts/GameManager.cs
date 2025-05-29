@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,15 +22,20 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform goalBottom;
     [SerializeField] private Vector3 initialBallPosition; // Vector3 to store initial ball position
     [SerializeField] private Vector3 centerKickOffPosition = Vector3.zero;
+    [SerializeField] private float timeDefault = 180f; // 3 minutes
     [SerializeField] private float timeRemaining = 180f; // 3 minutes
     [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private GameObject panelTimeMessage;
     [SerializeField] private GameObject panelGoalMessage;
     [SerializeField] private Animator textGoalMessage;
     [SerializeField] private GameObject textKickOff;
     [SerializeField] private TextMeshProUGUI textScore0;
     [SerializeField] private TextMeshProUGUI textScore1;
-    private int score0 = 0;
-    private int score1 = 0;
+    [SerializeField] private int winScore = 3;
+    [SerializeField] private int score0 = 0;
+    [SerializeField] private int score1 = 0;
+
+    private bool isActiveScene = true;
 
     private void Awake()
     {
@@ -39,7 +45,6 @@ public class GameManager : MonoBehaviour
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(this.gameObject);
 
         team0 =  TeamManager.Instance.GetTeamById("T1");
         team1 = TeamManager.Instance.GetTeamById("T2");
@@ -54,13 +59,13 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         UpdateScoreDisplay();
-        UpdateTimerDisplay(timeRemaining);
+        UpdateTimerDisplay(timeDefault);
         StartBattle(team0, team1);
     }
 
-
     void Update()
     {
+        if (!isActiveScene) return;
         if (!IsTimeFrozen)
         {
             if (timeRemaining > 0)
@@ -68,15 +73,19 @@ public class GameManager : MonoBehaviour
                 timeRemaining -= Time.deltaTime;
                 UpdateTimerDisplay(timeRemaining);
             }
-            else
-            {
-                // Time is up
-                IsTimeFrozen = true;
-                timeRemaining = 0;
-                UpdateTimerDisplay(timeRemaining);
-                // Optionally: Trigger end-of-timer event here
-            }
+            CheckEndGame();
         }
+    }
+
+    private void Reset() 
+    {
+        score0 = 0;
+        score1 = 0;
+        InitializeTeamPlayers(team0, allyPlayers, true);
+        InitializeTeamPlayers(team1, oppPlayers, false);
+        UpdateScoreDisplay();
+        UpdateTimerDisplay(timeDefault);
+        StartBattle(team0, team1);
     }
 
     public List<Player> GetAllyPlayers() {
@@ -110,7 +119,7 @@ public class GameManager : MonoBehaviour
     public void StartBattle(Team teamA, Team teamB)
     {
         StartKickOff(teamA);
-        timeRemaining = 180f;
+        timeRemaining = timeDefault;
     }
 
     public void InitializeTeamPlayers(Team team, List<Player> players, bool isAlly)
@@ -160,6 +169,7 @@ public class GameManager : MonoBehaviour
 
     public void StartKickOff(Team kickOffTeam)
     {
+        CheckEndGame();
         FreezeGame();   
         textKickOff.SetActive(true);
         IsKickOffPhase = true;     
@@ -209,15 +219,28 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator GoalSequence(Team kickOffTeam)
     {
+        float duration = 2f;
         IsTimeFrozen = true;
-        float goalDuration = 2f;
         panelGoalMessage.SetActive(true);
         textGoalMessage.Play("TextGoalSlide", -1, 0f);
         
-        yield return new WaitForSeconds(goalDuration);
+        yield return new WaitForSeconds(duration);
         panelGoalMessage.SetActive(false);
         IsTimeFrozen = false;
         StartKickOff(kickOffTeam);
+    }
+
+    private IEnumerator TimeSequence() 
+    {
+        float duration = 2f;
+        IsTimeFrozen = true;
+        timeRemaining = 0;
+        UpdateTimerDisplay(timeRemaining);
+        panelTimeMessage.SetActive(true);
+
+        yield return new WaitForSeconds(duration);
+        panelTimeMessage.SetActive(false);
+        SceneManager.LoadScene("GameOver");
     }
 
     public float GetDistanceToOppGoal(Player player) 
@@ -230,5 +253,22 @@ public class GameManager : MonoBehaviour
     {
         Transform goal = player.IsAlly ? goalBottom : goalTop;
         return Vector3.Distance(player.transform.position, goal.position);
+    }
+
+    private void CheckEndGame()
+    {
+        // If either team reaches winScore
+        if (score0 >= winScore)
+        {
+            SceneManager.LoadScene("BattleResult");
+        } 
+        else if (score1 >= winScore)
+        {
+            SceneManager.LoadScene("GameOver");
+        } 
+        else if (timeRemaining <= 0)
+        {
+            StartCoroutine(TimeSequence());
+        }
     }
 }

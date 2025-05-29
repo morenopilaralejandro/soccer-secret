@@ -219,6 +219,7 @@ public class BallBehavior : MonoBehaviour
 
         if (GameManager.Instance.IsKickOffPhase && !GameManager.Instance.IsKickOffReady && isTap)
         {
+            HideCrosshairImmediately();
             GameManager.Instance.SetIsKickOffReady(true);
             if (PossessionPlayer && !PossessionPlayer.IsAlly)
                 return;
@@ -351,7 +352,12 @@ public class BallBehavior : MonoBehaviour
         transform.position = ballPos;
 
         // After "isPossessed" && "rb.isKinematic" in GainPossession
-        HandleAllyPendingKickOrControl(player);
+        if (player.IsAlly) {
+            HandleAllyPendingKickOrControl(player);
+        } else {
+            pendingKickTarget = null;
+            allyPendingKickTarget = null;
+        }
     }
 
     private void HandleAllyPendingKickOrControl(Player player)

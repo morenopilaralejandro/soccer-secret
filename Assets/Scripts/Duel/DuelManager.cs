@@ -33,7 +33,6 @@ public class DuelManager : MonoBehaviour
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(gameObject);
         currentDuel.IsResolved = true;
     }
 

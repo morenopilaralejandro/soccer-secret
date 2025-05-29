@@ -17,7 +17,6 @@ public class BallTrail : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
         if (trailRenderer == null)
         {
             Debug.LogError("No TrailRenderer found on this GameObject!");
