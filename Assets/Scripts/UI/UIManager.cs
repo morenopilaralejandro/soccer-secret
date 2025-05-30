@@ -117,6 +117,7 @@ public class UIManager : MonoBehaviour
 
     public void OnButtonBackTapped()
     {
+        AudioManager.Instance.PlaySfx("SfxMenuBack");
         Debug.Log("ButtonBack tapped!");
         SetPanelSecretVisible(false);
         SetPanelCommandVisible(true);
@@ -124,6 +125,7 @@ public class UIManager : MonoBehaviour
 
     public void OnCommand0Tapped()
     {
+        AudioManager.Instance.PlaySfx("SfxSecretCommand");
         Debug.Log("Command0 tapped!");
         SetPanelSecretVisible(true);
         SetPanelCommandVisible(false);
@@ -137,12 +139,14 @@ public class UIManager : MonoBehaviour
 
     public void OnCommand1Tapped()
     {
+        AudioManager.Instance.PlaySfx("SfxMenuTap");
         Debug.Log("Command1 tapped!");
         HandleRegister(DuelCommand.Phys, null);
     }
 
     public void OnCommand2Tapped()
     {
+        AudioManager.Instance.PlaySfx("SfxMenuTap");
         Debug.Log("Command2 tapped!");
         HandleRegister(DuelCommand.Skill, null);
     }
@@ -153,11 +157,15 @@ public class UIManager : MonoBehaviour
         if (secretCommandSlot.Secret == null)
             return;
         if (UserPlayer.GetStat(PlayerStats.Sp) < secretCommandSlot.Secret.Cost) 
+        {
+            AudioManager.Instance.PlaySfx("SfxForbidden");
             return;
+        }
 
         SetPanelSecretVisible(false);
         SetPanelCommandVisible(false);
 
+        AudioManager.Instance.PlaySfx("SfxSecretSelect");
         HandleRegister(DuelCommand.Secret, secretCommandSlot.Secret);
     }
 

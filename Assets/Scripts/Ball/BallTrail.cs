@@ -35,6 +35,8 @@ public class BallTrail : MonoBehaviour
     {
         if (trailRenderer != null)
             trailRenderer.emitting = visible;
+        if (visible)
+            AudioManager.Instance.PlaySfx("SfxBallEnergy");
     }
 
     // Call to set the material by resource name (without ".mat")

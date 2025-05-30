@@ -69,6 +69,13 @@ public class BallBehavior : MonoBehaviour
         if (isTravelingToPoint) 
             return;
 
+        if (GameManager.Instance.IsKickOffPhase && !GameManager.Instance.IsKickOffReady)
+        {
+            HideCrosshairImmediately();
+            pendingKickTarget = null;
+            allyPendingKickTarget = null;
+        }     
+
         HandlePossessionAndTouches();
     }
 
@@ -201,6 +208,7 @@ public class BallBehavior : MonoBehaviour
         // 2. If movement is frozen and user touches the crosshair, cancel pending kick
         if (GameManager.Instance.IsMovementFrozen && IsTouchingCrosshair(touchEndPos))
         {
+            AudioManager.Instance.PlaySfx("SfxMenuCancel");
             pendingKickTarget = null;
             HideCrosshairImmediately();
             return;
@@ -215,11 +223,11 @@ public class BallBehavior : MonoBehaviour
         {
             QueueAllyPendingKick(touchEndPos);
             return;
-        }
+        }  
 
         if (GameManager.Instance.IsKickOffPhase && !GameManager.Instance.IsKickOffReady && isTap)
         {
-            HideCrosshairImmediately();
+            
             GameManager.Instance.SetIsKickOffReady(true);
             if (PossessionPlayer && !PossessionPlayer.IsAlly)
                 return;
@@ -247,6 +255,7 @@ public class BallBehavior : MonoBehaviour
             else
             {
                 //during offense duel
+                AudioManager.Instance.PlaySfx("SfxCrosshair");
                 pendingKickTarget = touchEndPos;
             }
             return;
@@ -256,6 +265,7 @@ public class BallBehavior : MonoBehaviour
         if (PossessionPlayer && !PossessionPlayer.IsAlly && isTap && GameManager.Instance.IsMovementFrozen) 
         {
             //during defense duel
+            AudioManager.Instance.PlaySfx("SfxCrosshair");
             crosshairImage.transform.position = touchEndPos;
             crosshairImage.enabled = true;
             pendingKickTarget = touchEndPos;
@@ -294,7 +304,7 @@ public class BallBehavior : MonoBehaviour
 
     public void KickBall(Vector3 touchWorldPos)
     {
-        AudioManager.Instance.PlaySfx("SfxFanfare");
+        AudioManager.Instance.PlaySfx("SfxKick");
 
         isPossessed = false;
         rb.isKinematic = false;
@@ -364,7 +374,7 @@ public class BallBehavior : MonoBehaviour
 
     private void HandleAllyPendingKickOrControl(Player player)
     {
-        if (allyPendingKickTarget.HasValue && player.IsAlly && !player.IsStunned)
+        if (allyPendingKickTarget.HasValue && player.IsAlly && !player.IsStunned && !GameManager.Instance.IsTimeFrozen && !GameManager.Instance.IsKickOffPhase)
         {
             if (!TryStartGoalDuelIfValid(allyPendingKickTarget.Value, true))
             {
@@ -471,6 +481,7 @@ public class BallBehavior : MonoBehaviour
 
         Player playerComp = rootObj.GetComponent<Player>();
         bool validPossession = false;
+        bool isKeeper = false;
 
         // Standard player touch
         if (collider.CompareTag("Player"))
@@ -484,6 +495,7 @@ public class BallBehavior : MonoBehaviour
             lastPossessionPlayer.GetComponent<Player>().IsAlly != playerComp.IsAlly && //keeper won't stop a pass from a player in it's same team
             GameManager.Instance.GetDistanceToAllyGoal(playerComp) < keeperGoalDistance)
         {
+            isKeeper = true;
             validPossession = true;
         }
 
@@ -499,6 +511,8 @@ public class BallBehavior : MonoBehaviour
             if (!cooldownActiveForThisPlayer)
             {
                 GainPossession(playerComp);
+                if (isKeeper)
+                    AudioManager.Instance.PlaySfx("SfxCatch");
             }
         }
     }

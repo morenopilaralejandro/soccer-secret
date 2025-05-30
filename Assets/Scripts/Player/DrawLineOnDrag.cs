@@ -53,6 +53,7 @@ public class DrawLineOnDrag : MonoBehaviour
                 case TouchPhase.Moved:
                     if (isDragging)
                     {
+                        AudioManager.Instance.PlaySfx("SfxDrawLine");
                         // No line yet, so just add normally
                         if (linePoints.Count == 0)
                         {

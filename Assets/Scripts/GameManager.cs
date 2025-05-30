@@ -159,7 +159,6 @@ public class GameManager : MonoBehaviour
                 pos.z = pos.z * -1;
                 player.transform.position = pos;
             }
-            Debug.Log("***" + player.PlayerId);
             if (!player.IsAi) {
                 player.transform.Find("Line").GetComponent<DrawLineOnDrag>().ResetLine();
             }
@@ -170,6 +169,7 @@ public class GameManager : MonoBehaviour
     public void StartKickOff(Team kickOffTeam)
     {
         CheckEndGame();
+        AudioManager.Instance.PlayBgm("BgmBattle");
         FreezeGame();   
         textKickOff.SetActive(true);
         IsKickOffPhase = true;     
@@ -221,6 +221,7 @@ public class GameManager : MonoBehaviour
     {
         float duration = 2f;
         IsTimeFrozen = true;
+        AudioManager.Instance.PlayBgm("BgmOle");
         panelGoalMessage.SetActive(true);
         textGoalMessage.Play("TextGoalSlide", -1, 0f);
         
@@ -235,6 +236,7 @@ public class GameManager : MonoBehaviour
         float duration = 2f;
         IsTimeFrozen = true;
         timeRemaining = 0;
+        AudioManager.Instance.PlayBgm("BgmTimeUp");
         UpdateTimerDisplay(timeRemaining);
         panelTimeMessage.SetActive(true);
 

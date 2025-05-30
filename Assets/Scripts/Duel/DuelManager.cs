@@ -47,6 +47,15 @@ public class DuelManager : MonoBehaviour
         UIManager.Instance.LockStatus();
         ResetDuel();
         currentDuel.Mode = mode;
+        switch (mode) 
+        {
+            case DuelMode.Shoot:
+                AudioManager.Instance.PlaySfx("SfxDuelShoot");
+                break;
+            default:
+                AudioManager.Instance.PlaySfx("SfxDuelField");                
+                break;
+        }
     }
 
     public void ResetDuel()
@@ -104,12 +113,16 @@ public class DuelManager : MonoBehaviour
             participant.Player.ReduceSp(participant.Secret.Cost);
             if (participant.Category == Category.Shoot) 
             {
+                AudioManager.Instance.PlaySfx("SfxShootSpecial");
                 BallTrail.Instance.SetTrailVisible(true);
                 BallTrail.Instance.SetTrailMaterial(participant.Secret.Element);
             }
         } else {
             if (participant.Category == Category.Shoot) 
+            {
+                AudioManager.Instance.PlaySfx("SfxShootRegular");
                 BallTrail.Instance.SetTrailVisible(false);
+            }
         }
 
         participant.Player.ReduceHp(Mathf.RoundToInt(participant.Player.Lv * hpMultiplier));
@@ -148,6 +161,9 @@ public class DuelManager : MonoBehaviour
 
         if (defender.Damage >= currentDuel.AttackPressure)
         {
+            if (defender.Category == Category.Catch)
+                AudioManager.Instance.PlaySfx("SfxCatch");            
+
             OnSetStatusPlayerAndCommand?.Invoke(defender, 0f);
             Debug.Log($"{defender.Player.name} stopped the attack! (-{defender.Damage})");
             EndDuel(winningParticipant: defender, winnerAction: DuelAction.Defense);
@@ -162,6 +178,9 @@ public class DuelManager : MonoBehaviour
 
             if (currentDuel.Mode == DuelMode.Field || defender.Category == Category.Catch)
             {
+                if (defender.Category == Category.Catch)
+                    AudioManager.Instance.PlaySfx("SfxKeeperScream");   
+
                 Debug.Log("Partial block ends the duel.");
                 EndDuel(winningParticipant: currentDuel.LastOffense, winnerAction: DuelAction.Offense);
             }
@@ -190,6 +209,13 @@ public class DuelManager : MonoBehaviour
 
     private void EndDuel(DuelParticipant winningParticipant, DuelAction winnerAction)
     {
+        if(winningParticipant.Player.IsAlly)
+        {
+            AudioManager.Instance.PlaySfx("SfxDuelWin");
+        } else {
+            AudioManager.Instance.PlaySfx("SfxDuelLose");
+        }
+
         winningParticipant.Player.ReduceHp(Mathf.RoundToInt(winningParticipant.Player.Lv * hpMultiplier));
         currentDuel.IsResolved = true;
         UIManager.Instance.ShowTextDuelResult(winningParticipant);

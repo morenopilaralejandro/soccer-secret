@@ -14,6 +14,7 @@ public class SecretManager : MonoBehaviour
     private Dictionary<string, Secret> secretDict = new Dictionary<string, Secret>();
 
     [SerializeField] private string effectPrefabPath = "Effects/Secret/";
+    [SerializeField] private string sfxPath = "SfxSecret";
 
     [SerializeField] private Sprite[] categoryIcons;
     [SerializeField] private Color[] categoryColors = {
@@ -137,7 +138,9 @@ public class SecretManager : MonoBehaviour
     {
         if (secret != null && !string.IsNullOrEmpty(effectPrefabPath))
         {
-            // If using Resources folder:
+            // Audio
+            AudioManager.Instance.PlaySfx(sfxPath + secret.Element);
+            // Particle
             GameObject effectPrefab = Resources.Load<GameObject>(effectPrefabPath + secret.Element);
             if (effectPrefab != null)
                 Instantiate(effectPrefab, position, Quaternion.identity);

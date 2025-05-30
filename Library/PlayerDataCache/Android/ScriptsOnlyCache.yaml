@@ -18,12 +18,14 @@ ScriptsOnlyBuild:
     - BattleResultManager
     - CameraFOVAdjuster
     - ComboCollider
+    - CoordData
     - DrawLineOnDrag
     - DropdownLanguage
     - DuelCollider
     - DuelManager
     - DuelSwapManager
     - ElementManager
+    - FormationData
     - GameManager
     - GameOverManager
     - GoalTrigger
@@ -33,12 +35,15 @@ ScriptsOnlyBuild:
     - Player
     - PlayerAi
     - PlayerCard
+    - PlayerData
     - PlayerManager
     - PlayerPortrait
     - SecretCommandSlot
+    - SecretData
     - SecretManager
     - SecretPanel
     - ShootTriangle
+    - TeamData
     - TeamManager
     - UIManager
     - WearLibrary
@@ -67,12 +72,10 @@ ScriptsOnlyBuild:
     - UnityEditor.AddressableAssets.Settings.GroupSchemas.BundledAssetGroupSchema
     - UnityEditor.AddressableAssets.Settings.GroupSchemas.ContentUpdateGroupSchema
     - UnityEditor.AddressableAssets.Settings.GroupSchemas.PlayerDataGroupSchema
-    Unity.Localization.Editor.dll:
-    - UnityEditor.Localization.StringTableCollection
-    - UnityEditor.Localization.UI.LocalizationSettingsEditor
     Unity.Localization.dll:
     - UnityEngine.Localization.Components.LocalizeStringEvent
     - UnityEngine.Localization.Locale
+    - UnityEngine.Localization.LocalizationBehaviour
     - UnityEngine.Localization.Settings.LocalizationSettings
     - UnityEngine.Localization.Tables.SharedTableData
     - UnityEngine.Localization.Tables.StringTable
@@ -192,7 +195,28 @@ ScriptsOnlyBuild:
     methodName: set_text
   - assembly: Assembly-CSharp
     fullTypeName: MainMenuManager
+    methodName: ButtonSettings
+  - assembly: Assembly-CSharp
+    fullTypeName: MainMenuManager
+    methodName: ConfirmCredits
+  - assembly: Assembly-CSharp
+    fullTypeName: DropdownLanguage
+    methodName: OnValueChanged
+  - assembly: Unity.TextMeshPro
+    fullTypeName: TMPro.TMP_Text
+    methodName: set_text
+  - assembly: Assembly-CSharp
+    fullTypeName: MainMenuManager
     methodName: ButtonCredits
+  - assembly: Assembly-CSharp
+    fullTypeName: MainMenuManager
+    methodName: ConfirmSettings
+  - assembly: Unity.TextMeshPro
+    fullTypeName: TMPro.TMP_Text
+    methodName: set_text
+  - assembly: Assembly-CSharp
+    fullTypeName: MainMenuManager
+    methodName: ButtonQuit
   - assembly: Assembly-CSharp
     fullTypeName: MainMenuManager
     methodName: CancelSettings
@@ -205,30 +229,6 @@ ScriptsOnlyBuild:
   - assembly: Unity.TextMeshPro
     fullTypeName: TMPro.TMP_Text
     methodName: set_text
-  - assembly: Assembly-CSharp
-    fullTypeName: MainMenuManager
-    methodName: ButtonSettings
-  - assembly: Unity.TextMeshPro
-    fullTypeName: TMPro.TMP_Text
-    methodName: set_text
-  - assembly: Assembly-CSharp
-    fullTypeName: MainMenuManager
-    methodName: ButtonQuit
-  - assembly: Assembly-CSharp
-    fullTypeName: MainMenuManager
-    methodName: ConfirmCredits
-  - assembly: Assembly-CSharp
-    fullTypeName: MainMenuManager
-    methodName: ConfirmSettings
-  - assembly: Unity.TextMeshPro
-    fullTypeName: TMPro.TMP_Text
-    methodName: set_text
-  - assembly: Unity.TextMeshPro
-    fullTypeName: TMPro.TMP_Text
-    methodName: set_text
-  - assembly: Unity.TextMeshPro
-    fullTypeName: TMPro.TMP_Text
-    methodName: set_text
   - assembly: Unity.TextMeshPro
     fullTypeName: TMPro.TMP_Text
     methodName: set_text
@@ -256,6 +256,12 @@ ScriptsOnlyBuild:
   - assembly: Assembly-CSharp
     fullTypeName: UIManager
     methodName: OnSecretCommandSlotTapped
+  - assembly: Unity.TextMeshPro
+    fullTypeName: TMPro.TMP_Text
+    methodName: set_text
+  - assembly: Unity.TextMeshPro
+    fullTypeName: TMPro.TMP_Text
+    methodName: set_text
   - assembly: Assembly-CSharp
     fullTypeName: UIManager
     methodName: OnSecretCommandSlotTapped
@@ -400,49 +406,49 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 20138}
     - Class: 114
-      Script: {instanceID: 20766}
+      Script: {instanceID: 20312}
     - Class: 114
-      Script: {instanceID: 21544}
+      Script: {instanceID: 20768}
     - Class: 114
-      Script: {instanceID: 21702}
+      Script: {instanceID: 21546}
     - Class: 114
-      Script: {instanceID: 21716}
+      Script: {instanceID: 21704}
     - Class: 114
-      Script: {instanceID: 21914}
+      Script: {instanceID: 21718}
     - Class: 114
-      Script: {instanceID: 22172}
+      Script: {instanceID: 21916}
     - Class: 114
-      Script: {instanceID: 22192}
+      Script: {instanceID: 22174}
     - Class: 114
-      Script: {instanceID: 22336}
+      Script: {instanceID: 22194}
     - Class: 114
-      Script: {instanceID: 22502}
+      Script: {instanceID: 22338}
     - Class: 114
-      Script: {instanceID: 22524}
+      Script: {instanceID: 22504}
     - Class: 114
-      Script: {instanceID: 22560}
+      Script: {instanceID: 22526}
     - Class: 114
-      Script: {instanceID: 23046}
+      Script: {instanceID: 22562}
     - Class: 114
-      Script: {instanceID: 23464}
+      Script: {instanceID: 23048}
     - Class: 114
-      Script: {instanceID: 23568}
+      Script: {instanceID: 23466}
     - Class: 114
-      Script: {instanceID: 24126}
+      Script: {instanceID: 23570}
     - Class: 114
-      Script: {instanceID: 24174}
+      Script: {instanceID: 24128}
     - Class: 114
-      Script: {instanceID: 24450}
+      Script: {instanceID: 24176}
     - Class: 114
-      Script: {instanceID: 24722}
+      Script: {instanceID: 24452}
     - Class: 114
-      Script: {instanceID: 24972}
+      Script: {instanceID: 24724}
     - Class: 114
-      Script: {instanceID: 25458}
+      Script: {instanceID: 24974}
     - Class: 114
-      Script: {instanceID: 25512}
+      Script: {instanceID: 25460}
     - Class: 114
-      Script: {instanceID: 25574}
+      Script: {instanceID: 25514}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 120
@@ -484,6 +490,10 @@ ScriptsOnlyBuild:
       Script: {instanceID: 0}
     - Class: 81
       Script: {instanceID: 0}
+    - Class: 82
+      Script: {instanceID: 0}
+    - Class: 83
+      Script: {instanceID: 0}
     - Class: 89
       Script: {instanceID: 0}
     - Class: 104
@@ -499,11 +509,15 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 18392}
     - Class: 114
-      Script: {instanceID: 22336}
+      Script: {instanceID: 20312}
     - Class: 114
-      Script: {instanceID: 23046}
+      Script: {instanceID: 22338}
     - Class: 114
-      Script: {instanceID: 24018}
+      Script: {instanceID: 22504}
+    - Class: 114
+      Script: {instanceID: 23048}
+    - Class: 114
+      Script: {instanceID: 24020}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 157
@@ -533,6 +547,10 @@ ScriptsOnlyBuild:
       Script: {instanceID: 0}
     - Class: 81
       Script: {instanceID: 0}
+    - Class: 82
+      Script: {instanceID: 0}
+    - Class: 83
+      Script: {instanceID: 0}
     - Class: 89
       Script: {instanceID: 0}
     - Class: 104
@@ -550,9 +568,13 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 20052}
     - Class: 114
-      Script: {instanceID: 22336}
+      Script: {instanceID: 20312}
     - Class: 114
-      Script: {instanceID: 23046}
+      Script: {instanceID: 22338}
+    - Class: 114
+      Script: {instanceID: 22504}
+    - Class: 114
+      Script: {instanceID: 23048}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 157
@@ -583,6 +605,8 @@ ScriptsOnlyBuild:
     - Class: 49
       Script: {instanceID: 0}
     - Class: 81
+      Script: {instanceID: 0}
+    - Class: 82
       Script: {instanceID: 0}
     - Class: 83
       Script: {instanceID: 0}
@@ -617,35 +641,37 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 20188}
     - Class: 114
-      Script: {instanceID: 20558}
+      Script: {instanceID: 20312}
     - Class: 114
-      Script: {instanceID: 20698}
+      Script: {instanceID: 20560}
     - Class: 114
-      Script: {instanceID: 20850}
+      Script: {instanceID: 20700}
     - Class: 114
-      Script: {instanceID: 21364}
+      Script: {instanceID: 20852}
     - Class: 114
-      Script: {instanceID: 21402}
+      Script: {instanceID: 21366}
     - Class: 114
-      Script: {instanceID: 21544}
+      Script: {instanceID: 21404}
     - Class: 114
-      Script: {instanceID: 21914}
+      Script: {instanceID: 21546}
     - Class: 114
-      Script: {instanceID: 22336}
+      Script: {instanceID: 21916}
     - Class: 114
-      Script: {instanceID: 22560}
+      Script: {instanceID: 22338}
     - Class: 114
-      Script: {instanceID: 23046}
+      Script: {instanceID: 22504}
     - Class: 114
-      Script: {instanceID: 23060}
+      Script: {instanceID: 22562}
     - Class: 114
-      Script: {instanceID: 24126}
+      Script: {instanceID: 23048}
     - Class: 114
-      Script: {instanceID: 24198}
+      Script: {instanceID: 23062}
     - Class: 114
-      Script: {instanceID: 24680}
+      Script: {instanceID: 24128}
     - Class: 114
-      Script: {instanceID: 25574}
+      Script: {instanceID: 24200}
+    - Class: 114
+      Script: {instanceID: 24682}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -1275,6 +1301,12 @@ ScriptsOnlyBuild:
     className: DictionaryAsset
   - hash:
       serializedVersion: 2
+      Hash: 884d67a5ef6c012c3817955c437eadb9
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: AudioLibrary
+  - hash:
+      serializedVersion: 2
       Hash: e7e95903ca66d58e1a7cbd71f824e16d
     assemblyName: Unity.TextMeshPro
     namespaceName: TMPro
@@ -1809,7 +1841,7 @@ ScriptsOnlyBuild:
     className: WearPortraitLibrary
   - hash:
       serializedVersion: 2
-      Hash: bb30d0eb62911dcbfac6d4ae428dadbc
+      Hash: 27a026531074d8d765e896032d10bea2
     assemblyName: Assembly-CSharp
     namespaceName: 
     className: SecretManager
@@ -2011,12 +2043,6 @@ ScriptsOnlyBuild:
     assemblyName: Unity.VisualScripting.Core
     namespaceName: Unity.VisualScripting
     className: UnityOnSliderValueChangedMessageListener
-  - hash:
-      serializedVersion: 2
-      Hash: 884d67a5ef6c012c3817955c437eadb9
-    assemblyName: Assembly-CSharp
-    namespaceName: 
-    className: AudioLibrary
   platform: 13
   scenePathNames:
   - Assets/Scenes/MainMenu.unity

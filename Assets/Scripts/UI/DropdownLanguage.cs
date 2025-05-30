@@ -39,4 +39,8 @@ public class DropdownLanguage : MonoBehaviour
     {
         dropdownLanguage.value = initialLanguageIndex;
     }
+
+    public void OnValueChanged() {
+        AudioManager.Instance.PlaySfx("SfxMenuChange");
+    }
 }
