@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "WearPortraitLibrary", menuName = "ScriptableObject/Wear Portrait Library")]
+[CreateAssetMenu(fileName = "WearPortraitLibrary", menuName = "ScriptableObject/WearPortraitLibrary")]
 public class WearPortraitLibrary : ScriptableObject
 {
     public List<WearPortraitEntry> wearPortraits;

@@ -294,6 +294,8 @@ public class BallBehavior : MonoBehaviour
 
     public void KickBall(Vector3 touchWorldPos)
     {
+        AudioManager.Instance.PlaySfx("SfxFanfare");
+
         isPossessed = false;
         rb.isKinematic = false;
 

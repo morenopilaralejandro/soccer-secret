@@ -4,7 +4,7 @@ using System.IO;
 
 public class CSVCoordImporter
 {
-    [MenuItem("Tools/Import Coords From CSV")]
+    [MenuItem("Tools/Import Data From CSV/Import Coords From CSV")]
     public static void ImportCoordsFromCSV()
     {
         string defaultPath = Application.dataPath + "/Csv";

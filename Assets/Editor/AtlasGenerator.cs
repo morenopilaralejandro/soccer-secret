@@ -25,7 +25,7 @@ public static class AtlasGenerator
     /// unique set of characters to <see cref="OutputPath"/>. If the target directory does not exist
     /// it will be created automatically.
     /// </summary>
-    [MenuItem("Tools/Localization/AtlasGenerator")]
+    [MenuItem("Tools/Localization/Generate Atlas")]
     public static void GenerateAtlasJa()
     {
         // Ensure destination directory exists ----------------------------------------------

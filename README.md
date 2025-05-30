@@ -60,7 +60,7 @@ Here are some in-game screenshots to give you a taste of the action:
 ---
 
 ## Localization (Development Process)
-This project supports both English and Japanese languages. The Japanese character atlas is generated automatically using the Atlas Generator tool. It scans the text content from the project's String Tables and compiles a texture atlas containing only the necessary Japanese characters, optimizing performance and memory usage.
+This project uses the Unity Localization package and currently supports English and Japanese languages. For Japanese support, the Japanese character atlas is generated automatically using the Atlas Generator tool. The tool scans all text content from the project's String Tables and compiles a texture atlas that includes only the necessary Japanese characters. This process helps optimize both performance and memory usage.
 ![Screenshot](Assets/Screenshots/localization.png)
 
 ---

@@ -7,7 +7,7 @@ using System.IO;
 
 public class CSVPlayerImporter
 {
-    [MenuItem("Tools/Import Players From CSV")]
+    [MenuItem("Tools/Import Data From CSV/Import Players From CSV")]
     public static void ImportPlayersFromCSV()
     {
         string defaultPath = Application.dataPath + "/Csv";

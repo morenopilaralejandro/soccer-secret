@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2784a6368aaa54fedaa85605463ef82e, type: 3}
+  m_Name: AudioLibrary
+  m_EditorClassIdentifier: 
+  bgmClips:
+  - soundName: BgmBaruArrival
+    clip: {fileID: 8300000, guid: 98706209a7e7c32189b73af769b7eb36, type: 3}
+  - soundName: BgmBattle
+    clip: {fileID: 8300000, guid: ae93dadd57c2b7cf3bb2cb048d0b18bc, type: 3}
+  - soundName: BgmFanfare
+    clip: {fileID: 8300000, guid: 7222403c39b5a3237bb93265e2831d6c, type: 3}
+  - soundName: BgmGameOver
+    clip: {fileID: 8300000, guid: 9cf26242d1e0024cd8bc49e89b28bc1c, type: 3}
+  - soundName: BgmMainTheme
+    clip: {fileID: 8300000, guid: e25a684d549021019a466f83407f5b5a, type: 3}
+  - soundName: BgmOle
+    clip: {fileID: 8300000, guid: 9499bf442b8e324c3bd097f4fcede754, type: 3}
+  - soundName: BgmSecretMystery
+    clip: {fileID: 8300000, guid: 8f637ddd8833a6603a0bbf1857e80c23, type: 3}
+  - soundName: BgmTimeUp
+    clip: {fileID: 8300000, guid: 32e14c65001956107a3434d5c5dd6cb6, type: 3}
+  sfxClips:
+  - soundName: SfxBallEnergy
+    clip: {fileID: 8300000, guid: 103e58d102c954034bfbc577e70ad2a2, type: 3}
+  - soundName: SfxCatch
+    clip: {fileID: 8300000, guid: 1d3d2881d78ea3401945b069ef83261d, type: 3}
+  - soundName: SfxCrosshair
+    clip: {fileID: 8300000, guid: 855607fdbc70adc0d917db0ccb408d00, type: 3}
+  - soundName: SfxDrawLine
+    clip: {fileID: 8300000, guid: a5bfedc555b46e08d83fcfbaa6ff1cb6, type: 3}
+  - soundName: SfxDuelField
+    clip: {fileID: 8300000, guid: 36dde60c8da906272896a4e3e4bf41a5, type: 3}
+  - soundName: SfxDuelLose
+    clip: {fileID: 8300000, guid: aa0b72ceca147ea9b8b2a87fff079ba0, type: 3}
+  - soundName: SfxDuelShoot
+    clip: {fileID: 8300000, guid: 2e33acbd613e08b7e9b42fdd716ed0c1, type: 3}
+  - soundName: SfxDuelWin
+    clip: {fileID: 8300000, guid: 75392d698ca463aeba045d5a8173b96d, type: 3}
+  - soundName: SfxForbidden
+    clip: {fileID: 8300000, guid: 7be41d4dfee39ec8185e4338801281c8, type: 3}
+  - soundName: SfxKeeperScream
+    clip: {fileID: 8300000, guid: ac262e2df30293714b7d5033db0a85e7, type: 3}
+  - soundName: SfxKick
+    clip: {fileID: 8300000, guid: e896d6fb48e9b8166bd5e2c760748c7c, type: 3}
+  - soundName: SfxMenuBack
+    clip: {fileID: 8300000, guid: 8676d331534af7e21a984b0260a01c5a, type: 3}
+  - soundName: SfxMenuCancel
+    clip: {fileID: 8300000, guid: 1ff3f3d5f6662be899909ca0c33a5f7a, type: 3}
+  - soundName: SfxMenuChange
+    clip: {fileID: 8300000, guid: 480c193078f5d0e1e9e1ccc583aba265, type: 3}
+  - soundName: SfxMenuConfirm
+    clip: {fileID: 8300000, guid: 995c23bdf1847bfa99981b39dea19409, type: 3}
+  - soundName: SfxMenuTap
+    clip: {fileID: 8300000, guid: 07b1a1ddc7748f8cbb0e817d7861e5f0, type: 3}
+  - soundName: SfxSecretAir
+    clip: {fileID: 8300000, guid: 78d42920e092b58068f04581568c147e, type: 3}
+  - soundName: SfxSecretCommand
+    clip: {fileID: 8300000, guid: f7f5f277dcb1de6a9aa1f7e13abf497f, type: 3}
+  - soundName: SfxSecretEarth
+    clip: {fileID: 8300000, guid: 9869d4afe79c0b433953ef2dc4587e28, type: 3}
+  - soundName: SfxSecretElectric
+    clip: {fileID: 8300000, guid: 742b884119271c6a7bf96b588a7a5cb3, type: 3}
+  - soundName: SfxSecretEvil
+    clip: {fileID: 8300000, guid: d103e8a67229677c996ec06f7d7e2e0e, type: 3}
+  - soundName: SfxSecretFire
+    clip: {fileID: 8300000, guid: e0d27fbfdff7368868e7cc9173ef7eee, type: 3}
+  - soundName: SfxSecretForest
+    clip: {fileID: 8300000, guid: 8b12a3ca55f353f3bbe477544a610b49, type: 3}
+  - soundName: SfxSecretHoly
+    clip: {fileID: 8300000, guid: b62daf9e69793af7f8a0850861929449, type: 3}
+  - soundName: SfxSecretIce
+    clip: {fileID: 8300000, guid: e78df1baca5f368cd929f2887db13f55, type: 3}
+  - soundName: SfxSecretSelect
+    clip: {fileID: 8300000, guid: f35ea70090eb367d2836a2323d9eacee, type: 3}
+  - soundName: SfxSecretWater
+    clip: {fileID: 8300000, guid: 82abe493ef8d713fda1835385e46e6a3, type: 3}
+  - soundName: SfxShootRegular
+    clip: {fileID: 8300000, guid: a760db67b70f02b3b9445642ef5456d6, type: 3}
+  - soundName: SfxShootSpecial
+    clip: {fileID: 8300000, guid: ef01573f3c58aefc9b347a1c604aaa68, type: 3}

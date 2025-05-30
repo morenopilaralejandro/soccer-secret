@@ -7,7 +7,7 @@ using System.IO;
 
 public class CSVFormationImporter
 {
-    [MenuItem("Tools/Import Formations From CSV")]
+    [MenuItem("Tools/Import Data From CSV/Import Formations From CSV")]
     public static void ImportFormationsFromCSV()
     {
         string defaultPath = Application.dataPath + "/Csv";

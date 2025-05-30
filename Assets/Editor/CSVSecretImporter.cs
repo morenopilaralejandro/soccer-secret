@@ -7,7 +7,7 @@ using UnityEditor.Localization;
 
 public class CSVSecretImporter
 {
-    [MenuItem("Tools/Import Secrets From CSV")]
+    [MenuItem("Tools/Import Data From CSV/Import Secrets From CSV")]
     public static void ImportSecretsFromCSV()
     {
         string defaultPath = Application.dataPath + "/Csv";

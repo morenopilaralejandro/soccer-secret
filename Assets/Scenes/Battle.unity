@@ -210,6 +210,74 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a3364437eb4fe4babb2dd6981eb6f99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1001 &105180141
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1074592369321881806, guid: c74c1122400d5a933a9fa2735e03934b,
+        type: 3}
+      propertyPath: m_Name
+      value: AudioManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 1517649508355563005, guid: c74c1122400d5a933a9fa2735e03934b,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.047923785
+      objectReference: {fileID: 0}
+    - target: {fileID: 1517649508355563005, guid: c74c1122400d5a933a9fa2735e03934b,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1517649508355563005, guid: c74c1122400d5a933a9fa2735e03934b,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.28165013
+      objectReference: {fileID: 0}
+    - target: {fileID: 1517649508355563005, guid: c74c1122400d5a933a9fa2735e03934b,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1517649508355563005, guid: c74c1122400d5a933a9fa2735e03934b,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1517649508355563005, guid: c74c1122400d5a933a9fa2735e03934b,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1517649508355563005, guid: c74c1122400d5a933a9fa2735e03934b,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1517649508355563005, guid: c74c1122400d5a933a9fa2735e03934b,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1517649508355563005, guid: c74c1122400d5a933a9fa2735e03934b,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1517649508355563005, guid: c74c1122400d5a933a9fa2735e03934b,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c74c1122400d5a933a9fa2735e03934b, type: 3}
 --- !u!1 &117029089
 GameObject:
   m_ObjectHideFlags: 0
@@ -3327,6 +3395,7 @@ MonoBehaviour:
   goalBottom: {fileID: 1040424307}
   initialBallPosition: {x: 0, y: 0, z: 0}
   centerKickOffPosition: {x: 0, y: 0, z: 0}
+  timeDefault: 180
   timeRemaining: 180
   timerText: {fileID: 1305269842}
   panelTimeMessage: {fileID: 800951741}
@@ -3336,6 +3405,8 @@ MonoBehaviour:
   textScore0: {fileID: 949522891}
   textScore1: {fileID: 1107934091}
   winScore: 3
+  score0: 0
+  score1: 0
 --- !u!4 &986222093
 Transform:
   m_ObjectHideFlags: 0
@@ -9961,4 +10032,5 @@ SceneRoots:
   - {fileID: 827309213}
   - {fileID: 1343351441}
   - {fileID: 2143598378}
+  - {fileID: 105180141}
   - {fileID: 1434613040}
