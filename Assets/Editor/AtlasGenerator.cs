@@ -62,10 +62,72 @@ public static class AtlasGenerator
             }
         }
 
-        // Add a few always‑useful characters
+        // Add characters
         //characters.Add(' ');   // space
         //characters.Add('\n');
         characters.Add('_');
+        characters.Add('A');
+        characters.Add('B');
+        characters.Add('C');
+        characters.Add('D');
+        characters.Add('E');
+        characters.Add('F');
+        characters.Add('G');
+        characters.Add('H');
+        characters.Add('I');
+        characters.Add('J');
+        characters.Add('K');
+        characters.Add('L');
+        characters.Add('M');
+        characters.Add('N');
+        characters.Add('O');
+        characters.Add('P');
+        characters.Add('Q');
+        characters.Add('R');
+        characters.Add('S');
+        characters.Add('T');
+        characters.Add('U');
+        characters.Add('V');
+        characters.Add('W');
+        characters.Add('X');
+        characters.Add('Y');
+        characters.Add('Z');
+        characters.Add('a');
+        characters.Add('b');
+        characters.Add('c');
+        characters.Add('d');
+        characters.Add('e');
+        characters.Add('f');
+        characters.Add('g');
+        characters.Add('h');
+        characters.Add('i');
+        characters.Add('j');
+        characters.Add('k');
+        characters.Add('l');
+        characters.Add('m');
+        characters.Add('n');
+        characters.Add('o');
+        characters.Add('p');
+        characters.Add('q');
+        characters.Add('r');
+        characters.Add('s');
+        characters.Add('t');
+        characters.Add('u');
+        characters.Add('v');
+        characters.Add('w');
+        characters.Add('x');
+        characters.Add('y');
+        characters.Add('z');
+        characters.Add('0');
+        characters.Add('1');
+        characters.Add('2');
+        characters.Add('3');
+        characters.Add('4');
+        characters.Add('5');
+        characters.Add('6');
+        characters.Add('7');
+        characters.Add('8');
+        characters.Add('9');
 
         // Sort for consistency --------------------------------------------------------------
         var sortedCharacters = characters.ToList();

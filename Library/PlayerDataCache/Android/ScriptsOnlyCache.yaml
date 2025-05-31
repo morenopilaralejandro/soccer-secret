@@ -18,14 +18,12 @@ ScriptsOnlyBuild:
     - BattleResultManager
     - CameraFOVAdjuster
     - ComboCollider
-    - CoordData
     - DrawLineOnDrag
     - DropdownLanguage
     - DuelCollider
     - DuelManager
     - DuelSwapManager
     - ElementManager
-    - FormationData
     - GameManager
     - GameOverManager
     - GoalTrigger
@@ -35,15 +33,12 @@ ScriptsOnlyBuild:
     - Player
     - PlayerAi
     - PlayerCard
-    - PlayerData
     - PlayerManager
     - PlayerPortrait
     - SecretCommandSlot
-    - SecretData
     - SecretManager
     - SecretPanel
     - ShootTriangle
-    - TeamData
     - TeamManager
     - UIManager
     - WearLibrary
@@ -72,6 +67,8 @@ ScriptsOnlyBuild:
     - UnityEditor.AddressableAssets.Settings.GroupSchemas.BundledAssetGroupSchema
     - UnityEditor.AddressableAssets.Settings.GroupSchemas.ContentUpdateGroupSchema
     - UnityEditor.AddressableAssets.Settings.GroupSchemas.PlayerDataGroupSchema
+    Unity.Localization.Editor.dll:
+    - UnityEditor.Localization.StringTableCollection
     Unity.Localization.dll:
     - UnityEngine.Localization.Components.LocalizeStringEvent
     - UnityEngine.Localization.Locale
@@ -79,6 +76,9 @@ ScriptsOnlyBuild:
     - UnityEngine.Localization.Settings.LocalizationSettings
     - UnityEngine.Localization.Tables.SharedTableData
     - UnityEngine.Localization.Tables.StringTable
+    - UnityEngine.Localization.VariantsPropertyDriver
+    Unity.Mobile.AndroidLogcat.Editor.dll:
+    - Unity.Android.Logcat.AndroidLogcatManager
     Unity.ResourceManager.dll:
     - MonoBehaviourCallbackHooks
     Unity.Rider.Editor.dll:
@@ -88,6 +88,9 @@ ScriptsOnlyBuild:
     - TMPro.TMP_Settings
     - TMPro.TMP_SpriteAsset
     - TMPro.TMP_StyleSheet
+    Unity.TextMeshPro.Editor.dll:
+    - TMPro.EditorUtilities.TMP_FontAssetEditor
+    - TMPro.TMP_SerializedPropertyHolder
     Unity.TextMeshPro.dll:
     - TMPro.TMP_Dropdown
     - TMPro.TMP_FontAsset
@@ -195,13 +198,22 @@ ScriptsOnlyBuild:
     methodName: set_text
   - assembly: Assembly-CSharp
     fullTypeName: MainMenuManager
+    methodName: ButtonCpu
+  - assembly: Unity.TextMeshPro
+    fullTypeName: TMPro.TMP_Text
+    methodName: set_text
+  - assembly: Assembly-CSharp
+    fullTypeName: MainMenuManager
+    methodName: ButtonQuit
+  - assembly: Unity.TextMeshPro
+    fullTypeName: TMPro.TMP_Text
+    methodName: set_text
+  - assembly: Assembly-CSharp
+    fullTypeName: MainMenuManager
     methodName: ButtonSettings
   - assembly: Assembly-CSharp
     fullTypeName: MainMenuManager
-    methodName: ConfirmCredits
-  - assembly: Assembly-CSharp
-    fullTypeName: DropdownLanguage
-    methodName: OnValueChanged
+    methodName: CancelSettings
   - assembly: Unity.TextMeshPro
     fullTypeName: TMPro.TMP_Text
     methodName: set_text
@@ -211,27 +223,12 @@ ScriptsOnlyBuild:
   - assembly: Assembly-CSharp
     fullTypeName: MainMenuManager
     methodName: ConfirmSettings
-  - assembly: Unity.TextMeshPro
-    fullTypeName: TMPro.TMP_Text
-    methodName: set_text
   - assembly: Assembly-CSharp
     fullTypeName: MainMenuManager
-    methodName: ButtonQuit
+    methodName: ConfirmCredits
   - assembly: Assembly-CSharp
-    fullTypeName: MainMenuManager
-    methodName: CancelSettings
-  - assembly: Unity.TextMeshPro
-    fullTypeName: TMPro.TMP_Text
-    methodName: set_text
-  - assembly: Assembly-CSharp
-    fullTypeName: MainMenuManager
-    methodName: ButtonCpu
-  - assembly: Unity.TextMeshPro
-    fullTypeName: TMPro.TMP_Text
-    methodName: set_text
-  - assembly: Unity.TextMeshPro
-    fullTypeName: TMPro.TMP_Text
-    methodName: set_text
+    fullTypeName: DropdownLanguage
+    methodName: OnValueChanged
   - assembly: Unity.TextMeshPro
     fullTypeName: TMPro.TMP_Text
     methodName: set_text
@@ -247,9 +244,12 @@ ScriptsOnlyBuild:
   - assembly: Assembly-CSharp
     fullTypeName: UIManager
     methodName: OnSecretCommandSlotTapped
-  - assembly: Assembly-CSharp
-    fullTypeName: UIManager
-    methodName: OnSecretCommandSlotTapped
+  - assembly: Unity.TextMeshPro
+    fullTypeName: TMPro.TMP_Text
+    methodName: set_text
+  - assembly: Unity.TextMeshPro
+    fullTypeName: TMPro.TMP_Text
+    methodName: set_text
   - assembly: Assembly-CSharp
     fullTypeName: UIManager
     methodName: OnSecretCommandSlotTapped
@@ -262,6 +262,9 @@ ScriptsOnlyBuild:
   - assembly: Unity.TextMeshPro
     fullTypeName: TMPro.TMP_Text
     methodName: set_text
+  - assembly: Assembly-CSharp
+    fullTypeName: UIManager
+    methodName: OnSecretCommandSlotTapped
   - assembly: Assembly-CSharp
     fullTypeName: UIManager
     methodName: OnSecretCommandSlotTapped
