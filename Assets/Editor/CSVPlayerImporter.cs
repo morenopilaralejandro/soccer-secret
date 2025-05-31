@@ -100,10 +100,16 @@ public class CSVPlayerImporter
             playerData.stamina       = int.Parse(values[staminaIndex]);
             playerData.courage       = int.Parse(values[courageIndex]);
             playerData.freedom       = int.Parse(values[freedomIndex]);
-            playerData.secret0       = values[secret0Index].Trim();
-            playerData.secret1       = values[secret1Index].Trim();
-            playerData.secret2       = values[secret2Index].Trim();
-            playerData.secret3       = values[secret3Index].Trim();
+
+            string[] auxStringArr = values[secret0Index].Split('-');
+            playerData.secret0       = auxStringArr[auxStringArr.Length -1];
+            auxStringArr = values[secret1Index].Split('-');
+            playerData.secret1       = auxStringArr[auxStringArr.Length -1];
+            auxStringArr = values[secret2Index].Split('-');
+            playerData.secret2       = auxStringArr[auxStringArr.Length -1];
+            auxStringArr = values[secret3Index].Split('-');
+            playerData.secret3       = auxStringArr[auxStringArr.Length -1];
+
             playerData.lv0           = int.Parse(values[lv0Index]);
             playerData.lv1           = int.Parse(values[lv1Index]);
             playerData.lv2           = int.Parse(values[lv2Index]);

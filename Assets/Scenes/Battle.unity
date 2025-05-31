@@ -2315,6 +2315,11 @@ PrefabInstance:
       propertyPath: speedBaseAi
       value: 10
       objectReference: {fileID: 0}
+    - target: {fileID: 3313887409289005239, guid: aa2275c79da51bb7b8f5dc1562fb2501,
+        type: 3}
+      propertyPath: currentSecret.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4308870595955406433, guid: aa2275c79da51bb7b8f5dc1562fb2501,
         type: 3}
       propertyPath: m_Name
@@ -2600,6 +2605,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   effectPrefabPath: Effects/Secret/
+  sfxPath: SfxSecret
   categoryIcons:
   - {fileID: 21300000, guid: 57357e637fca73fb1840c747361f7d83, type: 3}
   - {fileID: 21300000, guid: bcf5534cef05edb7fa74bb111b492485, type: 3}
@@ -3798,10 +3804,15 @@ MonoBehaviour:
   - {r: 0.007843138, g: 0.47843137, b: 0.015686275, a: 1}
   - {r: 0.8862745, g: 0.47058824, b: 0, a: 1}
   elementColors:
-  - {r: 0.8549, g: 0.0941, b: 0.0941, a: 1}
-  - {r: 0.11764706, g: 0.24313726, b: 0.7294118, a: 1}
-  - {r: 0.007843138, g: 0.47843137, b: 0.015686275, a: 1}
-  - {r: 0.8862745, g: 0.47058824, b: 0, a: 1}
+  - {r: 1, g: 0, b: 0, a: 1}
+  - {r: 0.5, g: 0.8, b: 1, a: 1}
+  - {r: 1, g: 1, b: 0, a: 1}
+  - {r: 0.8, g: 0.6, b: 0.8, a: 1}
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 0.2, g: 0.8, b: 0.2, a: 1}
+  - {r: 0.6, g: 0.4, b: 0.2, a: 1}
+  - {r: 1, g: 0.92, b: 0.016, a: 1}
+  - {r: 0, g: 0, b: 1, a: 1}
   elementIcons:
   - {fileID: 21300000, guid: ebd73f9b7ed1f5970a45f55b747d03a3, type: 3}
   - {fileID: 21300000, guid: 976fe56f02f972137b20f968314ab7d5, type: 3}
@@ -4444,7 +4455,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 42.85
+  m_fontSize: 43.85
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -5740,7 +5751,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1463356998

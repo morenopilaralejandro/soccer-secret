@@ -312,7 +312,7 @@ public class PlayerAi : MonoBehaviour
 
         foreach (var secret in player.CurrentSecret)
         {
-            if (secret != null && secret.Category == category && secret.Cost <= currentSp && secret.Power > highestPower)
+            if (secret != null && secret.Category == category && secret.Cost <= currentSp && secret.Power >= highestPower)
             {
                 highestPower = secret.Power;
                 bestSecret = secret;

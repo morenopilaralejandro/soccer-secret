@@ -33,6 +33,7 @@ public class SecretCommandSlot : MonoBehaviour
             textName.text = secret.SecretName;
             textName.color = ElementManager.Instance.GetElementColor(secret.Element);
             textCost.text = $"{secret.Cost}";
+            panelDefault.SetActive(false);
         }
         else
         {

@@ -105,6 +105,7 @@ public class UIManager : MonoBehaviour
     public void OnButtonDuelToggleTapped()
     {
         Debug.Log("ButtonDuelToggle tapped!");
+        AudioManager.Instance.PlaySfx("SfxMenuTap");
         // Toggle open/close dual panels
         if (!IsPanelActive(panelSecret) && !IsPanelActive(panelCommand))
             SetPanelCommandVisible(true);

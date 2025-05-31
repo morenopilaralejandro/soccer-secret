@@ -45,8 +45,8 @@ public class PanelStatusSide : MonoBehaviour
             HideCommand();
             playerCard.SetPlayer(player);
             imagePossession.SetActive(player.IsPossession);
-            barHp.SetPlayer(player);
-            barSp.SetPlayer(player);
+            barHp.SetPlayer(player, PlayerStats.Hp);
+            barSp.SetPlayer(player, PlayerStats.Sp);
         } else {
             panelStatusSide.SetActive(false);
         }

@@ -20,11 +20,11 @@ public class Bar : MonoBehaviour
         
     }
 
-    public void SetPlayer(Player player)
+    public void SetPlayer(Player player, PlayerStats stat)
     {
         if (player != null)
         {
-            textNumber.text = $"{player.GetStat(PlayerStats.Hp)}/{player.GetMaxStat(PlayerStats.Hp)}";
+            textNumber.text = $"{player.GetStat(stat)}/{player.GetMaxStat(stat)}";
         }
         else
         {

@@ -1,7 +1,9 @@
 #if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using UnityEditor;
 using UnityEditor.Localization;
 using UnityEngine;
@@ -63,13 +65,14 @@ public static class AtlasGenerator
         // Add a few always‑useful characters
         //characters.Add(' ');   // space
         //characters.Add('\n');
+        characters.Add('_');
 
         // Sort for consistency --------------------------------------------------------------
         var sortedCharacters = characters.ToList();
         sortedCharacters.Sort();
 
         // Write the atlas file --------------------------------------------------------------
-        File.WriteAllText(OutputPath, new string(sortedCharacters.ToArray()));
+        File.WriteAllText(OutputPath, new string(sortedCharacters.ToArray()).Normalize(NormalizationForm.FormC));
         Debug.Log($"[AtlasGenerator] Wrote {sortedCharacters.Count} unique characters to {OutputPath}");
 
         // Refresh the AssetDatabase so the newly‑created/updated file appears in the Project
