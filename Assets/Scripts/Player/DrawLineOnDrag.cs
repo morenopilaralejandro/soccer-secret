@@ -24,6 +24,7 @@ public class DrawLineOnDrag : MonoBehaviour
     [SerializeField] private BoxCollider boundLeft;
     [SerializeField] private BoxCollider boundRight;
     [SerializeField] private float bottomOffset = 0.2f;
+    [SerializeField] private float rightOffset = 0.2f;
 
     void Start()
     {
@@ -167,7 +168,7 @@ public class DrawLineOnDrag : MonoBehaviour
 
     private bool IsWithinBounds(Vector3 point)
     {
-        return point.x >= boundLeft.bounds.min.x && point.x <= boundRight.bounds.max.x &&
+        return point.x >= boundLeft.bounds.min.x && point.x <= (boundRight.bounds.max.x - + rightOffset) &&
                point.z >= (boundBottom.bounds.min.z + bottomOffset) && point.z <= boundTop.bounds.max.z;
     }
 

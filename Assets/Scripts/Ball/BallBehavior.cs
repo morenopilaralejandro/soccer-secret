@@ -367,6 +367,7 @@ public class BallBehavior : MonoBehaviour
         if (player.IsAlly) {
             HandleAllyPendingKickOrControl(player);
         } else {
+            HideCrosshairImmediately();
             pendingKickTarget = null;
             allyPendingKickTarget = null;
         }
