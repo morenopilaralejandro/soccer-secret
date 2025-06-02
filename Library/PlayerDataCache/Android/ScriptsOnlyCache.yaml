@@ -77,8 +77,6 @@ ScriptsOnlyBuild:
     - UnityEngine.Localization.Locale
     - UnityEngine.Localization.LocalizationBehaviour
     - UnityEngine.Localization.Settings.LocalizationSettings
-    - UnityEngine.Localization.Tables.SharedTableData
-    - UnityEngine.Localization.Tables.StringTable
     Unity.ResourceManager.dll:
     - MonoBehaviourCallbackHooks
     Unity.Rider.Editor.dll:
@@ -88,6 +86,9 @@ ScriptsOnlyBuild:
     - TMPro.TMP_Settings
     - TMPro.TMP_SpriteAsset
     - TMPro.TMP_StyleSheet
+    Unity.TextMeshPro.Editor.dll:
+    - TMPro.EditorUtilities.TMP_FontAssetEditor
+    - TMPro.TMP_SerializedPropertyHolder
     Unity.TextMeshPro.dll:
     - TMPro.TMP_Dropdown
     - TMPro.TMP_FontAsset
@@ -190,15 +191,24 @@ ScriptsOnlyBuild:
     - UnityEngine.UI.SpriteState
     - UnityEngine.UI.Toggle/ToggleEvent
   methodsToPreserve:
+  - assembly: Assembly-CSharp
+    fullTypeName: MainMenuManager
+    methodName: CancelSettings
   - assembly: Unity.TextMeshPro
     fullTypeName: TMPro.TMP_Text
     methodName: set_text
   - assembly: Assembly-CSharp
     fullTypeName: MainMenuManager
-    methodName: ButtonSettings
+    methodName: ButtonCpu
+  - assembly: Unity.TextMeshPro
+    fullTypeName: TMPro.TMP_Text
+    methodName: set_text
   - assembly: Assembly-CSharp
     fullTypeName: MainMenuManager
-    methodName: ConfirmCredits
+    methodName: ButtonCredits
+  - assembly: Assembly-CSharp
+    fullTypeName: DropdownLanguage
+    methodName: OnValueChanged
   - assembly: Unity.TextMeshPro
     fullTypeName: TMPro.TMP_Text
     methodName: set_text
@@ -210,22 +220,13 @@ ScriptsOnlyBuild:
     methodName: set_text
   - assembly: Assembly-CSharp
     fullTypeName: MainMenuManager
-    methodName: ButtonCpu
-  - assembly: Assembly-CSharp
-    fullTypeName: DropdownLanguage
-    methodName: OnValueChanged
-  - assembly: Assembly-CSharp
-    fullTypeName: MainMenuManager
-    methodName: CancelSettings
-  - assembly: Unity.TextMeshPro
-    fullTypeName: TMPro.TMP_Text
-    methodName: set_text
-  - assembly: Assembly-CSharp
-    fullTypeName: MainMenuManager
-    methodName: ButtonCredits
+    methodName: ButtonSettings
   - assembly: Assembly-CSharp
     fullTypeName: MainMenuManager
     methodName: ConfirmSettings
+  - assembly: Assembly-CSharp
+    fullTypeName: MainMenuManager
+    methodName: ConfirmCredits
   - assembly: Unity.TextMeshPro
     fullTypeName: TMPro.TMP_Text
     methodName: set_text
@@ -244,15 +245,6 @@ ScriptsOnlyBuild:
   - assembly: Assembly-CSharp
     fullTypeName: UIManager
     methodName: OnSecretCommandSlotTapped
-  - assembly: Unity.TextMeshPro
-    fullTypeName: TMPro.TMP_Text
-    methodName: set_text
-  - assembly: Unity.TextMeshPro
-    fullTypeName: TMPro.TMP_Text
-    methodName: set_text
-  - assembly: Assembly-CSharp
-    fullTypeName: UIManager
-    methodName: OnSecretCommandSlotTapped
   - assembly: Assembly-CSharp
     fullTypeName: UIManager
     methodName: OnSecretCommandSlotTapped
@@ -262,6 +254,15 @@ ScriptsOnlyBuild:
   - assembly: Unity.TextMeshPro
     fullTypeName: TMPro.TMP_Text
     methodName: set_text
+  - assembly: Unity.TextMeshPro
+    fullTypeName: TMPro.TMP_Text
+    methodName: set_text
+  - assembly: Unity.TextMeshPro
+    fullTypeName: TMPro.TMP_Text
+    methodName: set_text
+  - assembly: Assembly-CSharp
+    fullTypeName: UIManager
+    methodName: OnSecretCommandSlotTapped
   - assembly: Assembly-CSharp
     fullTypeName: UIManager
     methodName: OnSecretCommandSlotTapped
@@ -2049,4 +2050,4 @@ ScriptsOnlyBuild:
   - Assets/Scenes/Battle.unity
   - Assets/Scenes/BattleResult.unity
   - Assets/Scenes/GameOver.unity
-  playerPath: /home/alejandro/soccer-secret/apk.apk
+  playerPath: /home/alejandro/soccer-secret/Apk/soccer-secret-0-v0.1.apk

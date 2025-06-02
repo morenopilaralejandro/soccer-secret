@@ -68,6 +68,17 @@ public static class AtlasGenerator
         //characters.Add(' ');   // space
         //characters.Add('\n');
         characters.Add('_');
+        characters.Add('/');
+        characters.Add('0');
+        characters.Add('1');
+        characters.Add('2');
+        characters.Add('3');
+        characters.Add('4');
+        characters.Add('5');
+        characters.Add('6');
+        characters.Add('7');
+        characters.Add('8');
+        characters.Add('9');
 
         // Sort for consistency --------------------------------------------------------------
         var sortedCharacters = characters.ToList();
