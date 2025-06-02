@@ -32,7 +32,7 @@
 
 ## How to Play
 
-1. **Install the APK** on your Android device. ([APK](Apk/soccer-secret-0-v0.1.apk))
+1. **Install the APK** on your Android device. ([itch.io](https://aremoreno.itch.io/soccer-secret-0))
 2. **Touch and drag** on the screen to control your player.
 3. **Compete against the CPU** to score goals.
 
@@ -50,7 +50,9 @@
 ---
 
 ## Localization (Development Process)
-This project uses the Unity Localization package and currently supports English and Japanese languages. For Japanese support, the Japanese character atlas is generated automatically using the Atlas Generator tool. The tool scans all text content from the project's String Tables and compiles a texture atlas that includes only the necessary Japanese characters. This process helps optimize both performance and memory usage.
+This project uses the Unity Localization package and currently supports English and Japanese languages. For Japanese support, the Japanese character atlas is generated automatically using the Atlas Generator tool. 
+
+The tool scans all text content from the project's String Tables and compiles a texture atlas that includes only the necessary Japanese characters. This process helps optimize both performance and memory usage.
 
 ![Screenshot](Assets/Screenshots/atlas.png)
 
