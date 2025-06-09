@@ -40,7 +40,7 @@ public class PlayerAi : MonoBehaviour
 
     private void UpdateState()
     {
-        if (GameManager.Instance.IsKickOffPhase) 
+        if (GameManager.Instance.CurrentPhase == GamePhase.KickOff) 
         {
             currentState = AiState.KickOff;
             return;
@@ -80,7 +80,7 @@ public class PlayerAi : MonoBehaviour
 
     private bool IsOpponentPossessingBall()
     {
-        var possessor = BallBehavior.Instance.PossessionPlayer;
+        var possessor = PossessionManager.Instance.PossessionPlayer;
         return possessor != null && possessor.IsAlly != player.IsAlly;
     }
 
@@ -130,7 +130,7 @@ public class PlayerAi : MonoBehaviour
 
     private void ActDefend()
     {
-        var opponent = BallBehavior.Instance.PossessionPlayer;
+        var opponent = PossessionManager.Instance.PossessionPlayer;
         if (opponent == null) return;
 
         Vector3 target = player.DefaultPosition;
@@ -193,6 +193,7 @@ public class PlayerAi : MonoBehaviour
         if (IsKickOffPlayer() && GameManager.Instance.IsKickOffReady)
         {
             Player target = GetKickOffPassTarget();
+            GameManager.Instance.SetGamePhase(GamePhase.Battle);
             GameManager.Instance.UnfreezeGame();
             BallBehavior.Instance.KickBall(target.transform.position);
         }

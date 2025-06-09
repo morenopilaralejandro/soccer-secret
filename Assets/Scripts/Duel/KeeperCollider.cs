@@ -60,7 +60,7 @@ public class KeeperCollider : MonoBehaviour
         {
             // User must input "catch"
             GameManager.Instance.FreezeGame();
-            BallBehavior.Instance.PauseTravel();
+            BallTravelController.Instance.PauseTravel();
             UIManager.Instance.SetUserRole(Category.Catch, index, cachedPlayer);
             UIManager.Instance.SetButtonDuelToggleVisible(true);
         }

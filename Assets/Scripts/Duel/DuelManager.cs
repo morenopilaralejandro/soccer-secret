@@ -36,6 +36,24 @@ public class DuelManager : MonoBehaviour
         currentDuel.IsResolved = true;
     }
 
+    private void OnEnable()
+    {
+        if (BallTravelController.Instance != null)
+        {
+            BallTravelController.Instance.OnTravelEnd += HandleTravelEnd;
+            BallTravelController.Instance.OnTravelCancel += CancelDuel;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (BallTravelController.Instance != null)
+        {
+            BallTravelController.Instance.OnTravelEnd -= HandleTravelEnd;
+            BallTravelController.Instance.OnTravelCancel -= CancelDuel;
+        }
+    }
+
     #endregion
 
     #region Duel Flow
@@ -43,6 +61,7 @@ public class DuelManager : MonoBehaviour
     public void StartDuel(DuelMode mode)
     {
         Debug.Log("Duel started");
+        GameManager.Instance.SetGamePhase(GamePhase.Duel);
         StopAndCleanupUnlockStatus();
         UIManager.Instance.LockStatus();
         ResetDuel();
@@ -93,14 +112,17 @@ public class DuelManager : MonoBehaviour
 
     public void AddParticipantToDuel(DuelParticipant participant)
     {
-        BallBehavior.Instance.ResumeTravel();
+        BallTravelController.Instance.ResumeTravel();
+        GameManager.Instance.SetGamePhase(GamePhase.Battle);
 
         if (currentDuel.IsResolved)
             return;
 
         if (participant.Category == Category.Shoot) {
-            if (!currentDuel.Participants.Any())
-                StartBallTravel();
+            if (!currentDuel.Participants.Any()) {
+                PossessionManager.Instance.ReleasePossession();
+                BallTravelController.Instance.StartTravel(ShootTriangle.Instance.GetRandomPoint());
+            }
         }
 
         currentDuel.Participants.Add(participant);
@@ -223,8 +245,8 @@ public class DuelManager : MonoBehaviour
 
         if (winnerAction == DuelAction.Defense)
         {
-            BallBehavior.Instance.CancelTravel();
-            BallBehavior.Instance.GainPossession(winningParticipant.Player);
+            BallTravelController.Instance.CancelTravel();
+            PossessionManager.Instance.GainPossession(winningParticipant.Player);
             currentDuel.LastOffense.Player.Stun();
         }
 
@@ -237,10 +259,12 @@ public class DuelManager : MonoBehaviour
 
     #region Ball and Status Control
 
-    public void StartBallTravel()
+    private void HandleTravelEnd(Vector3 end)
     {
-        BallBehavior.Instance.ReleasePossession();
-        BallBehavior.Instance.StartTravelToPoint(ShootTriangle.Instance.GetRandomPoint());
+        if (!currentDuel.IsResolved)
+        {
+            CancelDuel();
+        }
     }
 
     private void StopAndCleanupUnlockStatus()
@@ -252,8 +276,8 @@ public class DuelManager : MonoBehaviour
         }
         if (currentDuel.IsResolved) {
             UIManager.Instance.HideStatus();
-            if (BallBehavior.Instance.PossessionPlayer != null)
-                UIManager.Instance.SetStatusPlayer(BallBehavior.Instance.PossessionPlayer);
+            if (PossessionManager.Instance.PossessionPlayer != null)
+                UIManager.Instance.SetStatusPlayer(PossessionManager.Instance.PossessionPlayer);
         }
     }
 

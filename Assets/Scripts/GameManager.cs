@@ -5,18 +5,34 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro; // Needed for TextMeshProUGUI
 
+public enum GamePhase
+{
+    KickOff,
+    Battle,
+    Duel,
+    Pause,
+    Cutscene,
+    Overworld
+}
+
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+    public GamePhase CurrentPhase { get; private set; } = GamePhase.KickOff;
+    public GamePhase PreviousPhase { get; private set; } = GamePhase.KickOff;
+
+    public event Action<GamePhase, GamePhase> OnPhaseChanged;
+
     public bool IsMovementFrozen { get; private set; } = false;
     public bool IsTimeFrozen { get; private set; } = false;
-    public bool IsKickOffPhase { get; private set; } = false;
     public bool IsKickOffReady { get; private set; } = false;
 
     [SerializeField] private Team team0;
     [SerializeField] private Team team1;
     [SerializeField] private List<Player> allyPlayers;
     [SerializeField] private List<Player> oppPlayers;
+    [SerializeField] private Player allyKeeper;
+    [SerializeField] private Player oppKeeper;
     [SerializeField] private Transform ball; // Transform of the ball
     [SerializeField] private Transform goalTop;
     [SerializeField] private Transform goalBottom;
@@ -160,7 +176,7 @@ public class GameManager : MonoBehaviour
                 player.transform.position = pos;
             }
             if (!player.IsAi) {
-                player.transform.Find("Line").GetComponent<DrawLineOnDrag>().ResetLine();
+                player.transform.Find("Line").GetComponent<PlayerLineRenderer>().ResetLine();
             }
             player.DefaultPosition = player.transform.position;
         }
@@ -172,7 +188,7 @@ public class GameManager : MonoBehaviour
         AudioManager.Instance.PlayBgm("BgmBattle");
         FreezeGame();   
         textKickOff.SetActive(true);
-        IsKickOffPhase = true;     
+        SetGamePhase(GamePhase.KickOff);
         IsKickOffReady = false;
         ResetDefaultPositions();
 
@@ -183,9 +199,19 @@ public class GameManager : MonoBehaviour
         {
             Player kickOffPlayer = kickOffPlayers[kickOffTeam.Formation.KickOff];
             kickOffPlayer.transform.position = centerKickOffPosition;
-            BallBehavior.Instance.GainPossession(kickOffPlayer);
+            PossessionManager.Instance.GainPossession(kickOffPlayer);
         }
 
+    }
+
+    public void SetGamePhase(GamePhase newPhase)
+    {
+        if (CurrentPhase != newPhase)
+        {
+            PreviousPhase = CurrentPhase;
+            CurrentPhase = newPhase;
+            OnPhaseChanged?.Invoke(CurrentPhase, PreviousPhase);
+        }
     }
 
     public void FreezeGame()
@@ -200,7 +226,6 @@ public class GameManager : MonoBehaviour
     {
         IsMovementFrozen = false;
         IsTimeFrozen = false;
-        IsKickOffPhase = false;
         // Hide your UI here, e.g.:
         // UIManager.Instance.HideFreezePanel();
     }
@@ -245,6 +270,11 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene("GameOver");
     }
 
+    public Player GetOppKeeper(Player player) 
+    {
+        return player.IsAlly ? oppKeeper : allyKeeper;
+    }
+
     public float GetDistanceToOppGoal(Player player) 
     {
         Transform goal = player.IsAlly ? goalTop : goalBottom;
@@ -255,6 +285,16 @@ public class GameManager : MonoBehaviour
     {
         Transform goal = player.IsAlly ? goalBottom : goalTop;
         return Vector3.Distance(player.transform.position, goal.position);
+    }
+
+    public Transform GetOppGoal(Player player) 
+    {
+        return player.IsAlly ? goalTop : goalBottom;
+    }
+
+    public Transform GetAllyGoal(Player player) 
+    {
+        return player.IsAlly ? goalBottom : goalTop;
     }
 
     private void CheckEndGame()

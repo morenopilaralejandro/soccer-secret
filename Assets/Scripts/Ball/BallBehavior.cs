@@ -14,39 +14,20 @@ public class BallBehavior : MonoBehaviour
     [SerializeField] private Image crosshairImage;
 
     [Header("Gameplay Settings")]
-    [SerializeField] private float dragThreshold = 2f;
     [SerializeField] private float kickForce = 2.0f;
     [SerializeField] private float spinAmount = 5f;
     [SerializeField] private float maxForceDistance = 3f;
     [SerializeField] private float maxVelocity = 10.0f;
     [SerializeField] private float dribbleSpeed = 10f;
-    [SerializeField] private float possessionCooldown = 0.2f;
-    [SerializeField] private float keeperGoalDistance = 0.5f;
-    [SerializeField] private float shootGoalDistance = 2.2f;
-    [SerializeField] private float crosshairDisplayDuration = 0.2f;
-    [SerializeField] private float travelSpeed = 3f;
-    private Vector3 travelVelocity;
 
-    [Header("State")]
-    public Player PossessionPlayer = null;
-
-    private GameObject lastPossessionPlayer = null;
-    private float lastPossessionPlayerKickTime = -Mathf.Infinity;
+    [Header("Other")]
+    private PendingKickHandler pendingKickHandler = new PendingKickHandler();
 
     private bool isPossessed = false;
-    private bool isDragging = false;
     private bool wasMovementFrozen = false;
-    private Coroutine hideCrosshairCoroutine;
 
     private Vector2 touchStartPos;
     private Vector2 touchEndPos;
-    private Vector2? pendingKickTarget = null;
-    private Vector2? allyPendingKickTarget = null;
-
-    private bool isTravelingToPoint = false;
-    private bool isTravelPaused = false;
-    private Vector3 currentTravelTarget;
-    private Action onTravelCanceled;
 
     public static event Action<Player> OnSetStatusPlayer;
 
@@ -60,20 +41,40 @@ public class BallBehavior : MonoBehaviour
             return;
         }
         Instance = this;
+
+    }
+
+    private void OnEnable()
+    {
+        if (PossessionManager.Instance != null) 
+        {
+            PossessionManager.Instance.OnPossessionGained += OnPossessionGained;
+            PossessionManager.Instance.OnPossessionLost += OnPossessionLost;
+        }
+
+        if (InputManager.Instance != null)
+            InputManager.Instance.TapDetector.OnTap += HandleTap;
+    }
+    private void OnDisable()
+    {
+        if (PossessionManager.Instance != null) 
+        {
+            PossessionManager.Instance.OnPossessionGained -= OnPossessionGained;
+            PossessionManager.Instance.OnPossessionLost -= OnPossessionLost;
+        }
+
+        if (InputManager.Instance != null)
+            InputManager.Instance.TapDetector.OnTap -= HandleTap;
     }
 
     private void Update()
     {
-        HandleTravel();
+        if (BallTravelController.Instance.IsTraveling) return;
 
-        if (isTravelingToPoint) 
-            return;
-
-        if (GameManager.Instance.IsKickOffPhase && !GameManager.Instance.IsKickOffReady)
+        if (GameManager.Instance.CurrentPhase == GamePhase.KickOff && !GameManager.Instance.IsKickOffReady)
         {
-            HideCrosshairImmediately();
-            pendingKickTarget = null;
-            allyPendingKickTarget = null;
+            CrosshairManager.Instance.HideCrosshairImmediately();
+            pendingKickHandler.Clear();
         }     
 
         HandlePossessionAndTouches();
@@ -81,204 +82,100 @@ public class BallBehavior : MonoBehaviour
 
     #endregion
 
-    #region Travel Logic
-
-    private void HandleTravel()
-    {
-        if (!isTravelingToPoint || isTravelPaused) return;
-
-        // Store previous position to compute velocity
-        Vector3 previousPosition = transform.position;
-
-        float step = travelSpeed * Time.deltaTime;
-        transform.position = Vector3.MoveTowards(transform.position, currentTravelTarget, step);
-
-        // Calculate the velocity from previous to new position
-        travelVelocity = (transform.position - previousPosition) / Time.deltaTime;
-
-        if (Vector3.Distance(transform.position, currentTravelTarget) < 0.01f)
-        {
-            isTravelingToPoint = false;
-            rb.isKinematic = false;
-
-            // Optionally clamp to maxVelocity
-            if (travelVelocity.magnitude > maxVelocity)
-                travelVelocity = travelVelocity.normalized * maxVelocity;
-            rb.velocity = travelVelocity;
-
-            DuelManager.Instance.CancelDuel();
-        }
-    }
-
-    public void StartTravelToPoint(Vector3 targetPoint)
-    {
-        Debug.Log("Ball travel started");
-        isTravelingToPoint = true;
-        currentTravelTarget = targetPoint;
-        isTravelPaused = false;
-        rb.isKinematic = true;
-    }
-
-    public void PauseTravel()
-    {
-        Debug.Log("Ball travel paused");
-        if (isTravelingToPoint) isTravelPaused = true;
-    }
-
-    public void ResumeTravel()
-    {
-        Debug.Log("Ball travel resumed");
-        if (isTravelingToPoint) isTravelPaused = false;
-    }
-
-    public void CancelTravel()
-    {
-        isTravelingToPoint = false;
-        isTravelPaused = false;
-        rb.isKinematic = false;
-        onTravelCanceled?.Invoke();
-        ShootTriangle.Instance.SetTriangleVisible(false);
-        DuelManager.Instance.CancelDuel();
-        Debug.Log("Travel canceled");
-    }
-
-    #endregion
-
-    #region Input and Touch Handling
+    #region Tap Handling
 
     private void HandlePossessionAndTouches()
     {
         if (isPossessed) HandlePossession();
 
         bool nowFrozen = GameManager.Instance.IsMovementFrozen;
-        if (wasMovementFrozen && !nowFrozen && pendingKickTarget.HasValue && PossessionPlayer && PossessionPlayer.IsAlly && !PossessionPlayer.IsStunned)
+        if (wasMovementFrozen && !nowFrozen && pendingKickHandler.HasPendingKick && PossessionManager.Instance.PossessionPlayer && PossessionManager.Instance.PossessionPlayer.IsAlly && !PossessionManager.Instance.PossessionPlayer.IsStunned)
         {
-            Vector2 kickTarget = pendingKickTarget.Value;
-            bool triggeredDuel = TryStartGoalDuelIfValid(kickTarget, false);
+            Vector2 kickTarget;
+            pendingKickHandler.TryConsumePendingKick(out kickTarget);
+            bool triggeredDuel = ShootUser.Instance.TryStartGoalDuelIfValidTarget(kickTarget, false);
             if (!triggeredDuel)
             {
                 KickBallTo(kickTarget);
+                CrosshairManager.Instance.HideCrosshairImmediately();
             }
-            pendingKickTarget = null;
-            HideCrosshairImmediately();
         }
         wasMovementFrozen = nowFrozen;
-
-        if (Input.touchCount > 0)
-            ProcessTouch(Input.GetTouch(0));
     }
 
-    private void ProcessTouch(Touch touch)
+    private void HandleTap(Vector2 screenPosition)
     {
-        if (EventSystem.current && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
-            return;
 
-        switch (touch.phase)
-        {
-            case TouchPhase.Began:
-                touchStartPos = touch.position;
-                isDragging = false;
-                break;
-
-            case TouchPhase.Moved:
-                if (Vector2.Distance(touchStartPos, touch.position) > dragThreshold)
-                    isDragging = true;
-                break;
-
-            case TouchPhase.Ended:
-                HandleTouchEnded(touch);
-                break;
-
-            case TouchPhase.Canceled:
-                pendingKickTarget = null;
-                hideCrosshairCoroutine = StartCoroutine(HideCrosshairAfterDelay());
-                break;
-        }
-    }
-
-    private void HandleTouchEnded(Touch touch)
-    {
-        touchEndPos = touch.position;
-        bool isTap = !isDragging && Vector2.Distance(touchStartPos, touchEndPos) < dragThreshold;
+        Vector2 lastTapScreenPosition = screenPosition;
 
         // 1. If a shoot duel is currently resolving, abort
         if (!DuelManager.Instance.IsDuelResolved() && DuelManager.Instance.GetDuelMode() == DuelMode.Shoot)
             return;
 
         // 2. If movement is frozen and user touches the crosshair, cancel pending kick
-        if (GameManager.Instance.IsMovementFrozen && IsTouchingCrosshair(touchEndPos))
+        if (GameManager.Instance.IsMovementFrozen && CrosshairManager.Instance.IsTouchingCrosshair(screenPosition))
         {
             AudioManager.Instance.PlaySfx("SfxMenuCancel");
-            pendingKickTarget = null;
-            HideCrosshairImmediately();
+            pendingKickHandler.Clear();
+            CrosshairManager.Instance.HideCrosshairImmediately();
             return;
         }
 
         // 3. If not possessed, last toucher was ally, not frozen, and tap: queue an ally kick
         if (!isPossessed
-            && lastPossessionPlayer != null
-            && lastPossessionPlayer.GetComponent<Player>().IsAlly
-            && !GameManager.Instance.IsMovementFrozen
-            && isTap)
+            && PossessionManager.Instance.LastPossessionPlayer != null
+            && PossessionManager.Instance.LastPossessionPlayer.IsAlly
+            && !GameManager.Instance.IsMovementFrozen)
         {
-            QueueAllyPendingKick(touchEndPos);
+            pendingKickHandler.QueuePendingKick(screenPosition);
+            CrosshairManager.Instance.ShowCrosshair(screenPosition);
             return;
         }  
-
-        if (GameManager.Instance.IsKickOffPhase && !GameManager.Instance.IsKickOffReady && isTap)
+        Debug.Log(GameManager.Instance.CurrentPhase + "" + GameManager.Instance.IsKickOffReady);
+        if (GameManager.Instance.CurrentPhase == GamePhase.KickOff && !GameManager.Instance.IsKickOffReady)
         {
-            
             GameManager.Instance.SetIsKickOffReady(true);
-            if (PossessionPlayer && !PossessionPlayer.IsAlly)
+            if (PossessionManager.Instance.PossessionPlayer && !PossessionManager.Instance.PossessionPlayer.IsAlly)
                 return;
         }
 
         // 4. If ally is in possession and tap: handle kick or queue pending kick
-        if (isPossessed && PossessionPlayer && PossessionPlayer.IsAlly && isTap)
+        if (PossessionManager.Instance.PossessionPlayer && PossessionManager.Instance.PossessionPlayer.IsAlly)
         {
-            if (TryStartGoalDuelIfValid(touchEndPos, false))
+            if (ShootUser.Instance.TryStartGoalDuelIfValidTarget(screenPosition, false))
                 return;
 
-            crosshairImage.transform.position = touchEndPos;
-            crosshairImage.enabled = true;
+            CrosshairManager.Instance.ShowCrosshair(screenPosition);
 
-            if (GameManager.Instance.IsKickOffPhase && GameManager.Instance.IsKickOffReady)
-                GameManager.Instance.UnfreezeGame();
+            if (GameManager.Instance.CurrentPhase == GamePhase.KickOff && GameManager.Instance.IsKickOffReady) {
+                GameManager.Instance.SetGamePhase(GamePhase.Battle);                
+                GameManager.Instance.UnfreezeGame();   
+            }
 
             if (!GameManager.Instance.IsMovementFrozen)
             {
-                KickBallTo(touchEndPos);
-                if (hideCrosshairCoroutine != null)
-                    StopCoroutine(hideCrosshairCoroutine);
-                hideCrosshairCoroutine = StartCoroutine(HideCrosshairAfterDelay());
+                KickBallTo(screenPosition);
+                CrosshairManager.Instance.HideCrosshairAfterDelay();
             }
             else
             {
                 //during offense duel
                 AudioManager.Instance.PlaySfx("SfxCrosshair");
-                pendingKickTarget = touchEndPos;
+                pendingKickHandler.QueuePendingKick(screenPosition);
+                CrosshairManager.Instance.ShowCrosshair(screenPosition);
             }
             return;
         }
 
-        // 5. If non-ally possesses ball, game frozen, and tap: enable crosshair and queue kick (your newly added case)
-        if (PossessionPlayer && !PossessionPlayer.IsAlly && isTap && GameManager.Instance.IsMovementFrozen) 
+        // 5. If non-ally possesses ball, game frozen, and tap: enable crosshair and queue kick
+        if (PossessionManager.Instance.PossessionPlayer && !PossessionManager.Instance.PossessionPlayer.IsAlly && GameManager.Instance.IsMovementFrozen) 
         {
             //during defense duel
             AudioManager.Instance.PlaySfx("SfxCrosshair");
-            crosshairImage.transform.position = touchEndPos;
-            crosshairImage.enabled = true;
-            pendingKickTarget = touchEndPos;
+            CrosshairManager.Instance.ShowCrosshair(screenPosition);
+            pendingKickHandler.QueuePendingKick(screenPosition);
             return;
         }
-    }
-
-    private void QueueAllyPendingKick(Vector2 pos)
-    {
-        allyPendingKickTarget = pos;
-        crosshairImage.transform.position = pos;
-        crosshairImage.enabled = true;
-        Debug.Log("Queued pending kick for ally on next possession: " + pos);
     }
 
     #endregion
@@ -287,9 +184,9 @@ public class BallBehavior : MonoBehaviour
 
     private void HandlePossession()
     {
-        if (PossessionPlayer == null) return;
+        if (PossessionManager.Instance.PossessionPlayer == null) return;
 
-        Vector3 targetPosition = PossessionPlayer.transform.position + PossessionPlayer.transform.forward * 0.5f;
+        Vector3 targetPosition = PossessionManager.Instance.PossessionPlayer.transform.position + PossessionManager.Instance.PossessionPlayer.transform.forward * 0.5f;
         targetPosition.x += 0.1f;
         targetPosition.y = transform.position.y;
         targetPosition.z -= 0.1f;
@@ -309,7 +206,7 @@ public class BallBehavior : MonoBehaviour
         isPossessed = false;
         rb.isKinematic = false;
 
-        PossessionPlayer?.Kick();
+        PossessionManager.Instance.PossessionPlayer?.Kick();
  
         Vector3 direction = touchWorldPos - transform.position;
         Vector3 rayDirection = direction.normalized;
@@ -340,194 +237,60 @@ public class BallBehavior : MonoBehaviour
         if (rb.velocity.magnitude > actualMaxVelocity)
             rb.velocity = rb.velocity.normalized * actualMaxVelocity;
 
-        ReleasePossession();
-    }
-
-    public void GainPossession(Player player)
-    {
-        ReleasePossession();
-        PossessionPlayer = player;
-        PossessionPlayer.IsPossession = true;
-
-        if (!UIManager.Instance.IsStatusLocked)
-        {
-            UIManager.Instance.HideStatus();
-            OnSetStatusPlayer?.Invoke(PossessionPlayer);
-        }
-        Debug.Log("Possession granted to: " + PossessionPlayer.PlayerId);
-
-        isPossessed = true;
-        rb.isKinematic = true;
-
-        Vector3 ballPos = PossessionPlayer.transform.position + PossessionPlayer.transform.forward * 0.5f;
-        ballPos.y = transform.position.y;
-        transform.position = ballPos;
-
-        // After "isPossessed" && "rb.isKinematic" in GainPossession
-        if (player.IsAlly) {
-            HandleAllyPendingKickOrControl(player);
-        } else {
-            HideCrosshairImmediately();
-            pendingKickTarget = null;
-            allyPendingKickTarget = null;
-        }
+        PossessionManager.Instance.ReleasePossession();
     }
 
     private void HandleAllyPendingKickOrControl(Player player)
     {
-        if (allyPendingKickTarget.HasValue && player.IsAlly && !player.IsStunned && !GameManager.Instance.IsTimeFrozen && !GameManager.Instance.IsKickOffPhase)
+        if (pendingKickHandler.HasPendingKick && player.IsAlly && !player.IsStunned && !GameManager.Instance.IsTimeFrozen && GameManager.Instance.CurrentPhase == GamePhase.Battle)
         {
-            if (!TryStartGoalDuelIfValid(allyPendingKickTarget.Value, true))
+            Vector2 targetPosition;
+            pendingKickHandler.TryConsumePendingKick(out targetPosition); 
+            if (!ShootUser.Instance.TryStartGoalDuelIfValidTarget(targetPosition, true))
             {
-                Debug.Log("Detected pending ally kick. Kicking to target: " + allyPendingKickTarget.Value);
-                KickBallTo(allyPendingKickTarget.Value);
-                allyPendingKickTarget = null;
-                HideCrosshairImmediately();
+                Debug.Log("Detected pending ally kick. Kicking to target: " + targetPosition);
+                KickBallTo(targetPosition);
+                CrosshairManager.Instance.HideCrosshairImmediately();
             }
         }
         else
         {
-            allyPendingKickTarget = null;
-            HideCrosshairImmediately();
-            PossessionPlayer.Control();
-        }
-    }
-
-    public void ReleasePossession()
-    {
-        if (PossessionPlayer != null)
-        {
-            Debug.Log("Possession taken from: " + PossessionPlayer.PlayerId);
-            lastPossessionPlayer = PossessionPlayer.gameObject;
-            lastPossessionPlayerKickTime = Time.time;
-            PossessionPlayer.IsPossession = false;
-            PossessionPlayer = null;
-            isPossessed = false;
-            rb.isKinematic = false;
+            pendingKickHandler.Clear();
+            CrosshairManager.Instance.HideCrosshairImmediately();
+            PossessionManager.Instance.PossessionPlayer.Control();
         }
     }
 
     #endregion
 
     #region Crosshair, Duel, and Utility
-
-    private bool TryStartGoalDuelIfValid(Vector2 screenPos, bool isDirect)
+    private void OnPossessionGained(Player player)
     {
-        Ray ray = mainCamera.ScreenPointToRay(screenPos);
-        Debug.DrawRay(ray.origin, ray.direction * Mathf.Infinity, Color.red, 2f);
-
-        int goalLayerMask = LayerMask.GetMask("GoalTouchArea");
-        Debug.Log($"Attempting to raycast to Goal layer. Mask={goalLayerMask}, TapPos={screenPos}");
-        if (Physics.Raycast(ray, out RaycastHit hitGoal, Mathf.Infinity, goalLayerMask))
+        if (!UIManager.Instance.IsStatusLocked)
         {
-            Debug.Log($"Raycast hit: {hitGoal.collider.name} on layer {LayerMask.LayerToName(hitGoal.collider.gameObject.layer)} Tag={hitGoal.collider.tag}");
-            if (
-                GameManager.Instance.GetDistanceToOppGoal(PossessionPlayer) < shootGoalDistance
-                && hitGoal.collider.CompareTag("Opp")
-                && DuelManager.Instance.IsDuelResolved()
-                && !GameManager.Instance.IsMovementFrozen)
-            {
-                Debug.Log("Tap on OPP GOAL detected. Initiating Duel.");
-                GameManager.Instance.FreezeGame();
-                DuelManager.Instance.StartDuel(DuelMode.Shoot);
-                DuelManager.Instance.RegisterTrigger(PossessionPlayer.gameObject, isDirect);
-                UIManager.Instance.SetUserRole(Category.Shoot, 0, PossessionPlayer);
-                UIManager.Instance.SetButtonDuelToggleVisible(true);
-                ShootTriangle.Instance.SetTriangleFromUser(PossessionPlayer, screenPos);
-                ShootTriangle.Instance.SetTriangleVisible(true);
-                return true;
-            }
-        }
-        else
-        {
-            Debug.Log("Raycast did NOT hit anything on 'Goal' layer.");
-        }
-        return false;
-    }
-
-    private IEnumerator HideCrosshairAfterDelay()
-    {
-        yield return new WaitForSeconds(crosshairDisplayDuration);
-        crosshairImage.enabled = false;
-    }
-
-    private void HideCrosshairImmediately()
-    {
-        if (hideCrosshairCoroutine != null)
-            StopCoroutine(hideCrosshairCoroutine);
-        if (crosshairImage)
-            crosshairImage.enabled = false;
-    }
-
-    private bool IsTouchingCrosshair(Vector2 screenPosition)
-    {
-        if (!crosshairImage || !crosshairImage.enabled) return false;
-        Canvas canvas = crosshairImage.canvas;
-        Camera eventCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
-        return RectTransformUtility.RectangleContainsScreenPoint(
-            crosshairImage.rectTransform, screenPosition, eventCamera);
-    }
-
-    #endregion
-
-    #region Collision
-
-    private void OnTriggerEnter(Collider collider)
-    {
-        GameObject rootObj = collider.transform.root.gameObject;
-        Debug.Log("BallBehavior OnTriggerEnter: " + rootObj.name + " (Tag: " + rootObj.tag + ")");
-
-        if (isTravelingToPoint)
-            return;
-
-        Player playerComp = rootObj.GetComponent<Player>();
-        bool validPossession = false;
-        bool isKeeper = false;
-
-        // Standard player touch
-        if (collider.CompareTag("Player"))
-        {
-            validPossession = true;
-        }
-        // Keeper special case
-        else if (
-            collider.CompareTag("PlayerKeeperCollider") &&
-            playerComp != null &&
-            lastPossessionPlayer.GetComponent<Player>().IsAlly != playerComp.IsAlly && //keeper won't stop a pass from a player in it's same team
-            GameManager.Instance.GetDistanceToAllyGoal(playerComp) < keeperGoalDistance)
-        {
-            isKeeper = true;
-            validPossession = true;
+            UIManager.Instance.HideStatus();
+            OnSetStatusPlayer?.Invoke(player);
         }
 
-        // Shared cooldown and possession logic
-        if (
-            !isPossessed &&
-            validPossession &&
-            playerComp != null)
-        {
-            bool isLastPossessionPlayer = (lastPossessionPlayer != null && rootObj == lastPossessionPlayer);
-            bool cooldownActiveForThisPlayer = isLastPossessionPlayer && (Time.time <= lastPossessionPlayerKickTime + possessionCooldown);
+        isPossessed = true;
+        rb.isKinematic = true;
 
-            if (!cooldownActiveForThisPlayer)
-            {
-                GainPossession(playerComp);
-                if (isKeeper)
-                    AudioManager.Instance.PlaySfx("SfxCatch");
-            }
+        Vector3 ballPos = player.transform.position + player.transform.forward * 0.5f;
+        ballPos.y = transform.position.y;
+        transform.position = ballPos;
+
+        if (player.IsAlly) {
+            HandleAllyPendingKickOrControl(player);
+        } else {
+            CrosshairManager.Instance.HideCrosshairImmediately();
+            pendingKickHandler.Clear();
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnPossessionLost(Player player)
     {
-        GameObject hitObj = collision.collider.gameObject;
-        Debug.Log("BallBehavior OnCollisionEnter: " + hitObj.name + " (Tag: " + hitObj.tag + ")");
-
-        if (isTravelingToPoint && hitObj.CompareTag("Bound"))
-        {
-            CancelTravel();
-        }
-
+        isPossessed = false;
+        rb.isKinematic = false;
     }
 
     #endregion

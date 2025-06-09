@@ -82,7 +82,8 @@ public class ComboCollider : MonoBehaviour
     private void HandleUserChain(int index, Category category, Player cachedPlayer)
     {
         GameManager.Instance.FreezeGame();
-        BallBehavior.Instance.PauseTravel();
+        BallTravelController.Instance.PauseTravel();
+        GameManager.Instance.SetGamePhase(GamePhase.Duel);
         UIManager.Instance.SetUserRole(category, index, cachedPlayer);
         UIManager.Instance.SetButtonDuelToggleVisible(true);
     }

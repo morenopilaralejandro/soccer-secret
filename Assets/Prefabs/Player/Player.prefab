@@ -835,10 +835,10 @@ MonoBehaviour:
   pathHair: Hair/
   pathAccessory: Accessory/
   pathPlayerPortrait: PlayerPortrait/
+  tableCollectionName: PlayerNames
   defaultYPosition: 0
   playerId: 
-  playerNameEn: 
-  playerNameJa: 
+  playerName: 
   size: 0
   gender: 0
   element: 0
@@ -1011,8 +1011,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5093496520630187804}
-  - component: {fileID: 4643655436736705146}
   - component: {fileID: 7085258217153332325}
+  - component: {fileID: 1160725523600138196}
   m_Layer: 0
   m_Name: Line
   m_TagString: Untagged
@@ -1035,35 +1035,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1273373189928147067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4643655436736705146
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6926927551590348990}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b439e9f663abcab9598295a4e9bd8fdb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  player: {fileID: 3313887409289005239}
-  lineRenderer: {fileID: 7085258217153332325}
-  touchArea: {fileID: 725982291212298075}
-  mainCamera: {fileID: 0}
-  isDragging: 0
-  isMoving: 0
-  moveTolerance: 0.1
-  minSegmentDistance: 0.3
-  maxLineLength: 6
-  ignoreLayer:
-    serializedVersion: 2
-    m_Bits: 51776
-  boundTop: {fileID: 0}
-  boundBottom: {fileID: 0}
-  boundLeft: {fileID: 0}
-  boundRight: {fileID: 0}
-  bottomOffset: 0.2
 --- !u!120 &7085258217153332325
 LineRenderer:
   serializedVersion: 2
@@ -1166,6 +1137,36 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
+--- !u!114 &1160725523600138196
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6926927551590348990}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebd1c005f56dd920b83aff47c595079f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 3313887409289005239}
+  lineRenderer: {fileID: 7085258217153332325}
+  touchArea: {fileID: 725982291212298075}
+  mainCamera: {fileID: 0}
+  dragDetector: {fileID: 0}
+  isDragging: 0
+  moveTolerance: 0.1
+  minSegmentDistance: 0.3
+  maxLineLength: 6
+  touchAreaLayer:
+    serializedVersion: 2
+    m_Bits: 1024
+  boundTop: {fileID: 0}
+  boundBottom: {fileID: 0}
+  boundLeft: {fileID: 0}
+  boundRight: {fileID: 0}
+  bottomOffset: 0.2
+  rightOffset: 0.2
 --- !u!1 &7595277959914605761
 GameObject:
   m_ObjectHideFlags: 0
