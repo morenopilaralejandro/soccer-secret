@@ -45,7 +45,7 @@ public class PossessionManager : MonoBehaviour
         PossessionPlayer = player;
         if (PossessionPlayer != null)
             PossessionPlayer.IsPossession = true;
-
+        Debug.Log("GainPossession: " + player.PlayerId);
         OnPossessionGained?.Invoke(PossessionPlayer);
     }
 
@@ -57,6 +57,7 @@ public class PossessionManager : MonoBehaviour
         if (PossessionPlayer != null)
         {
             LastPossessionPlayer = PossessionPlayer;
+            Debug.Log("ReleasePossession: " + LastPossessionPlayer.PlayerId);
             LastPossessionPlayerKickTime = Time.time;
 
             PossessionPlayer.IsPossession = false;

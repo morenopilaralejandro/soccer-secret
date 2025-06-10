@@ -54,6 +54,7 @@ public class UIManager : MonoBehaviour
         if (subscribe)
         {
             BallBehavior.OnSetStatusPlayer += SetStatusPlayer;
+            DuelManager.OnSetStatusPlayer += SetStatusPlayer;
             DuelCollider.OnSetStatusPlayer += SetStatusPlayer;
             ComboCollider.OnSetStatusPlayer += SetStatusPlayer;
             KeeperCollider.OnSetStatusPlayer += SetStatusPlayer;
@@ -62,6 +63,7 @@ public class UIManager : MonoBehaviour
         else
         {
             BallBehavior.OnSetStatusPlayer -= SetStatusPlayer;
+            DuelManager.OnSetStatusPlayer -= SetStatusPlayer;
             DuelCollider.OnSetStatusPlayer -= SetStatusPlayer;
             ComboCollider.OnSetStatusPlayer -= SetStatusPlayer;
             KeeperCollider.OnSetStatusPlayer -= SetStatusPlayer;

@@ -11,7 +11,6 @@ public class BallBehavior : MonoBehaviour
     [Header("References")]
     [SerializeField] private Camera mainCamera;
     [SerializeField] private Rigidbody rb;
-    [SerializeField] private Image crosshairImage;
 
     [Header("Gameplay Settings")]
     [SerializeField] private float kickForce = 2.0f;
@@ -108,10 +107,10 @@ public class BallBehavior : MonoBehaviour
 
         Vector2 lastTapScreenPosition = screenPosition;
 
-        // 1. If a shoot duel is currently resolving, abort
-        if (!DuelManager.Instance.IsDuelResolved() && DuelManager.Instance.GetDuelMode() == DuelMode.Shoot)
+        // 1. If an ally shoot duel is currently resolving, abort
+        if (!DuelManager.Instance.IsDuelResolved() && DuelManager.Instance.GetDuelMode() == DuelMode.Shoot && DuelManager.Instance.GetLastOffense() == null)
             return;
-
+        
         // 2. If movement is frozen and user touches the crosshair, cancel pending kick
         if (GameManager.Instance.IsMovementFrozen && CrosshairManager.Instance.IsTouchingCrosshair(screenPosition))
         {
@@ -131,7 +130,6 @@ public class BallBehavior : MonoBehaviour
             CrosshairManager.Instance.ShowCrosshair(screenPosition);
             return;
         }  
-        Debug.Log(GameManager.Instance.CurrentPhase + "" + GameManager.Instance.IsKickOffReady);
         if (GameManager.Instance.CurrentPhase == GamePhase.KickOff && !GameManager.Instance.IsKickOffReady)
         {
             GameManager.Instance.SetIsKickOffReady(true);
@@ -159,7 +157,7 @@ public class BallBehavior : MonoBehaviour
             }
             else
             {
-                //during offense duel
+                //during offense field duel
                 AudioManager.Instance.PlaySfx("SfxCrosshair");
                 pendingKickHandler.QueuePendingKick(screenPosition);
                 CrosshairManager.Instance.ShowCrosshair(screenPosition);
@@ -170,7 +168,16 @@ public class BallBehavior : MonoBehaviour
         // 5. If non-ally possesses ball, game frozen, and tap: enable crosshair and queue kick
         if (PossessionManager.Instance.PossessionPlayer && !PossessionManager.Instance.PossessionPlayer.IsAlly && GameManager.Instance.IsMovementFrozen) 
         {
-            //during defense duel
+            //during defense field duel
+            AudioManager.Instance.PlaySfx("SfxCrosshair");
+            CrosshairManager.Instance.ShowCrosshair(screenPosition);
+            pendingKickHandler.QueuePendingKick(screenPosition);
+            return;
+        }
+
+        if (!DuelManager.Instance.IsDuelResolved() && DuelManager.Instance.GetDuelMode() == DuelMode.Shoot) 
+        {
+            //during opponent shoot duel
             AudioManager.Instance.PlaySfx("SfxCrosshair");
             CrosshairManager.Instance.ShowCrosshair(screenPosition);
             pendingKickHandler.QueuePendingKick(screenPosition);
@@ -242,7 +249,7 @@ public class BallBehavior : MonoBehaviour
 
     private void HandleAllyPendingKickOrControl(Player player)
     {
-        if (pendingKickHandler.HasPendingKick && player.IsAlly && !player.IsStunned && !GameManager.Instance.IsTimeFrozen && GameManager.Instance.CurrentPhase == GamePhase.Battle)
+        if (pendingKickHandler.HasPendingKick && player.IsAlly && !player.IsStunned)
         {
             Vector2 targetPosition;
             pendingKickHandler.TryConsumePendingKick(out targetPosition); 
@@ -266,6 +273,7 @@ public class BallBehavior : MonoBehaviour
     #region Crosshair, Duel, and Utility
     private void OnPossessionGained(Player player)
     {
+        Debug.Log("BallBehavior OnPossessionGained: " + player.PlayerId);
         if (!UIManager.Instance.IsStatusLocked)
         {
             UIManager.Instance.HideStatus();

@@ -20,6 +20,9 @@ public class BallCollider : MonoBehaviour
         bool validPossession = false;
         bool isKeeper = false;
 
+        if (playerComp) 
+            Debug.Log("BallBehavior OnTriggerEnter: " + playerComp.PlayerId);
+
         // Standard player touch
         if (collider.CompareTag("Player"))
         {
@@ -37,11 +40,17 @@ public class BallCollider : MonoBehaviour
         }
 
         // Shared cooldown and possession logic
+                Debug.Log("--- tag ---" + collider.tag);
+                Debug.Log("--- PossessionPlayer ---" + PossessionManager.Instance.PossessionPlayer);
+                Debug.Log("--- validPossession ---" + validPossession);
+                Debug.Log("--- playerComp ---" + playerComp);
+
         if (
             PossessionManager.Instance.PossessionPlayer == null &&
             validPossession &&
             playerComp != null)
         {
+                Debug.Log("--- inside ---");
             if (!PossessionManager.Instance.IsCooldownActive(playerComp))
             {
                 PossessionManager.Instance.GainPossession(playerComp);

@@ -208,6 +208,7 @@ public class GameManager : MonoBehaviour
     {
         if (CurrentPhase != newPhase)
         {
+            Debug.Log("***Phase*** " + newPhase);
             PreviousPhase = CurrentPhase;
             CurrentPhase = newPhase;
             OnPhaseChanged?.Invoke(CurrentPhase, PreviousPhase);
@@ -218,6 +219,7 @@ public class GameManager : MonoBehaviour
     {
         IsMovementFrozen = true;
         IsTimeFrozen = true;
+        GameManager.Instance.SetGamePhase(GamePhase.Duel);
         // Show your UI here, e.g.:
         // UIManager.Instance.ShowFreezePanel();
     }
@@ -226,6 +228,7 @@ public class GameManager : MonoBehaviour
     {
         IsMovementFrozen = false;
         IsTimeFrozen = false;
+        GameManager.Instance.SetGamePhase(GamePhase.Battle);
         // Hide your UI here, e.g.:
         // UIManager.Instance.HideFreezePanel();
     }

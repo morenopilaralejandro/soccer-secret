@@ -12,6 +12,7 @@ public class DuelManager : MonoBehaviour
 {
     public static DuelManager Instance { get; private set; }
 
+    public static event Action<Player> OnSetStatusPlayer;
     public static event Action<DuelParticipant, float> OnSetStatusPlayerAndCommand;
 
     private List<DuelParticipantData> stagedParticipants = new List<DuelParticipantData>();
@@ -61,7 +62,6 @@ public class DuelManager : MonoBehaviour
     public void StartDuel(DuelMode mode)
     {
         Debug.Log("Duel started");
-        GameManager.Instance.SetGamePhase(GamePhase.Duel);
         StopAndCleanupUnlockStatus();
         UIManager.Instance.LockStatus();
         ResetDuel();
@@ -70,6 +70,7 @@ public class DuelManager : MonoBehaviour
         {
             case DuelMode.Shoot:
                 AudioManager.Instance.PlaySfx("SfxDuelShoot");
+                OnSetStatusPlayer?.Invoke(GameManager.Instance.GetOppKeeper(PossessionManager.Instance.PossessionPlayer));
                 break;
             default:
                 AudioManager.Instance.PlaySfx("SfxDuelField");                
@@ -113,7 +114,6 @@ public class DuelManager : MonoBehaviour
     public void AddParticipantToDuel(DuelParticipant participant)
     {
         BallTravelController.Instance.ResumeTravel();
-        GameManager.Instance.SetGamePhase(GamePhase.Battle);
 
         if (currentDuel.IsResolved)
             return;
