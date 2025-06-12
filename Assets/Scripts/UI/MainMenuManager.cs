@@ -22,6 +22,12 @@ public class MainMenuManager : MonoBehaviour
         SceneManager.LoadScene("Battle");
     }
 
+    public void ButtonOnline()
+    {
+        AudioManager.Instance.PlaySfx("SfxMenuTap");
+        SceneManager.LoadScene("OnlineMenu");
+    }
+
     public void ButtonQuit()
     {
         AudioManager.Instance.PlaySfx("SfxMenuTap");
