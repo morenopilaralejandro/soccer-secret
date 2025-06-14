@@ -38,7 +38,6 @@ public class QuickPlay : MonoBehaviourPunCallbacks
 
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
-        OnStatusUpdate?.Invoke(3, false);
         RoomOptions options = new RoomOptions
         {
             MaxPlayers = 2,
@@ -50,9 +49,22 @@ public class QuickPlay : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
-        OnStatusUpdate?.Invoke(4, false);
-        OnMatchFound?.Invoke();
-        // Optionally: PhotonNetwork.LoadLevel("YourGameScene");
+        OnStatusUpdate?.Invoke(3, false);
+        CheckStartMatch();
+    }
+
+    public override void OnPlayerEnteredRoom(Photon.Realtime.Player newPlayer)
+    {
+        CheckStartMatch();
+    }
+
+    private void CheckStartMatch()
+    {
+        if (PhotonNetwork.CurrentRoom.PlayerCount == PhotonNetwork.CurrentRoom.MaxPlayers)
+        {
+            OnStatusUpdate?.Invoke(4, false);
+            OnMatchFound?.Invoke();
+        }
     }
 
     public override void OnDisconnected(DisconnectCause cause)

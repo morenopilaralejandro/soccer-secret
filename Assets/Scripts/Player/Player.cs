@@ -6,23 +6,46 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
 
 public enum PlayerStats { Hp, Sp, Kick, Body, Control, Guard, Speed, Stamina, Courage }
+
+public enum ControlType { LocalHuman, RemoteHuman, Ai }
 
 public enum Size { Small, MediumF, MediumM, Large }
 
 public class Player : MonoBehaviour
+#if PHOTON_UNITY_NETWORKING
+    , IPunInstantiateMagicCallback
+#endif
 {   
+    public bool IsLocal
+    {
+        get
+        {
+#if PHOTON_UNITY_NETWORKING
+            var view = GetComponent<PhotonView>();
+            // Multiplayer: This is “mine” if owned (will work even if view is null in single player)
+            return view == null || view.IsMine;
+#else
+            // Always true in single-player/AI mode
+            return true;
+#endif
+        }
+    }
+
     public string PlayerId => playerId;
     public string PlayerName => playerName;
     public Size Size => size;
     public Gender Gender => gender;
     public Element Element => element;
     public Position Position => position;
-    public float DefaultYPosition => defaultYPosition;  
+    public float DefaultPositionY => defaultPositionY;
+    public int TeamIndex;  
     public Vector3 DefaultPosition;
-    public bool IsAlly;
-    public bool IsAi;
+    public ControlType ControlType;
     public bool IsPossession;
     public bool IsKeeper;
     public bool IsStunned => isStunned;
@@ -47,7 +70,7 @@ public class Player : MonoBehaviour
     [SerializeField] private string pathPlayerPortrait = "PlayerPortrait/";
     [SerializeField] private string tableCollectionName = "PlayerNames";
 
-    [SerializeField] private float defaultYPosition = 0f;    
+    [SerializeField] private float defaultPositionY = 0f;    
     [SerializeField] private string playerId;
     [SerializeField] private string playerName;
     [SerializeField] private Size size;
@@ -154,8 +177,6 @@ public class Player : MonoBehaviour
             size = Size.Small;
         }
 
-        IsAlly = true;
-        IsAi = false;
         IsPossession = false;
         isStunned = false;
         IsKeeper = false;
@@ -297,6 +318,7 @@ public class Player : MonoBehaviour
     {
         // Cache all colliders on self and children
         colliders = GetComponentsInChildren<Collider>(true);
+        // You may want to cache your PhotonView here if used frequently!
     }
     //stun
     public void Stun()
@@ -326,7 +348,7 @@ public class Player : MonoBehaviour
 
         isStunned = false;
         SetAllCollidersEnabled(true);
-        SetYPosition(defaultYPosition);
+        SetYPosition(defaultPositionY);
     }
 
     public IEnumerator StunPlayer()
@@ -355,7 +377,7 @@ public class Player : MonoBehaviour
         }
         SetAllCollidersEnabled(true);
         isStunned = false;
-        SetYPosition(defaultYPosition);
+        SetYPosition(defaultPositionY);
         stunRoutine = null;
     }
 
@@ -379,16 +401,16 @@ public class Player : MonoBehaviour
                 blinkElapsed += Time.deltaTime;
                 if (blinkElapsed >= blinkInterval)
                 {
-                    SetYPosition(visible ? defaultYPosition : -1f);
+                    SetYPosition(visible ? defaultPositionY : -1f);
                     visible = !visible;
                     blinkElapsed = 0f;
                 }
             } else {
-                SetYPosition(defaultYPosition);
+                SetYPosition(defaultPositionY);
             }
             yield return null;
         }
-        SetYPosition(defaultYPosition);
+        SetYPosition(defaultPositionY);
     }
 
     public void Kick()
@@ -572,7 +594,7 @@ public class Player : MonoBehaviour
     public float GetMoveSpeed()
     {
         UpdateSpeedDebuff();
-        float speedMultiplier = IsAi ? speedMultiplierAi : speedMultiplierUser; 
+        float speedMultiplier = ControlType == ControlType.Ai ? speedMultiplierAi : speedMultiplierUser; 
         return (GetStat(PlayerStats.Speed) * speedMultiplier + speedBase) * _lastSpeedDebuff * Time.deltaTime;
     }
 
@@ -607,8 +629,10 @@ public class Player : MonoBehaviour
         UpdateStats();
     }
 
-    public void SetWear(Team team, bool isHome) 
+    public void SetWear(Team team) 
     {
+        bool isHome = true;
+
         WearRole role = IsKeeper ? WearRole.Keeper : WearRole.Field;
         WearVariant variant = isHome ? WearVariant.Home : WearVariant.Away;
     
@@ -631,4 +655,11 @@ public class Player : MonoBehaviour
         else
             Debug.LogWarning("No matching wear portrait sprite found for {size}/{role}/{variant}/{team.TeamId}");
     }
+
+    #if PHOTON_UNITY_NETWORKING
+    public void OnPhotonInstantiate(Photon.Pun.PhotonMessageInfo info)
+    {
+        // You can leave this empty unless you want networked spawn logic
+    }
+    #endif
 }

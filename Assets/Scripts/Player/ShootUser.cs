@@ -1,4 +1,7 @@
 using UnityEngine;
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
 
 public class ShootUser : MonoBehaviour
 {
@@ -7,9 +10,14 @@ public class ShootUser : MonoBehaviour
     [SerializeField] private Camera mainCamera;
     [SerializeField] private float shootGoalDistance = 2.2f;
 
+#if PHOTON_UNITY_NETWORKING
+    private bool IsMultiplayer => PhotonNetwork.InRoom && PhotonNetwork.NetworkClientState == Photon.Realtime.ClientState.Joined;
+#else
+    private bool IsMultiplayer => false;
+#endif
+
     private void Awake()
     {
-        // Classic singleton pattern
         if (Instance != null && Instance != this)
         {
             Destroy(this.gameObject);
@@ -35,10 +43,7 @@ public class ShootUser : MonoBehaviour
                 && !GameManager.Instance.IsMovementFrozen)
             {
                 Debug.Log("Tap on OPP GOAL detected. Initiating Duel.");
-                ShootTriangle.Instance.SetTriangleFromUser(PossessionManager.Instance.PossessionPlayer, screenPos);
-                //ShootTriangle.Instance.SetTriangleFromPlayer(PossessionManager.Instance.PossessionPlayer, worldCoord);
-                //ShootTriangle.Instance.SetTriangleFromPlayer(player, GameManager.Instance.GetOppGoal.position);
-                StartDuel(isDirect);
+                TryStartGoalNetworkSafe(screenPos, isDirect);
                 return true;
             }
         }
@@ -49,12 +54,25 @@ public class ShootUser : MonoBehaviour
         return false;
     }
 
-    private void StartDuel(bool isDirect) {
-        GameManager.Instance.FreezeGame();
+    private void TryStartGoalNetworkSafe(Vector2 screenPos, bool isDirect)
+    {
+#if PHOTON_UNITY_NETWORKING
+        if (IsMultiplayer && !PhotonNetwork.IsMasterClient)
+            return;
+#endif
+
+        // Only Master (or local) sets triangle and starts duel
+        ShootTriangle.Instance.SetTriangleFromUser(PossessionManager.Instance.PossessionPlayer, screenPos);
+        StartDuel(isDirect);
+    }
+
+    private void StartDuel(bool isDirect)
+    {
         DuelManager.Instance.StartDuel(DuelMode.Shoot);
         DuelManager.Instance.RegisterTrigger(PossessionManager.Instance.PossessionPlayer.gameObject, isDirect);
-        UIManager.Instance.SetUserRole(Category.Shoot, 0, PossessionManager.Instance.PossessionPlayer);
-        UIManager.Instance.SetButtonDuelToggleVisible(true);
         ShootTriangle.Instance.SetTriangleVisible(true);
+        UIManager.Instance.SetDuelSelection(PossessionManager.Instance.PossessionPlayer.TeamIndex, Category.Shoot, 0, PossessionManager.Instance.PossessionPlayer);
+        if (PossessionManager.Instance.PossessionPlayer.ControlType == ControlType.LocalHuman)
+            UIManager.Instance.BeginDuelSelectionPhase();
     }
 }

@@ -1,90 +1,138 @@
 using UnityEngine;
 using System;
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
 
 [RequireComponent(typeof(Collider))]
 public class ComboCollider : MonoBehaviour
 {
-    private Player cachedPlayer;
+    #region Private Fields
+
+    private Player _cachedPlayer;
+
+    #endregion
+
+    #region Events
 
     public static event Action<Player> OnSetStatusPlayer;
 
+    #endregion
+
+    #region Unity Lifecycle
+
     private void Awake()
     {
-        cachedPlayer = GetComponentInParent<Player>();
-        if (cachedPlayer == null)
-            Debug.LogError($"{nameof(ComboCollider)} could not find Player in parent.");
+        _cachedPlayer = GetComponentInParent<Player>();
+        if (_cachedPlayer == null)
+            Debug.LogError("[ComboCollider] Could not find Player in parent.");
+        else
+            Debug.Log($"[ComboCollider] Found Player: {_cachedPlayer.name}");
     }
 
-    private void OnTriggerEnter(Collider other) => TryHandleTrigger(other);
+    private void OnTriggerEnter(Collider other)
+    {
+        //Debug.Log("[ComboCollider] OnTriggerEnter invoked.");
+        TryHandleTrigger(other);
+    }
+
+    #endregion
+
+    #region Combo Logic
 
     private void TryHandleTrigger(Collider otherCollider)
     {
-        Debug.Log("ComboCollider OnTriggerEnter");
+        //Debug.Log("[ComboCollider] TryHandleTrigger invoked.");
 
-        // Basic conditions before progressing
-        if (DuelManager.Instance.IsDuelResolved()
-            || GameManager.Instance.IsMovementFrozen
-            || cachedPlayer == null)
+        // Basic preconditions
+        if (DuelManager.Instance.IsDuelResolved())
+        {
+            //Debug.Log("[ComboCollider] Duel already resolved. Exiting.");
             return;
+        }
+        if (GameManager.Instance.IsMovementFrozen)
+        {
+            //Debug.Log("[ComboCollider] Movement is frozen. Exiting.");
+            return;
+        }
+        if (_cachedPlayer == null)
+        {
+            //Debug.LogError("[ComboCollider] Cached player is null. Exiting.");
+            return;
+        }
 
         DuelParticipant lastOffense = DuelManager.Instance.GetLastOffense();
         DuelParticipant lastDefense = DuelManager.Instance.GetLastDefense();
 
         // Prevent repeat triggers by the same defense player
-        if (lastDefense != null && lastDefense.Player == cachedPlayer)
+        if (lastDefense != null && lastDefense.Player == _cachedPlayer)
+        {
+            //Debug.Log("[ComboCollider] Last defense player is this player. Exiting.");
             return;
-
-        if (lastOffense == null || cachedPlayer == lastOffense.Player)
+        }
+        if (lastOffense == null || _cachedPlayer == lastOffense.Player)
+        {
+            //Debug.Log("[ComboCollider] No valid last offense, or offense player is same as cached. Exiting.");
             return;
+        }
 
         // Only respond to ball collision
         if (!otherCollider.transform.root.CompareTag("Ball"))
-            return;
-
-        int participantIndex = DuelManager.Instance.GetDuelParticipants().Count;
-        DuelManager.Instance.RegisterTrigger(cachedPlayer.gameObject, false);
-        OnSetStatusPlayer?.Invoke(cachedPlayer);
-
-        // Role assignment based on previous play and ai/user
-        AssignComboRoles(lastOffense.Player, participantIndex);
-    }
-
-    private void AssignComboRoles(Player lastOffensePlayer, int idx)
-    {
-        bool isUser = !cachedPlayer.IsAi;
-
-        if (lastOffensePlayer.IsAlly)
         {
-            // Allies were last offense; defense blocks, chain offense can be user or ai
-            if (cachedPlayer.IsAi)
-            {
-                cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(idx, Category.Block);
-            }
-            else
-            {
-                HandleUserChain(idx, Category.Shoot, cachedPlayer);
-            }
+            //Debug.Log("[ComboCollider] Triggered by non-ball object. Exiting.");
+            return;
+        }
+
+        // Network pattern: only game authority can register
+        if (!GameManager.Instance.IsMultiplayer
+#if PHOTON_UNITY_NETWORKING
+            || PhotonNetwork.IsMasterClient
+#endif
+            )
+        {
+            int participantIndex = DuelManager.Instance.GetDuelParticipants().Count;
+            Debug.Log($"[ComboCollider] Registering trigger for {_cachedPlayer.name} as participant {participantIndex}.");
+            DuelManager.Instance.RegisterTrigger(_cachedPlayer.gameObject, false);
+            OnSetStatusPlayer?.Invoke(_cachedPlayer);
+            AssignComboRoles(lastOffense.Player, participantIndex);
         }
         else
         {
-            // Opponent was last offense; so now chain or block
-            if (cachedPlayer.IsAi)
-            {
-                cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(idx, Category.Shoot);
-            }
-            else
-            {
-                HandleUserChain(idx, Category.Block, cachedPlayer);
-            }
+            //Debug.Log("[ComboCollider] Not game authority. Duel not registered.");
         }
     }
 
-    private void HandleUserChain(int index, Category category, Player cachedPlayer)
+    private void AssignComboRoles(Player lastOffensePlayer, int participantIndex)
     {
-        GameManager.Instance.FreezeGame();
-        BallTravelController.Instance.PauseTravel();
-        GameManager.Instance.SetGamePhase(GamePhase.Duel);
-        UIManager.Instance.SetUserRole(category, index, cachedPlayer);
-        UIManager.Instance.SetButtonDuelToggleVisible(true);
+        bool isSameTeam = _cachedPlayer.TeamIndex == lastOffensePlayer.TeamIndex;
+        Category selectedCategory;
+
+        if (isSameTeam)
+            selectedCategory = _cachedPlayer.ControlType == ControlType.Ai ? Category.Block : Category.Shoot;
+        else
+            selectedCategory = _cachedPlayer.ControlType == ControlType.Ai ? Category.Shoot : Category.Block;
+
+        Debug.Log($"[ComboCollider] AssignComboRoles: {_cachedPlayer.name} (Team: {_cachedPlayer.TeamIndex}, AI: {_cachedPlayer.ControlType == ControlType.Ai}, Category: {selectedCategory})");
+
+        if (_cachedPlayer.ControlType == ControlType.Ai)
+        {
+            _cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(participantIndex, selectedCategory);
+            Debug.Log("[ComboCollider] Registered AI selection.");
+        }
+        else
+        {
+            HandleHumanComboChain(participantIndex, selectedCategory, _cachedPlayer);
+        }
     }
+
+    private void HandleHumanComboChain(int index, Category category, Player player)
+    {
+        Debug.Log("[ComboCollider] Handling human combo chain.");
+        BallTravelController.Instance.PauseTravel();
+        UIManager.Instance.SetDuelSelection(player.TeamIndex, category, index, player);
+        if (_cachedPlayer.ControlType == ControlType.LocalHuman /* or your equivalent check */)
+            UIManager.Instance.BeginDuelSelectionPhase();
+    }
+
+    #endregion
 }

@@ -1,4 +1,7 @@
 using UnityEngine;
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class ShootTriangle : MonoBehaviour
@@ -25,17 +28,20 @@ public class ShootTriangle : MonoBehaviour
     private MeshFilter meshFilter;
     private MeshRenderer meshRenderer;
 
+#if PHOTON_UNITY_NETWORKING
+    private bool IsMultiplayer => PhotonNetwork.InRoom && PhotonNetwork.NetworkClientState == Photon.Realtime.ClientState.Joined;
+    private PhotonView photonView => PhotonView.Get(this);
+#else
+    private bool IsMultiplayer => false;
+#endif
 
     private void Awake()
     {
-        // Singleton pattern
         if (Instance != null && Instance != this) {
             Destroy(gameObject);
             return;
         }
         Instance = this;
-
-        // Cache components
         meshFilter = GetComponent<MeshFilter>();
         meshRenderer = GetComponent<MeshRenderer>();
     }
@@ -67,17 +73,23 @@ public class ShootTriangle : MonoBehaviour
         meshRenderer.enabled = visible;
     }
 
+    /// <summary>
+    /// This should be called only by the master client in multiplayer, or anyone in single-player.
+    /// </summary>
     public void SetTriangleFromUser(Player player, Vector2 touchPosition)
     {
         Debug.Log("ShootTriangle touchPosition: " + touchPosition);
-        // 1. Player's world position
+
+        // Only calculate triangle if we are master (multiplayer) or local/offline.
+        if (IsMultiplayer
+#if PHOTON_UNITY_NETWORKING
+            && !PhotonNetwork.IsMasterClient
+#endif
+        )
+            return;
+
         vertex0 = player.transform.position;
-
-        // 2. Find the world position touched/clicked on the near plane,
-        // but we want the triangle to be at the player's y/z, so use raycasting from screen point
-
         Ray ray = mainCamera.ScreenPointToRay(touchPosition);
-        // We'll pick a plane at the player's y coordinate
         Plane plane = new Plane(Vector3.up, vertex0);
         float distance;
         Vector3 touchWorld;
@@ -95,16 +107,18 @@ public class ShootTriangle : MonoBehaviour
 
     public void SetTriangleFromPlayer(Player player, Vector3 worldCoord)
     {
-        // 1. Player's world position
+        if (IsMultiplayer
+#if PHOTON_UNITY_NETWORKING
+            && !PhotonNetwork.IsMasterClient
+#endif
+        )
+            return;
+
+        // --- The actual triangle math ---
         vertex0 = player.transform.position;
-
-        // 2. Find direction from player to touched world point
         Vector3 dir = (worldCoord - vertex0).normalized;
-
-        // 3. Compute perpendicular (on XZ plane)
         Vector3 perp = Vector3.Cross(dir, Vector3.up).normalized;
 
-        // 4. Set vertex1 and vertex2, offsetting them perpendicular
         float control = player.GetStat(PlayerStats.Control) * controlFactor;
         float randomValue1 = Random.Range(rangeMin, rangeMax);
         float offsetAmount1 = Mathf.Max(baseOffsetMin, randomValue1 - control);
@@ -114,21 +128,42 @@ public class ShootTriangle : MonoBehaviour
         float offsetAmount2 = Mathf.Max(baseOffsetMin, randomValue2 - control);
         vertex2 = worldCoord - perp * offsetAmount2;
 
-        // --- The only change: set z to border's z
         float borderZ = (worldCoord.z >= 0f) ? boundTop.bounds.min.z : boundBottom.bounds.max.z;
         vertex1.z = borderZ;
         vertex2.z = borderZ;
 
+        // Multiplay: Sync to all players via RPC!
+        if (IsMultiplayer
+#if PHOTON_UNITY_NETWORKING
+            && PhotonNetwork.IsMasterClient
+#endif
+        )
+        {
+#if PHOTON_UNITY_NETWORKING
+            photonView.RPC(nameof(RPC_SyncTriangle), RpcTarget.Others, vertex0, vertex1, vertex2);
+#endif
+        }
         UpdateMesh();
     }
 
+#if PHOTON_UNITY_NETWORKING
+    [PunRPC]
+    private void RPC_SyncTriangle(Vector3 v0, Vector3 v1, Vector3 v2)
+    {
+        vertex0 = v0;
+        vertex1 = v1;
+        vertex2 = v2;
+        UpdateMesh();
+    }
+#endif
+
     public Vector3 GetRandomPoint()
     {
+        // In multiplayer, only the master chooses, then syncs that coordinate
         float t = Random.Range(0f, 1f);
         return Vector3.Lerp(vertex1, vertex2, t);
     }
 
-    // For live editor update
     private void OnValidate()
     {
         if (mesh == null)

@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
-using UnityEditor.Localization;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Tables;
 
@@ -90,6 +89,6 @@ public class OnlineMenuManager : MonoBehaviour
 
     void OnMatchFound()
     {
-        //PhotonNetwork.LoadLevel("YourGameScene");
+        PhotonNetwork.LoadLevel("Battle");
     }
 }

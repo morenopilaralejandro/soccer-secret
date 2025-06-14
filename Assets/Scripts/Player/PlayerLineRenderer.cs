@@ -1,8 +1,14 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
 
 public class PlayerLineRenderer : MonoBehaviour
+#if PHOTON_UNITY_NETWORKING
+    , IPunObservable
+#endif
 {
     [SerializeField] private Player player;
     [SerializeField] private LineRenderer lineRenderer;
@@ -25,14 +31,20 @@ public class PlayerLineRenderer : MonoBehaviour
     [SerializeField] private float bottomOffset = 0.2f;
     [SerializeField] private float rightOffset = 0.2f;
 
-    void Start()
-    {
+#if PHOTON_UNITY_NETWORKING
+    // Helper for safe network mode
+    private PhotonView photonView => PhotonView.Get(this);
+    private bool IsMultiplayer => PhotonNetwork.InRoom && PhotonNetwork.NetworkClientState == Photon.Realtime.ClientState.Joined;
+#else
+    private bool IsMultiplayer => false;
+#endif
 
-    }
+    private Vector3 networkedPosition; // For smooth sync
 
     void OnEnable()
     {
-        if (InputManager.Instance.DragDetector != null)
+        // Only local player gets input hooks!
+        if (player != null && player.IsLocal && InputManager.Instance.DragDetector != null)
         {
             InputManager.Instance.DragDetector.OnDragStart += HandleDragStart;
             InputManager.Instance.DragDetector.OnDrag += HandleDrag;
@@ -42,7 +54,7 @@ public class PlayerLineRenderer : MonoBehaviour
 
     void OnDisable()
     {
-        if (InputManager.Instance.DragDetector != null)
+        if (player != null && player.IsLocal && InputManager.Instance.DragDetector != null)
         {
             InputManager.Instance.DragDetector.OnDragStart -= HandleDragStart;
             InputManager.Instance.DragDetector.OnDrag -= HandleDrag;
@@ -57,17 +69,26 @@ public class PlayerLineRenderer : MonoBehaviour
 
         if (GameManager.Instance.CurrentPhase == GamePhase.Battle)
         {
-            MoveAlongLine();
+            if (player.IsLocal) // Local/owned player
+            {
+                MoveAlongLine();
+            }
+#if PHOTON_UNITY_NETWORKING
+            else if (IsMultiplayer) // Remote player, interpolate to networkedPosition
+            {
+                player.transform.position =
+                    Vector3.Lerp(player.transform.position, networkedPosition, Time.deltaTime * 10f);
+            }
+#endif
         }
     }
 
+    // --- Input handlers: Only for local/owned player ---
+
     private void HandleDragStart(Vector2 pointerPosition)
     {
-        if (EventSystem.current && EventSystem.current.IsPointerOverGameObject())
-            return;
-
-        Vector3 worldPosition = mainCamera.ScreenToWorldPoint(new Vector3(pointerPosition.x, pointerPosition.y, mainCamera.nearClipPlane));
-        worldPosition.y = 0f;
+        if (!player.IsLocal) return;
+        if (EventSystem.current && EventSystem.current.IsPointerOverGameObject()) return;
 
         if (IsTouchingCharacter(pointerPosition))
         {
@@ -80,7 +101,7 @@ public class PlayerLineRenderer : MonoBehaviour
 
     private void HandleDrag(Vector2 pointerPosition)
     {
-        if (!isDragging) return;
+        if (!player.IsLocal || !isDragging) return;
 
         Vector3 worldPosition = mainCamera.ScreenToWorldPoint(new Vector3(pointerPosition.x, pointerPosition.y, mainCamera.nearClipPlane));
         worldPosition.y = 0f;
@@ -111,7 +132,6 @@ public class PlayerLineRenderer : MonoBehaviour
                 lineRenderer.SetPosition(0, worldPosition);
                 linePoints.Add(worldPosition);
             }
-            // Else do not add, just wait for further movement or drag end
             awaitingFirstSegment = false;
         }
         else
@@ -128,6 +148,8 @@ public class PlayerLineRenderer : MonoBehaviour
 
     private void HandleDragEnd(Vector2 pointerPosition)
     {
+        if (!player.IsLocal) return;
+
         if (isDragging)
         {
             isDragging = false;
@@ -135,6 +157,68 @@ public class PlayerLineRenderer : MonoBehaviour
             if (linePoints.Count > 0)
             {
                 currentPointIndex = 0;
+
+#if PHOTON_UNITY_NETWORKING
+                // Send line to all in multiplayer mode
+                if (IsMultiplayer && photonView.IsMine)
+                {
+                    photonView.RPC(nameof(RPC_SetLinePoints), RpcTarget.All, Vector3ArrayToFloatArray(linePoints.ToArray()), linePoints.Count);
+                }
+#endif
+            }
+        }
+    }
+
+#if PHOTON_UNITY_NETWORKING
+    // Deserialize a line sent over network
+    [PunRPC]
+    void RPC_SetLinePoints(float[] lineData, int count)
+    {
+        linePoints.Clear();
+        for (int i = 0; i < count; i++)
+        {
+            linePoints.Add(new Vector3(lineData[i * 3], lineData[i * 3 + 1], lineData[i * 3 + 2]));
+        }
+        lineRenderer.positionCount = linePoints.Count;
+        lineRenderer.SetPositions(linePoints.ToArray());
+        currentPointIndex = 0;
+    }
+#endif
+
+    private float[] Vector3ArrayToFloatArray(Vector3[] arr)
+    {
+        float[] data = new float[arr.Length * 3];
+        for (int i = 0; i < arr.Length; i++)
+        {
+            data[i * 3] = arr[i].x;
+            data[i * 3 + 1] = arr[i].y;
+            data[i * 3 + 2] = arr[i].z;
+        }
+        return data;
+    }
+
+    private void MoveAlongLine()
+    {
+        if (currentPointIndex < linePoints.Count)
+        {
+            Vector3 targetPosition = linePoints[currentPointIndex];
+            float moveSpeed = player.GetMoveSpeed();
+            Vector3 newPosition = Vector3.MoveTowards(player.transform.position, targetPosition, moveSpeed);
+            player.transform.position = newPosition;
+
+#if PHOTON_UNITY_NETWORKING
+            // Network sync current position for other clients only if multiplayer and owner
+            if (IsMultiplayer && photonView.IsMine)
+            {
+                networkedPosition = newPosition;
+            }
+#endif
+
+            if (Vector3.Distance(player.transform.position, targetPosition) < moveTolerance)
+            {
+                linePoints.RemoveAt(currentPointIndex);
+                lineRenderer.positionCount = linePoints.Count;
+                lineRenderer.SetPositions(linePoints.ToArray());
             }
         }
     }
@@ -143,7 +227,6 @@ public class PlayerLineRenderer : MonoBehaviour
     {
         Ray ray = mainCamera.ScreenPointToRay(screenPosition);
         RaycastHit hit;
-
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, touchAreaLayer))
         {
             return hit.collider == touchArea;
@@ -153,19 +236,11 @@ public class PlayerLineRenderer : MonoBehaviour
 
     private bool CanAddPoint(Vector3 newPoint)
     {
-        if (linePoints.Count == 0)
-        {
-            return true;
-        }
-
+        if (linePoints.Count == 0) return true;
         float currentLength = 0f;
         for (int i = 0; i < linePoints.Count - 1; i++)
-        {
             currentLength += Vector3.Distance(linePoints[i], linePoints[i + 1]);
-        }
-
         currentLength += Vector3.Distance(linePoints[linePoints.Count - 1], newPoint);
-
         return currentLength <= maxLineLength;
     }
 
@@ -176,44 +251,30 @@ public class PlayerLineRenderer : MonoBehaviour
         return distance >= minSegmentDistance;
     }
 
-    private float GetLineLength()
-    {
-        if (linePoints.Count < 2) return 0f;
-        float length = 0f;
-        for (int i = 0; i < linePoints.Count - 1; i++)
-        {
-            length += Vector3.Distance(linePoints[i], linePoints[i + 1]);
-        }
-        return length;
-    }
-
     private bool IsWithinBounds(Vector3 point)
     {
-        return point.x >= boundLeft.bounds.min.x && point.x <= (boundRight.bounds.max.x - + rightOffset) &&
+        return point.x >= boundLeft.bounds.min.x && point.x <= (boundRight.bounds.max.x - rightOffset) &&
                point.z >= (boundBottom.bounds.min.z + bottomOffset) && point.z <= boundTop.bounds.max.z;
     }
 
-    private void MoveAlongLine()
+    public void ResetLine()
     {
-       if (currentPointIndex < linePoints.Count)
-        {
-            Vector3 targetPosition = linePoints[currentPointIndex];
-            float moveSpeed = player.GetMoveSpeed();
-            Vector3 newPosition = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed);
-            player.transform.position = newPosition;
-
-            if (Vector3.Distance(transform.position, targetPosition) < moveTolerance)
-            {
-                linePoints.RemoveAt(currentPointIndex);
-                lineRenderer.positionCount = linePoints.Count;
-                lineRenderer.SetPositions(linePoints.ToArray());
-            }
-        }
-    }
-
-    public void ResetLine() {
         linePoints.Clear();
         lineRenderer.positionCount = 0;
     }
 
+#if PHOTON_UNITY_NETWORKING
+    //--- Sync interpolated position for remote clients
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            stream.SendNext(player.transform.position);
+        }
+        else
+        {
+            networkedPosition = (Vector3)stream.ReceiveNext();
+        }
+    }
+#endif
 }

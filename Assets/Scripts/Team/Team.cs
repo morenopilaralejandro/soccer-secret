@@ -11,6 +11,7 @@ public class Team
     public int Lv => lv;
     public Formation Formation => formation;
     public List<PlayerData> PlayerDataList => playerDataList;
+    public List<Player> players = new List<Player>();
 
     [SerializeField] private string teamId;
     [SerializeField] private string teamName;

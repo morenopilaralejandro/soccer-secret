@@ -1,13 +1,13 @@
 using UnityEngine;
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
 
 public class BallCollider : MonoBehaviour
 {
     [SerializeField] private float keeperGoalDistance = 0.5f;
 
-    private void Awake()
-    {
-
-    }
+    private void Awake() { }
 
     private void OnTriggerEnter(Collider collider)
     {
@@ -20,7 +20,7 @@ public class BallCollider : MonoBehaviour
         bool validPossession = false;
         bool isKeeper = false;
 
-        if (playerComp) 
+        if (playerComp)
             Debug.Log("BallBehavior OnTriggerEnter: " + playerComp.PlayerId);
 
         // Standard player touch
@@ -32,7 +32,7 @@ public class BallCollider : MonoBehaviour
         else if (
             collider.CompareTag("PlayerKeeperCollider") &&
             playerComp != null &&
-            PossessionManager.Instance.LastPossessionPlayer.GetComponent<Player>().IsAlly != playerComp.IsAlly && //keeper won't stop a pass from a player in it's same team
+            PossessionManager.Instance.LastPossessionPlayer.ControlType != ControlType.LocalHuman && //keeper won't stop a pass from a player in its same team
             GameManager.Instance.GetDistanceToAllyGoal(playerComp) < keeperGoalDistance)
         {
             isKeeper = true;
@@ -40,22 +40,27 @@ public class BallCollider : MonoBehaviour
         }
 
         // Shared cooldown and possession logic
-                Debug.Log("--- tag ---" + collider.tag);
-                Debug.Log("--- PossessionPlayer ---" + PossessionManager.Instance.PossessionPlayer);
-                Debug.Log("--- validPossession ---" + validPossession);
-                Debug.Log("--- playerComp ---" + playerComp);
-
         if (
             PossessionManager.Instance.PossessionPlayer == null &&
             validPossession &&
             playerComp != null)
         {
-                Debug.Log("--- inside ---");
+            Debug.Log("--- inside ---");
             if (!PossessionManager.Instance.IsCooldownActive(playerComp))
             {
-                PossessionManager.Instance.GainPossession(playerComp);
-                if (isKeeper)
-                    AudioManager.Instance.PlaySfx("SfxCatch");
+                // Only allow the master (multiplayer) or anyone (offline) to claim possession:
+                if (!GameManager.Instance.IsMultiplayer ||
+#if PHOTON_UNITY_NETWORKING
+                    PhotonNetwork.IsMasterClient
+#else
+                    true
+#endif
+                )
+                {
+                    PossessionManager.Instance.GainPossession(playerComp);
+                    if (isKeeper)
+                        AudioManager.Instance.PlaySfx("SfxCatch");
+                }
             }
         }
     }
@@ -69,7 +74,5 @@ public class BallCollider : MonoBehaviour
         {
             BallTravelController.Instance.CancelTravel();
         }
-
     }
-
 }

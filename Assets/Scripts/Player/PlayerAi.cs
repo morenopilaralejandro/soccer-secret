@@ -26,8 +26,7 @@ public class PlayerAi : MonoBehaviour
         InitializeCloseDistance();
         aiDifficulty = AiDifficulty.Hard;
 
-        // If using as an enemy AI, use GetOppPlayers, else GetAllyPlayers
-        teammates = GameManager.Instance.GetOppPlayers(); 
+        teammates = GameManager.Instance.Teams[1].players; 
     }
 
     private void Update()
@@ -81,7 +80,7 @@ public class PlayerAi : MonoBehaviour
     private bool IsOpponentPossessingBall()
     {
         var possessor = PossessionManager.Instance.PossessionPlayer;
-        return possessor != null && possessor.IsAlly != player.IsAlly;
+        return possessor != null && possessor.ControlType != ControlType.Ai;
     }
 
     private bool IsInDuelIdle()
@@ -163,7 +162,7 @@ public class PlayerAi : MonoBehaviour
     private void MoveTowards(Vector3 targetPosition)
     {
         float moveSpeed = player.GetMoveSpeed();
-        targetPosition.y = player.DefaultYPosition;
+        targetPosition.y = player.DefaultPositionY;
         player.transform.position = Vector3.MoveTowards(player.transform.position, targetPosition, moveSpeed);
     }
 
@@ -333,16 +332,15 @@ public class PlayerAi : MonoBehaviour
         return false;
     }
 
-    public void RegisterAiSelections(int index, Category category)
+    public void RegisterAiSelections(int teamIndex, Category category)
     {
-        var duel = DuelManager.Instance;
+        DuelManager duel = DuelManager.Instance;
         if (duel == null) return;
 
-        DuelAction action = duel.GetActionByCategory(category);
         DuelCommand command = GetCommandByCategory(category);
         Secret secret = GetSecretByCommandAndCategory(command, category);
 
-        duel.RegisterUISelections(index, category, action, command, secret);
+        UIManager.Instance.DuelSelectionMade(teamIndex, command, secret);
     }
 
     #endregion

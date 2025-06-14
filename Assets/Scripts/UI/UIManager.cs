@@ -1,20 +1,26 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Linq;
+using System.Collections;
+
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
+
+public struct DuelTeamSelection
+{
+    public int ParticipantIndex;
+    public Player Player;
+    public Category Category;
+}
 
 public class UIManager : MonoBehaviour
 {
+    #region Singleton
     public static UIManager Instance { get; private set; }
     public bool IsStatusLocked { get; private set; } = false;
+    #endregion
 
-    // User and AI selection data
-    public int UserIndex { get; private set; }
-    public Player UserPlayer { get; private set; }
-    public Category UserCategory { get; private set; }
-
-    public int AiIndex { get; private set; }
-    public Player AiPlayer { get; private set; }
-    public Category AiCategory { get; private set; }
+    #region Inspector References
 
     [Header("Panels & UI Elements")]
     [SerializeField] private GameObject panelSecret;
@@ -27,6 +33,21 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject textLose;
     [SerializeField] private Image imageCategory;
 
+    #endregion
+
+    #region Fields
+
+    private DuelTeamSelection[] _duelSelections = new DuelTeamSelection[2];
+    private bool[] _isTeamReady = new bool[2];
+    private DuelCommand[] _commands = new DuelCommand[2];
+    private Secret[] _secrets = new Secret[2];
+
+    private float _selectionTimer = 10f;
+    private bool _waitingForMultiplayerDuel = false;
+
+    #endregion
+
+    // ============================== 
     #region Unity Lifecycle
 
     private void Awake()
@@ -34,20 +55,36 @@ public class UIManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            Debug.Log("[UIManager] Instance created.");
             // Uncomment to persist across scenes if required
             // DontDestroyOnLoad(gameObject);
         }
         else
         {
+            Debug.LogWarning("[UIManager] Duplicate instance detected, destroying object.");
             Destroy(gameObject);
             return;
         }
         HideStatus();
     }
 
-    private void OnEnable() => SubscribeEvents(true);
-    private void OnDisable() => SubscribeEvents(false);
-    private void OnDestroy() => SubscribeEvents(false);
+    private void OnEnable()
+    {
+        Debug.Log("[UIManager] Subscribing to events.");
+        SubscribeEvents(true);
+    }
+
+    private void OnDisable()
+    {
+        Debug.Log("[UIManager] Unsubscribing from events (OnDisable).");
+        SubscribeEvents(false);
+    }
+
+    private void OnDestroy()
+    {
+        Debug.Log("[UIManager] Unsubscribing from events (OnDestroy).");
+        SubscribeEvents(false);
+    }
 
     private void SubscribeEvents(bool subscribe)
     {
@@ -59,6 +96,7 @@ public class UIManager : MonoBehaviour
             ComboCollider.OnSetStatusPlayer += SetStatusPlayer;
             KeeperCollider.OnSetStatusPlayer += SetStatusPlayer;
             DuelManager.OnSetStatusPlayerAndCommand += SetStatusPlayerAndCommand;
+            Debug.Log("[UIManager] Subscribed to all relevant events.");
         }
         else
         {
@@ -68,32 +106,61 @@ public class UIManager : MonoBehaviour
             ComboCollider.OnSetStatusPlayer -= SetStatusPlayer;
             KeeperCollider.OnSetStatusPlayer -= SetStatusPlayer;
             DuelManager.OnSetStatusPlayerAndCommand -= SetStatusPlayerAndCommand;
+            Debug.Log("[UIManager] Unsubscribed from all relevant events.");
         }
     }
     #endregion
 
+    // ==============================
     #region Status Panel Lock/Unlock
 
-    public void LockStatus() => IsStatusLocked = true;
-    public void UnlockStatus() => IsStatusLocked = false;
+    public void LockStatus()
+    {
+        Debug.Log("[UIManager] Status locked.");
+        IsStatusLocked = true;
+    }
+
+    public void UnlockStatus()
+    {
+        Debug.Log("[UIManager] Status unlocked.");
+        IsStatusLocked = false;
+    }
 
     #endregion
 
+    // ==============================
     #region Panel & Button Visibility
-    public void SetImageCategoryVisible(bool visible) => SetActiveSafe(imageCategory.gameObject, visible);
-    public void SetPanelSecretVisible(bool visible) => SetActiveSafe(panelSecret, visible);
-    public void SetPanelCommandVisible(bool visible) => SetActiveSafe(panelCommand, visible);
+
+    public void SetImageCategoryVisible(bool visible)
+    {
+        Debug.Log($"[UIManager] SetImageCategoryVisible: {visible}");
+        SetActiveSafe(imageCategory.gameObject, visible);
+    }
+
+    public void SetPanelSecretVisible(bool visible)
+    {
+        Debug.Log($"[UIManager] SetPanelSecretVisible: {visible}");
+        SetActiveSafe(panelSecret, visible);
+    }
+
+    public void SetPanelCommandVisible(bool visible)
+    {
+        Debug.Log($"[UIManager] SetPanelCommandVisible: {visible}");
+        SetActiveSafe(panelCommand, visible);
+    }
 
     public void SetButtonDuelToggleVisible(bool visible)
     {
+        Debug.Log($"[UIManager] SetButtonDuelToggleVisible: {visible}");
         SetActiveSafe(buttonDuelToggle, visible);
         SetActiveSafe(buttonSwap, visible);
         SetImageCategoryVisible(true);
-        imageCategory.sprite = SecretManager.Instance.GetCategoryIcon(UserCategory);
+        imageCategory.sprite = SecretManager.Instance.GetCategoryIcon(GetLocalCategory());
     }
 
     public void HideDuelUi()
     {
+        Debug.Log("[UIManager] HideDuelUi triggered.");
         SetPanelSecretVisible(false);
         SetPanelCommandVisible(false);
         SetButtonDuelToggleVisible(false);
@@ -102,15 +169,18 @@ public class UIManager : MonoBehaviour
 
     #endregion
 
-    #region Duel Toggle & Command Button Logic
+    // ==============================
+    #region Duel & Command Button Logic
 
     public void OnButtonDuelToggleTapped()
     {
-        Debug.Log("ButtonDuelToggle tapped!");
+        Debug.Log("[UIManager] ButtonDuelToggle tapped!");
         AudioManager.Instance.PlaySfx("SfxMenuTap");
-        // Toggle open/close dual panels
+
         if (!IsPanelActive(panelSecret) && !IsPanelActive(panelCommand))
+        {
             SetPanelCommandVisible(true);
+        }
         else
         {
             SetPanelCommandVisible(false);
@@ -121,7 +191,7 @@ public class UIManager : MonoBehaviour
     public void OnButtonBackTapped()
     {
         AudioManager.Instance.PlaySfx("SfxMenuBack");
-        Debug.Log("ButtonBack tapped!");
+        Debug.Log("[UIManager] ButtonBack tapped!");
         SetPanelSecretVisible(false);
         SetPanelCommandVisible(true);
     }
@@ -129,39 +199,54 @@ public class UIManager : MonoBehaviour
     public void OnCommand0Tapped()
     {
         AudioManager.Instance.PlaySfx("SfxSecretCommand");
-        Debug.Log("Command0 tapped!");
+        Debug.Log("[UIManager] Command0 tapped!");
         SetPanelSecretVisible(true);
         SetPanelCommandVisible(false);
-        if (UserPlayer != null && panelSecret != null) 
+        var localSel = _duelSelections[GameManager.Instance.GetLocalTeamIndex()];
+        if (localSel.Player != null && panelSecret != null)
         {
             var secretPanel = panelSecret.GetComponent<SecretPanel>();
-            if(secretPanel != null)
-                secretPanel.UpdateSecretSlots(UserPlayer.CurrentSecret, UserCategory);
+            if (secretPanel != null)
+            {
+                secretPanel.UpdateSecretSlots(localSel.Player.CurrentSecret, localSel.Category);
+                Debug.Log("[UIManager] SecretPanel updated.");
+            }
+            else
+            {
+                Debug.LogWarning("[UIManager] SecretPanel component is null!");
+            }
         }
     }
 
     public void OnCommand1Tapped()
     {
         AudioManager.Instance.PlaySfx("SfxMenuTap");
-        Debug.Log("Command1 tapped!");
-        HandleRegister(DuelCommand.Phys, null);
+        Debug.Log("[UIManager] Command1 tapped!");
+        UIManager.Instance.DuelSelectionMade(GameManager.Instance.GetLocalTeamIndex(), DuelCommand.Phys, null);
     }
 
     public void OnCommand2Tapped()
     {
         AudioManager.Instance.PlaySfx("SfxMenuTap");
-        Debug.Log("Command2 tapped!");
-        HandleRegister(DuelCommand.Skill, null);
+        Debug.Log("[UIManager] Command2 tapped!");
+        UIManager.Instance.DuelSelectionMade(GameManager.Instance.GetLocalTeamIndex(), DuelCommand.Skill, null);
     }
 
     public void OnSecretCommandSlotTapped(SecretCommandSlot secretCommandSlot)
     {
-        Debug.Log("SecretCommandSlot tapped: " + secretCommandSlot.name);
-        if (secretCommandSlot.Secret == null)
+        Debug.Log($"[UIManager] SecretCommandSlot tapped: {secretCommandSlot?.name}");
+
+        if (secretCommandSlot?.Secret == null)
+        {
+            Debug.LogWarning("[UIManager] SecretCommandSlot has no secret assigned.");
             return;
-        if (UserPlayer.GetStat(PlayerStats.Sp) < secretCommandSlot.Secret.Cost) 
+        }
+
+        var localSel = _duelSelections[GameManager.Instance.GetLocalTeamIndex()];
+        if (localSel.Player.GetStat(PlayerStats.Sp) < secretCommandSlot.Secret.Cost)
         {
             AudioManager.Instance.PlaySfx("SfxForbidden");
+            Debug.LogWarning("[UIManager] Not enough SP to select this Secret!");
             return;
         }
 
@@ -169,63 +254,67 @@ public class UIManager : MonoBehaviour
         SetPanelCommandVisible(false);
 
         AudioManager.Instance.PlaySfx("SfxSecretSelect");
-        HandleRegister(DuelCommand.Secret, secretCommandSlot.Secret);
+        UIManager.Instance.DuelSelectionMade(GameManager.Instance.GetLocalTeamIndex(), DuelCommand.Secret, secretCommandSlot.Secret);
     }
 
     #endregion
 
-    #region Selection Registration
-    private void HandleRegister(DuelCommand command, Secret secret) 
+    // ==============================
+    #region Duel Selection Registration
+
+    public void SetDuelSelection(int teamIndex, Category category, int participantIndex, Player player)
     {
-        RegisterUserSelections(command, secret);
-
-        if (UserCategory == Category.Dribble)
-            RegisterAiSelections();
-
-        HideDuelUi();
-        if (GameManager.Instance != null)
-            GameManager.Instance.UnfreezeGame();
+        Debug.Log($"[UIManager] SetDuelSelection: Team {teamIndex}, Category {category}, Index {participantIndex}, Player {player?.name}");
+        _duelSelections[teamIndex] = new DuelTeamSelection
+        {
+            ParticipantIndex = participantIndex,
+            Player = player,
+            Category = category
+        };
     }
 
-    public void RegisterUserSelections(DuelCommand command, Secret secret)
+    private Category GetLocalCategory()
     {
-        DuelAction action = DuelManager.Instance.GetActionByCategory(UserCategory);
-        if (DuelManager.Instance != null)
-            DuelManager.Instance.RegisterUISelections(UserIndex, UserCategory, action, command, secret);
+        int localTeamIndex = GameManager.Instance.GetLocalTeamIndex();
+        Category myCategory = _duelSelections[localTeamIndex].Category;
+        return myCategory;
     }
 
-    public void RegisterAiSelections()
+    public void RegisterDuelSelections(DuelCommand command, Secret secret)
     {
-        if (AiPlayer != null)
-            AiPlayer.GetComponent<PlayerAi>().RegisterAiSelections(AiIndex, AiCategory);
-    }
+        // Always "local" team as primary
+        int localTeamIndex = GameManager.Instance.GetLocalTeamIndex();
+        var localSel = _duelSelections[localTeamIndex];
 
-    public void SetUserRole(Category category, int index, Player player)
-    {
-        UserCategory = category;
-        UserIndex = index;
-        UserPlayer = player;
-    }
-    public void SetAiRole(Category category, int index, Player player)
-    {
-        AiCategory = category;
-        AiIndex = index;
-        AiPlayer = player;
+        Debug.Log($"[UIManager] Registering DuelSelections: Command {command}, Secret {(secret ? secret.name : "None")}");
+        DuelManager.Instance.RegisterSelection(localSel.ParticipantIndex, localSel.Category, command, secret);
+
+        // Optionally, register for the other team if needed (for singleplayer AI)
+        int oppTeamIndex = 1 - localTeamIndex;
+        var oppSel = _duelSelections[oppTeamIndex];
+        if (GetLocalCategory() == Category.Dribble && oppSel.Player != null && oppSel.Player.ControlType == ControlType.Ai)
+        {
+            oppSel.Player.GetComponent<PlayerAi>().RegisterAiSelections(oppSel.ParticipantIndex, oppSel.Category);
+        }
     }
     #endregion
 
+    // ==============================
     #region Duel Status Display
 
     public void ShowTextDuelResult(DuelParticipant winningPart)
     {
         if (winningPart?.Player == null)
             return;
-        SetActiveSafe(textWin, winningPart.Player.IsAlly);
-        SetActiveSafe(textLose, !winningPart.Player.IsAlly);
+
+        SetActiveSafe(textWin, winningPart.Player.ControlType == ControlType.LocalHuman);
+        SetActiveSafe(textLose, winningPart.Player.ControlType != ControlType.LocalHuman);
+        Debug.Log($"[UIManager] ShowTextDuelResult: Winner is {winningPart.Player?.name}");
     }
 
     public void HideStatus()
     {
+        Debug.Log("[UIManager] HideStatus called.");
         panelStatusSideAlly?.SetPlayer(null);
         panelStatusSideOpp?.SetPlayer(null);
         SetActiveSafe(textWin, false);
@@ -235,7 +324,10 @@ public class UIManager : MonoBehaviour
     public void HideStatusPlayer(Player player)
     {
         if (player == null) return;
-        if (player.IsAlly)
+
+        Debug.Log($"[UIManager] HideStatusPlayer: {player?.name}");
+
+        if (player.ControlType == ControlType.LocalHuman)
             panelStatusSideAlly?.SetPlayer(null);
         else
             panelStatusSideOpp?.SetPlayer(null);
@@ -244,7 +336,10 @@ public class UIManager : MonoBehaviour
     public void SetStatusPlayer(Player player)
     {
         if (player == null) return;
-        if (player.IsAlly)
+
+        Debug.Log($"[UIManager] SetStatusPlayer: {player?.name}, {player.ControlType}");
+
+        if (player.ControlType == ControlType.LocalHuman)
             panelStatusSideAlly?.SetPlayer(player);
         else
             panelStatusSideOpp?.SetPlayer(player);
@@ -254,13 +349,17 @@ public class UIManager : MonoBehaviour
     {
         var player = duelParticipant?.Player;
         if (player == null) return;
-        if (player.IsAlly)
+
+        Debug.Log($"[UIManager] SetStatusPlayerAndCommand: {player?.name}, Pressure {attackPressure}");
+
+        if (player.ControlType == ControlType.LocalHuman)
             panelStatusSideAlly?.SetPlayerAndCommand(duelParticipant, attackPressure);
         else
             panelStatusSideOpp?.SetPlayerAndCommand(duelParticipant, attackPressure);
     }
     #endregion
 
+    // ==============================
     #region Utility
 
     /// <summary>
@@ -269,7 +368,10 @@ public class UIManager : MonoBehaviour
     private void SetActiveSafe(GameObject obj, bool shouldBeActive)
     {
         if (obj != null && obj.activeSelf != shouldBeActive)
+        {
             obj.SetActive(shouldBeActive);
+            Debug.Log($"[UIManager] SetActiveSafe: {obj.name}, Active: {shouldBeActive}");
+        }
     }
 
     /// <summary>
@@ -277,6 +379,162 @@ public class UIManager : MonoBehaviour
     /// </summary>
     private bool IsPanelActive(GameObject obj) => obj != null && obj.activeSelf;
 
+    private bool IsLocalTeamIndex(int teamIndex)
+    {
+        return teamIndex == GameManager.Instance.GetLocalTeamIndex();
+    }
+
+    #endregion
+
+    // ==============================
+    #region Duel Selection Phase Logic
+
+    public void BeginDuelSelectionPhase()
+    {
+        Debug.Log("[UIManager] BeginDuelSelectionPhase called.");
+        GameManager.Instance.FreezeGame();
+        GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Duel);
+
+        if (GameManager.Instance.IsMultiplayer)
+        {
+            Debug.Log("[UIManager] Multiplayer duel selection phase started.");
+
+            _isTeamReady[0] = _isTeamReady[1] = false;
+            _commands[0] = _commands[1] = DuelCommand.Phys;
+            _secrets[0] = _secrets[1] = null;
+            _selectionTimer = 10f;
+            _waitingForMultiplayerDuel = true;
+
+            DuelMode duelMode = DuelManager.Instance.GetDuelMode();
+
+            if (duelMode == DuelMode.Field)
+            {
+                Debug.Log("[UIManager] DuelMode.Field: Showing duel UI for local player.");
+                ShowDuelUIForLocal();
+            }
+            else if (duelMode == DuelMode.Shoot)
+            {
+                Player localPlayer = _duelSelections[GameManager.Instance.GetLocalTeamIndex()].Player;
+                if (localPlayer?.ControlType == ControlType.LocalHuman)
+                {
+                    Debug.Log("[UIManager] DuelMode.Shoot: Local human must make a selection, showing UI.");
+                    ShowDuelUIForLocal();
+                    StartCoroutine(MultiplayerDuelSelectionTimerRoutine());
+                }
+                else
+                {
+                    Debug.Log("[UIManager] DuelMode.Shoot: Not local human, hiding UI.");
+                    HideDuelUi();
+                }
+            }
+        }
+        else
+        {
+            Debug.Log("[UIManager] Singleplayer duel selection phase started. Showing duel UI for local player.");
+            ShowDuelUIForLocal();
+        }
+    }
+    private void ShowDuelUIForLocal()
+    {
+        SetButtonDuelToggleVisible(true);
+        Debug.Log("[UIManager] Showing duel UI for local player.");
+    }
+
+    private IEnumerator MultiplayerDuelSelectionTimerRoutine()
+    {
+        Debug.Log("[UIManager] MultiplayerDuelSelectionTimerRoutine started.");
+        while (_waitingForMultiplayerDuel && _selectionTimer > 0f)
+        {
+            _selectionTimer -= Time.deltaTime;
+            // Optionally update timer UI here
+
+            if (_isTeamReady[0] && _isTeamReady[1])
+                break;
+            yield return null;
+        }
+        _waitingForMultiplayerDuel = false;
+
+        // Default any unready
+        for (int i = 0; i < 2; i++)
+        {
+            if (!_isTeamReady[i])
+            {
+                _commands[i] = DuelCommand.Phys;
+                _secrets[i] = null;
+                _isTeamReady[i] = true;
+                Debug.Log($"[UIManager] Team {i} was not ready - defaulting to Phys.");
+                if (IsLocalTeamIndex(i))
+                {
+                    SendSelectionToRemote(i, DuelCommand.Phys, null);
+                }
+            }
+        }
+        if (_isTeamReady[0] && _isTeamReady[1])
+        {
+            RegisterBothSelections();
+        }
+        Debug.Log("[UIManager] MultiplayerDuelSelectionTimerRoutine complete.");
+    }
+
+#if PHOTON_UNITY_NETWORKING
+    [PunRPC]
+#endif
+    public void NetworkDuelSelectionReceived(int teamIndex, int commandInt, string secretIdOrNull)
+    {
+        _isTeamReady[teamIndex] = true;
+        _commands[teamIndex] = (DuelCommand)commandInt;
+        _secrets[teamIndex] = SecretManager.Instance.GetSecretById(secretIdOrNull);
+
+        Debug.Log($"[UIManager] NetworkDuelSelectionReceived: Team {teamIndex} | Command {commandInt} | SecretId {(string.IsNullOrEmpty(secretIdOrNull) ? "None" : secretIdOrNull)}");
+
+        if (_isTeamReady[0] && _isTeamReady[1])
+        {
+            RegisterBothSelections();
+        }
+    }
+
+    private void SendSelectionToRemote(int teamIndex, DuelCommand command, Secret secret)
+    {
+#if PHOTON_UNITY_NETWORKING
+        string secretIdOrNull = (secret == null) ? null : secret.SecretId;
+        Photon.Pun.PhotonView.Get(this).RPC(
+            "NetworkDuelSelectionReceived",
+            Photon.Pun.RpcTarget.Others,
+            teamIndex, (int)command, secretIdOrNull
+        );
+        Debug.Log($"[UIManager] Sent selection to remote: Team {teamIndex}, Command {command}, SecretId {(secret == null ? "None" : secret.SecretId)}");
+#endif
+    }
+
+    private void RegisterBothSelections()
+    {
+        _waitingForMultiplayerDuel = false;
+        StopAllCoroutines(); // Just in case
+
+        for (int i = 0; i < 2; i++)
+        {
+            var sel = _duelSelections[i];
+            DuelManager.Instance.RegisterSelection(sel.ParticipantIndex, sel.Category, _commands[i], _secrets[i]);
+            Debug.Log($"[UIManager] RegisterBothSelections: Team {i}, Command {_commands[i]}, Secret {(_secrets[i] != null ? _secrets[i].name : "None")}");
+        }
+        HideDuelUi();
+        GameManager.Instance.UnfreezeGame();
+        GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Battle);
+    }
+
+    public void DuelSelectionMade(int teamIndex, DuelCommand command, Secret secret)
+    {
+        _isTeamReady[teamIndex] = true;
+        _commands[teamIndex] = command;
+        _secrets[teamIndex] = secret;
+        Debug.Log($"[UIManager] DuelSelectionMade: Team {teamIndex}, Command {command}, Secret {(secret != null ? secret.name : "None")}");
+
+        if (GameManager.Instance.IsMultiplayer)
+            SendSelectionToRemote(teamIndex, command, secret);
+
+        if (_isTeamReady[0] && _isTeamReady[1])
+            RegisterBothSelections();
+    }
+
     #endregion
 }
-

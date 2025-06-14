@@ -1,87 +1,165 @@
 using UnityEngine;
 using System;
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
 
 [RequireComponent(typeof(Collider))]
 public class DuelCollider : MonoBehaviour
 {
+    #region Inspector Fields
+
     [Header("Duel Settings")]
     [SerializeField] private float duelCooldown = 0.2f;
 
-    private float nextDuelAllowedTime = 0f;
-    private Player cachedPlayer;
+    #endregion
+
+    #region Private Fields
+
+    private float _nextDuelAllowedTime = 0f;
+    private Player _cachedPlayer;
+
+    #endregion
+
+    #region Events
 
     public static event Action<Player> OnSetStatusPlayer;
 
+    #endregion
+
+    #region Unity Lifecycle
+
     private void Awake()
     {
-        cachedPlayer = GetComponentInParent<Player>();
-        if (cachedPlayer == null)
-            Debug.LogError("DuelCollider could not find attached Player component in parent.");
+        _cachedPlayer = GetComponentInParent<Player>();
+        if (_cachedPlayer == null)
+            Debug.LogError("[DuelCollider] Could not find attached Player component in parent.");
+        else
+            Debug.Log($"[DuelCollider] Player component found: {_cachedPlayer.name}");
     }
 
-    private void OnTriggerEnter(Collider other) => TryStartDuel(other);
-    private void OnTriggerStay(Collider other) => TryStartDuel(other);
+    private void OnTriggerEnter(Collider other)
+    {
+        //Debug.Log("[DuelCollider] OnTriggerEnter detected.");
+        TryStartDuel(other);
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        //Debug.Log("[DuelCollider] OnTriggerStay detected.");
+        TryStartDuel(other);
+    }
+
+    #endregion
+
+    #region Duel Logic
 
     private void TryStartDuel(Collider otherCollider)
     {
-        if (!CanStartDuel()) return;
+        //Debug.Log("[DuelCollider] TryStartDuel invoked.");
 
-        var otherPlayer = otherCollider.GetComponentInParent<Player>();
-        if (otherPlayer == null || otherPlayer == cachedPlayer)
-            return;
-
-        // Tag logic: You could refactor these if you’re consistently using tags or layer masks elsewhere
-        string thisTag = CompareTag("Ally") ? "Ally" : (CompareTag("Opp") ? "Opp" : string.Empty);
-        string otherTag = otherCollider.CompareTag("Ally") ? "Ally" : (otherCollider.CompareTag("Opp") ? "Opp" : string.Empty);
-
-        if (
-            cachedPlayer.IsPossession &&
-            !string.IsNullOrEmpty(thisTag) &&
-            !string.IsNullOrEmpty(otherTag) &&
-            thisTag != otherTag &&
-            DuelManager.Instance.IsDuelResolved()
-        )
+        if (!CanStartDuel())
         {
-            SetDuelCooldown();
+            //Debug.Log("[DuelCollider] Cannot start duel: cooldown or movement frozen.");
+            return;
+        }
 
-            GameManager.Instance.FreezeGame();
-            DuelManager.Instance.StartDuel(DuelMode.Field);
-            DuelManager.Instance.RegisterTrigger(cachedPlayer.gameObject, false);
-            DuelManager.Instance.RegisterTrigger(otherPlayer.gameObject, false);
+        Player otherPlayer = otherCollider.GetComponentInParent<Player>();
+        if (otherPlayer == null || otherPlayer == _cachedPlayer)
+        {
+            //Debug.Log("[DuelCollider] Other collider is not a valid, different Player.");
+            return;
+        }
 
-            OnSetStatusPlayer?.Invoke(cachedPlayer);
-            OnSetStatusPlayer?.Invoke(otherPlayer);
+        // Both must be on different teams, and the first has possession, and duel is resolved
+        if (_cachedPlayer.IsPossession &&
+            _cachedPlayer.TeamIndex != otherPlayer.TeamIndex &&
+            DuelManager.Instance.IsDuelResolved())
+        {
+            // Only allow duel to be started by MasterClient (in multiplayer), or in offline
+            if (!GameManager.Instance.IsMultiplayer
+#if PHOTON_UNITY_NETWORKING
+                || PhotonNetwork.IsMasterClient
+#endif
+            )
+            {
+                Debug.Log($"[DuelCollider] Starting duel between {_cachedPlayer.name} (Team {_cachedPlayer.TeamIndex}) and {otherPlayer.name} (Team {otherPlayer.TeamIndex}).");
 
-            AssignUserAndAiRoles(otherPlayer);
-            UIManager.Instance.SetButtonDuelToggleVisible(true);
+                SetDuelCooldown();
+
+                DuelManager.Instance.StartDuel(DuelMode.Field);
+                DuelManager.Instance.RegisterTrigger(_cachedPlayer.gameObject, false);
+                DuelManager.Instance.RegisterTrigger(otherPlayer.gameObject, false);
+
+                OnSetStatusPlayer?.Invoke(_cachedPlayer);
+                OnSetStatusPlayer?.Invoke(otherPlayer);
+
+                AssignDuelRolesAndBegin(_cachedPlayer, otherPlayer);
+
+                if (_cachedPlayer.ControlType == ControlType.LocalHuman || otherPlayer.ControlType == ControlType.LocalHuman)
+                {
+                    Debug.Log("[DuelCollider] Beginning DuelSelectionPhase  for local human player(s).");
+                    UIManager.Instance.BeginDuelSelectionPhase();
+                }
+            }
+            else
+            {
+                Debug.Log("[DuelCollider] Duel not started: not master client in multiplayer.");
+            }
+        }
+        else
+        {
+            //Debug.Log("[DuelCollider] Duel conditions not met (possession, team, duel state).");
         }
     }
 
     private bool CanStartDuel()
     {
-        return Time.time >= nextDuelAllowedTime && !GameManager.Instance.IsMovementFrozen;
+        bool canStart = Time.time >= _nextDuelAllowedTime && !GameManager.Instance.IsMovementFrozen;
+        //Debug.Log($"[DuelCollider] CanStartDuel: {canStart} (Time: {Time.time}, NextAllowed: {_nextDuelAllowedTime}, IsMovementFrozen: {GameManager.Instance.IsMovementFrozen})");
+        return canStart;
     }
 
     private void SetDuelCooldown()
     {
-        nextDuelAllowedTime = Time.time + duelCooldown;
+        _nextDuelAllowedTime = Time.time + duelCooldown;
+        //Debug.Log($"[DuelCollider] Set duel cooldown. Next duel time: {_nextDuelAllowedTime}");
     }
 
     /// <summary>
-    /// Assigns categories and roles for UI and Duel participants, depending on which is AI/user.
+    /// Assigns duel categories and selection slots for both participants.
+    /// Both are team-based; no AI vs User special-casing.
     /// </summary>
-    private void AssignUserAndAiRoles(Player otherPlayer)
+    private void AssignDuelRolesAndBegin(Player playerA, Player playerB)
     {
-        // If this player is AI, they're the offense, other is defense (human)
-        if (cachedPlayer.IsAi)
+        Debug.Log("[DuelCollider] AssignDuelRolesAndBegin started.");
+
+        Category categoryA = Category.Dribble;
+        Category categoryB = Category.Block;
+        int indexA = 0, indexB = 1;
+
+        if (!playerA.IsPossession && playerB.IsPossession)
         {
-            cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(0, Category.Dribble);
-            UIManager.Instance.SetUserRole(Category.Block, 1, otherPlayer);
+            categoryA = Category.Block;
+            categoryB = Category.Dribble;
         }
-        else
+
+        Debug.Log($"[DuelCollider] {playerA.name} assigned {categoryA}, {playerB.name} assigned {categoryB}");
+
+        UIManager.Instance.SetDuelSelection(playerA.TeamIndex, categoryA, indexA, playerA);
+        UIManager.Instance.SetDuelSelection(playerB.TeamIndex, categoryB, indexB, playerB);
+
+        if (playerA.ControlType == ControlType.Ai)
         {
-            UIManager.Instance.SetUserRole(Category.Dribble, 0, cachedPlayer);
-            UIManager.Instance.SetAiRole(Category.Block, 1, otherPlayer);
+            Debug.Log($"[DuelCollider] Triggering AI selection for {playerA.name}");
+            playerA.GetComponent<PlayerAi>().RegisterAiSelections(indexA, categoryA);
+        }
+        if (playerB.ControlType == ControlType.Ai)
+        {
+            Debug.Log($"[DuelCollider] Triggering AI selection for {playerB.name}");
+            playerB.GetComponent<PlayerAi>().RegisterAiSelections(indexB, categoryB);
         }
     }
+
+    #endregion
 }

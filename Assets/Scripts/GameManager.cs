@@ -3,7 +3,11 @@ using UnityEngine.SceneManagement;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using TMPro; // Needed for TextMeshProUGUI
+using TMPro;
+
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
 
 public enum GamePhase
 {
@@ -20,38 +24,41 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     public GamePhase CurrentPhase { get; private set; } = GamePhase.KickOff;
     public GamePhase PreviousPhase { get; private set; } = GamePhase.KickOff;
-
     public event Action<GamePhase, GamePhase> OnPhaseChanged;
 
     public bool IsMovementFrozen { get; private set; } = false;
     public bool IsTimeFrozen { get; private set; } = false;
     public bool IsKickOffReady { get; private set; } = false;
 
-    [SerializeField] private Team team0;
-    [SerializeField] private Team team1;
-    [SerializeField] private List<Player> allyPlayers;
-    [SerializeField] private List<Player> oppPlayers;
-    [SerializeField] private Player allyKeeper;
-    [SerializeField] private Player oppKeeper;
-    [SerializeField] private Transform ball; // Transform of the ball
-    [SerializeField] private Transform goalTop;
-    [SerializeField] private Transform goalBottom;
-    [SerializeField] private Vector3 initialBallPosition; // Vector3 to store initial ball position
+    public List<Team> Teams => teams;
+
+    [SerializeField] private List<Team> teams;
+    [SerializeField] private List<Player> localHumanPlayers;
+    [SerializeField] private List<Player> remoteHumanPlayers;
+    [SerializeField] private List<Player> aiPlayers;
+    [SerializeField] private Transform ball;
+    [SerializeField] private Vector3 initialBallPosition;
     [SerializeField] private Vector3 centerKickOffPosition = Vector3.zero;
-    [SerializeField] private float timeDefault = 180f; // 3 minutes
-    [SerializeField] private float timeRemaining = 180f; // 3 minutes
+    [SerializeField] private float timeDefault = 180f;
+    [SerializeField] private float timeRemaining = 180f;
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private GameObject panelTimeMessage;
     [SerializeField] private GameObject panelGoalMessage;
     [SerializeField] private Animator textGoalMessage;
     [SerializeField] private GameObject textKickOff;
-    [SerializeField] private TextMeshProUGUI textScore0;
-    [SerializeField] private TextMeshProUGUI textScore1;
+    [SerializeField] private List<GoalTrigger> goals;
+    [SerializeField] private List<TextMeshProUGUI> textScores;
     [SerializeField] private int winScore = 3;
-    [SerializeField] private int score0 = 0;
-    [SerializeField] private int score1 = 0;
+    [SerializeField] private int[] scores = new int[] {0, 0};
 
     private bool isActiveScene = true;
+
+#if PHOTON_UNITY_NETWORKING
+    // Helper for safe network mode
+    public bool IsMultiplayer => PhotonNetwork.InRoom && PhotonNetwork.NetworkClientState == Photon.Realtime.ClientState.Joined;
+#else
+    public bool IsMultiplayer => false;
+#endif
 
     private void Awake()
     {
@@ -62,21 +69,14 @@ public class GameManager : MonoBehaviour
         }
         Instance = this;
 
-        team0 =  TeamManager.Instance.GetTeamById("T1");
-        team1 = TeamManager.Instance.GetTeamById("T2");
-
-        goalBottom.GetComponent<GoalTrigger>().Team = team0;
-        goalTop.GetComponent<GoalTrigger>().Team = team1;
-
-        InitializeTeamPlayers(team0, allyPlayers, true);
-        InitializeTeamPlayers(team1, oppPlayers, false);
+        teams = new List<Team>();
+        teams.Add(TeamManager.Instance.GetTeamById("T1"));
+        teams.Add(TeamManager.Instance.GetTeamById("T2"));
     }
 
     void Start()
     {
-        UpdateScoreDisplay();
-        UpdateTimerDisplay(timeDefault);
-        StartBattle(team0, team1);
+        StartBattle();
     }
 
     void Update()
@@ -93,23 +93,19 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void Reset() 
+    private void Reset()
     {
-        score0 = 0;
-        score1 = 0;
-        InitializeTeamPlayers(team0, allyPlayers, true);
-        InitializeTeamPlayers(team1, oppPlayers, false);
+        scores = new int[] {0, 0};
+        timeRemaining = timeDefault;
+        SetActivePlayers(localHumanPlayers, false);
+        SetActivePlayers(remoteHumanPlayers, false);
+        SetActivePlayers(aiPlayers, false);
+        AssignGoals();
+        AssignTeamPlayers();
+        AssignControlTypes();
+        InitializeTeamPlayers();
         UpdateScoreDisplay();
         UpdateTimerDisplay(timeDefault);
-        StartBattle(team0, team1);
-    }
-
-    public List<Player> GetAllyPlayers() {
-        return allyPlayers;
-    }
-
-    public List<Player> GetOppPlayers() {
-        return oppPlayers;
     }
 
     public void SetIsKickOffReady(bool ready)
@@ -128,117 +124,156 @@ public class GameManager : MonoBehaviour
 
     private void UpdateScoreDisplay()
     {
-        textScore0.text = score0.ToString();
-        textScore1.text = score1.ToString();
-    }
-
-    public void StartBattle(Team teamA, Team teamB)
-    {
-        StartKickOff(teamA);
-        timeRemaining = timeDefault;
-    }
-
-    public void InitializeTeamPlayers(Team team, List<Player> players, bool isAlly)
-    {
-        for (int i = 0; i < players.Count; i++) {
-            Player player = players[i];
-            PlayerData playerData = team.PlayerDataList[i];
-            player.Initialize(playerData);
-            if (i == 0) 
-            {
-                player.IsKeeper = true;
-            }  
-            player.Lv = team.Lv;
-            player.IsAlly = isAlly;
-            player.IsAi = !isAlly; 
-            player.SetWear(team, true);    
+        for (int i = 0; i < scores.Length ; i++) 
+        {
+            textScores[i].text = scores[i].ToString();
         }
     }
 
-    public void ResetDefaultPositions() 
+
+    public void StartBattle()
     {
-        ResetPlayerPositions(team0, allyPlayers, true);
-        ResetPlayerPositions(team1, oppPlayers, false);
+        // (Optionally, network this StartBattle in multiplayer!)
+        Reset();
+        StartKickOff(teams[0]);
+    }
+
+    public void InitializeTeamPlayers()
+    {
+        for (int i = 0; i < teams.Count; i++)
+        {
+            Team team = teams[i];
+            for (int j = 0; j < team.players.Count; j++)
+            {
+                Player player = team.players[j];
+                PlayerData playerData = team.PlayerDataList[j];
+                player.Initialize(playerData);
+                if (j == 0)
+                {
+                    player.IsKeeper = true;
+                }
+                player.Lv = team.Lv;
+                player.TeamIndex = i;
+                player.SetWear(team);
+            }
+        }                
+
+
+    }
+
+    public void ResetDefaultPositions()
+    {
+        ResetPlayerPositions();
         ball.transform.position = initialBallPosition;
     }
 
-    public void ResetPlayerPositions(Team team, List<Player> players, bool isAlly)
+    public void ResetPlayerPositions()
     {
-        for (int i = 0; i < players.Count; i++) 
+        foreach (var t in teams) 
         {
-            Player player = players[i];
-            player.Unstun();
-            player.transform.position = team.Formation.Coords[i];
-            if (!isAlly) 
+            for (int i = 0; i < t.players.Count; i++)
             {
-                Vector3 pos = player.transform.position;
-                pos.z = pos.z * -1;
-                player.transform.position = pos;
+                Player player = t.players[i];
+                player.Unstun();
+                player.transform.position = t.Formation.Coords[i];
+                if (player.ControlType != ControlType.LocalHuman)
+                {
+                    Vector3 pos = player.transform.position;
+                    pos.z = pos.z * -1;
+                    player.transform.position = pos;
+                }
+                if (player.ControlType != ControlType.Ai)
+                {
+                    player.transform.Find("Line").GetComponent<PlayerLineRenderer>().ResetLine();
+                }
+                player.DefaultPosition = player.transform.position;
             }
-            if (!player.IsAi) {
-                player.transform.Find("Line").GetComponent<PlayerLineRenderer>().ResetLine();
-            }
-            player.DefaultPosition = player.transform.position;
         }
     }
 
+    // ==== Network-Safe version! ====
     public void StartKickOff(Team kickOffTeam)
     {
         CheckEndGame();
         AudioManager.Instance.PlayBgm("BgmBattle");
-        FreezeGame();   
+        FreezeGame();
         textKickOff.SetActive(true);
-        SetGamePhase(GamePhase.KickOff);
+        SetGamePhaseNetworkSafe(GamePhase.KickOff);
         IsKickOffReady = false;
         ResetDefaultPositions();
 
-        // Optionally: Move one of the kickOffTeam's players (usually a striker or midfielder) to be on the center spot
-        // Let's assume player 1 is the kick-off taker:
-        List<Player> kickOffPlayers = (kickOffTeam == team0) ? allyPlayers : oppPlayers;
+        List<Player> kickOffPlayers = kickOffTeam.players;
         if (kickOffPlayers.Count > 0)
         {
             Player kickOffPlayer = kickOffPlayers[kickOffTeam.Formation.KickOff];
             kickOffPlayer.transform.position = centerKickOffPosition;
             PossessionManager.Instance.GainPossession(kickOffPlayer);
         }
-
     }
+
+    // Network aware, so phase is always in sync
+    public void SetGamePhaseNetworkSafe(GamePhase newPhase)
+    {
+        if (IsMultiplayer)
+        {
+#if PHOTON_UNITY_NETWORKING
+            // Only master sets phase in online games!
+            if (PhotonNetwork.IsMasterClient)
+            {
+                this.photonView.RPC(nameof(RPC_SetGamePhase), RpcTarget.All, (int)newPhase);
+            }
+#endif
+        }
+        else
+        {
+            SetGamePhase(newPhase);
+        }
+    }
+
+#if PHOTON_UNITY_NETWORKING
+    private PhotonView photonView => PhotonView.Get(this);
+
+    [PunRPC]
+    void RPC_SetGamePhase(int phase) // for network sync
+    {
+        SetGamePhase((GamePhase)phase);
+    }
+#endif
 
     public void SetGamePhase(GamePhase newPhase)
     {
         if (CurrentPhase != newPhase)
         {
-            Debug.Log("***Phase*** " + newPhase);
+            Debug.Log("GamePhase: " + newPhase);
             PreviousPhase = CurrentPhase;
             CurrentPhase = newPhase;
             OnPhaseChanged?.Invoke(CurrentPhase, PreviousPhase);
         }
     }
 
+    // You may want to make Freeze/Unfreeze also network-aware (optional):
     public void FreezeGame()
     {
         IsMovementFrozen = true;
         IsTimeFrozen = true;
-        GameManager.Instance.SetGamePhase(GamePhase.Duel);
-        // Show your UI here, e.g.:
-        // UIManager.Instance.ShowFreezePanel();
     }
 
     public void UnfreezeGame()
     {
         IsMovementFrozen = false;
         IsTimeFrozen = false;
-        GameManager.Instance.SetGamePhase(GamePhase.Battle);
-        // Hide your UI here, e.g.:
-        // UIManager.Instance.HideFreezePanel();
     }
 
     public void OnGoalScored(Team scoredTeam)
     {
-        if (scoredTeam == team0)
-            score1++;
-        else if (scoredTeam == team1)
-            score0++;
+        // (Optional: sync via network if needed)
+        for (int i = 0; i < teams.Count; i++) {
+            Team team = teams[i];
+            if (team != scoredTeam) 
+            {
+                scores[i]++;
+            }
+        }
 
         UpdateScoreDisplay();
 
@@ -252,14 +287,14 @@ public class GameManager : MonoBehaviour
         AudioManager.Instance.PlayBgm("BgmOle");
         panelGoalMessage.SetActive(true);
         textGoalMessage.Play("TextGoalSlide", -1, 0f);
-        
+
         yield return new WaitForSeconds(duration);
         panelGoalMessage.SetActive(false);
         IsTimeFrozen = false;
         StartKickOff(kickOffTeam);
     }
 
-    private IEnumerator TimeSequence() 
+    private IEnumerator TimeSequence()
     {
         float duration = 2f;
         IsTimeFrozen = true;
@@ -273,47 +308,121 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene("GameOver");
     }
 
-    public Player GetOppKeeper(Player player) 
+    public Player GetOppKeeper(Player player)
     {
-        return player.IsAlly ? oppKeeper : allyKeeper;
+        int oppTeamIdx = 1 - player.TeamIndex;
+        return teams[oppTeamIdx].players[0];
     }
 
-    public float GetDistanceToOppGoal(Player player) 
+    public float GetDistanceToAllyGoal(Player player)
     {
-        Transform goal = player.IsAlly ? goalTop : goalBottom;
-        return Mathf.Abs(player.transform.position.z - goal.position.z);
-    }
-
-    public float GetDistanceToAllyGoal(Player player) 
-    {
-        Transform goal = player.IsAlly ? goalBottom : goalTop;
+        Transform goal = GetAllyGoal(player).transform;
         return Vector3.Distance(player.transform.position, goal.position);
     }
 
-    public Transform GetOppGoal(Player player) 
+    public float GetDistanceToOppGoal(Player player)
     {
-        return player.IsAlly ? goalTop : goalBottom;
+        Transform goal = GetOppGoal(player).transform;
+        return Mathf.Abs(player.transform.position.z - goal.position.z);
     }
 
-    public Transform GetAllyGoal(Player player) 
+    public GoalTrigger GetAllyGoal(Player player)
     {
-        return player.IsAlly ? goalBottom : goalTop;
+        return goals[player.TeamIndex];  
+    }
+
+    public GoalTrigger GetOppGoal(Player player)
+    {
+        int oppIndex = 1 - player.TeamIndex;
+        return goals[oppIndex];
     }
 
     private void CheckEndGame()
     {
         // If either team reaches winScore
-        if (score0 >= winScore)
+        if (scores[0] >= winScore)
         {
             SceneManager.LoadScene("BattleResult");
-        } 
-        else if (score1 >= winScore)
+        }
+        else if (scores[1] >= winScore)
         {
             SceneManager.LoadScene("GameOver");
-        } 
+        }
         else if (timeRemaining <= 0)
         {
             StartCoroutine(TimeSequence());
         }
+    }
+
+    public int GetLocalTeamIndex()
+    {
+    #if PHOTON_UNITY_NETWORKING
+        Photon.Realtime.Player[] players = PhotonNetwork.PlayerList;
+        for (int i = 0; i < players.Length; i++)
+            if (players[i] == PhotonNetwork.LocalPlayer)
+                return i; // Local player's index in PlayerList = team index
+        return 0;
+    #else
+        return 0;
+    #endif
+    }
+
+    private void AssignGoals() 
+    {
+        for (int i = 0; i < teams.Count; i++)
+        {
+            goals[i].Team = teams[i];
+        }
+    }
+
+    private void AssignTeamPlayers()
+    {
+        int localTeamIndex = GetLocalTeamIndex();
+        bool isMultiplayer = IsMultiplayer;
+
+        if (!isMultiplayer)
+        {
+            // Singleplayer: Local human controls team[0], AI controls team[1]
+            teams[0].players = localHumanPlayers;
+            teams[1].players = aiPlayers;
+            SetActivePlayers(localHumanPlayers, true);
+            SetActivePlayers(aiPlayers, true);
+        }
+        else
+        {
+            // Multiplayer: Local controls team[localTeamIndex], remote controls the other
+            if (localTeamIndex == 0)
+            {
+                teams[0].players = localHumanPlayers;
+                teams[1].players = remoteHumanPlayers;
+            }
+            else // localTeamIndex == 1
+            {
+                teams[0].players = remoteHumanPlayers;
+                teams[1].players = localHumanPlayers;
+            }
+            SetActivePlayers(localHumanPlayers, true);
+            SetActivePlayers(remoteHumanPlayers, true);
+        }
+    }
+
+    private void AssignControlTypes()
+    {
+        int myTeamIndex = GetLocalTeamIndex();
+
+        for (int i = 0; i < teams.Count; i++)
+        {
+            ControlType ct = (i == myTeamIndex)
+                ? ControlType.LocalHuman
+                : (IsMultiplayer ? ControlType.RemoteHuman : ControlType.Ai);
+            foreach (var p in teams[i].players)
+                p.ControlType = ct;
+        }
+    }
+
+    public void SetActivePlayers(List<Player> players, bool isActive)
+    {
+        foreach (Player player in players)
+            player.gameObject.SetActive(isActive);
     }
 }

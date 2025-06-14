@@ -3,12 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
 
 public enum DuelMode { Field, Shoot }
 public enum DuelAction { Offense, Defense }
 public enum DuelCommand { Phys, Skill, Secret }
 
 public class DuelManager : MonoBehaviour
+#if PHOTON_UNITY_NETWORKING
+    , IPunObservable
+#endif
 {
     public static DuelManager Instance { get; private set; }
 
@@ -22,6 +28,10 @@ public class DuelManager : MonoBehaviour
     private float directBonus = 20f;
     private float keeperBonus = 50f;
     private float keeperGoalDistance = 0.5f;
+
+#if PHOTON_UNITY_NETWORKING
+    private PhotonView photonView => PhotonView.Get(this);
+#endif
 
     #region Unity Lifecycle
 
@@ -61,19 +71,38 @@ public class DuelManager : MonoBehaviour
 
     public void StartDuel(DuelMode mode)
     {
+        // Only authority may start duel, everyone else only updates by RPC!
+        if (GameManager.Instance.IsMultiplayer)
+        {
+#if PHOTON_UNITY_NETWORKING
+            if (PhotonNetwork.IsMasterClient)
+                photonView.RPC(nameof(RPC_StartDuel), RpcTarget.All, (int)mode);
+#endif
+            return;
+        }
+        StartDuel_Internal(mode);
+    }
+
+#if PHOTON_UNITY_NETWORKING
+    [PunRPC]
+    private void RPC_StartDuel(int modeInt) => StartDuel_Internal((DuelMode)modeInt);
+#endif
+
+    private void StartDuel_Internal(DuelMode mode)
+    {
         Debug.Log("Duel started");
         StopAndCleanupUnlockStatus();
         UIManager.Instance.LockStatus();
         ResetDuel();
         currentDuel.Mode = mode;
-        switch (mode) 
+        switch (mode)
         {
             case DuelMode.Shoot:
                 AudioManager.Instance.PlaySfx("SfxDuelShoot");
                 OnSetStatusPlayer?.Invoke(GameManager.Instance.GetOppKeeper(PossessionManager.Instance.PossessionPlayer));
                 break;
             default:
-                AudioManager.Instance.PlaySfx("SfxDuelField");                
+                AudioManager.Instance.PlaySfx("SfxDuelField");
                 break;
         }
     }
@@ -86,10 +115,28 @@ public class DuelManager : MonoBehaviour
 
     public void CancelDuel()
     {
+        if (GameManager.Instance.IsMultiplayer)
+        {
+#if PHOTON_UNITY_NETWORKING
+            if (PhotonNetwork.IsMasterClient)
+                photonView.RPC(nameof(RPC_CancelDuel), RpcTarget.All);
+#endif
+            return;
+        }
+        CancelDuel_Internal();
+    }
+
+#if PHOTON_UNITY_NETWORKING
+    [PunRPC]
+    private void RPC_CancelDuel() => CancelDuel_Internal();
+#endif
+
+    private void CancelDuel_Internal()
+    {
         currentDuel.IsResolved = true;
-        ShootTriangle.Instance.SetTriangleVisible(false);    
+        ShootTriangle.Instance.SetTriangleVisible(false);
         BallTrail.Instance.SetTrailVisible(false);
-        unlockStatusCoroutine = StartCoroutine(UnlockStatusRoutine());    
+        unlockStatusCoroutine = StartCoroutine(UnlockStatusRoutine());
     }
 
     public bool IsDuelResolved() => currentDuel.IsResolved;
@@ -98,7 +145,7 @@ public class DuelManager : MonoBehaviour
     public DuelParticipant GetLastOffense() => currentDuel.LastOffense;
     public DuelParticipant GetLastDefense() => currentDuel.LastDefense;
 
-    public DuelAction GetActionByCategory(Category category) 
+    public DuelAction GetActionByCategory(Category category)
     {
         if (category == Category.Block || category == Category.Catch) {
             return DuelAction.Defense;
@@ -113,13 +160,38 @@ public class DuelManager : MonoBehaviour
 
     public void AddParticipantToDuel(DuelParticipant participant)
     {
+        // This call should only be made by the master client in multiplayer
+        if (GameManager.Instance.IsMultiplayer)
+        {
+#if PHOTON_UNITY_NETWORKING
+            if (PhotonNetwork.IsMasterClient)
+                photonView.RPC(nameof(RPC_AddParticipant), RpcTarget.All, DuelParticipantNet.Serialize(participant));
+#endif
+            return;
+        }
+        AddParticipantToDuel_Internal(participant);
+    }
+
+#if PHOTON_UNITY_NETWORKING
+    [PunRPC]
+    private void RPC_AddParticipant(object[] netData)
+    {
+        var participant = DuelParticipantNet.Deserialize(netData);
+        AddParticipantToDuel_Internal(participant);
+    }
+#endif
+
+    private void AddParticipantToDuel_Internal(DuelParticipant participant)
+    {
         BallTravelController.Instance.ResumeTravel();
 
         if (currentDuel.IsResolved)
             return;
 
-        if (participant.Category == Category.Shoot) {
-            if (!currentDuel.Participants.Any()) {
+        if (participant.Category == Category.Shoot)
+        {
+            if (!currentDuel.Participants.Any())
+            {
                 PossessionManager.Instance.ReleasePossession();
                 BallTravelController.Instance.StartTravel(ShootTriangle.Instance.GetRandomPoint());
             }
@@ -127,20 +199,21 @@ public class DuelManager : MonoBehaviour
 
         currentDuel.Participants.Add(participant);
 
-
         if (participant.Secret != null)
         {
-            Vector3 playerPos = participant.Player.transform.position; // Or however you get the player's position
+            Vector3 playerPos = participant.Player.transform.position;
             SecretManager.Instance.PlaySecretEffect(participant.Secret, playerPos);
             participant.Player.ReduceSp(participant.Secret.Cost);
-            if (participant.Category == Category.Shoot) 
+            if (participant.Category == Category.Shoot)
             {
                 AudioManager.Instance.PlaySfx("SfxShootSpecial");
                 BallTrail.Instance.SetTrailVisible(true);
                 BallTrail.Instance.SetTrailMaterial(participant.Secret.Element);
             }
-        } else {
-            if (participant.Category == Category.Shoot) 
+        }
+        else
+        {
+            if (participant.Category == Category.Shoot)
             {
                 AudioManager.Instance.PlaySfx("SfxShootRegular");
                 BallTrail.Instance.SetTrailVisible(false);
@@ -152,7 +225,7 @@ public class DuelManager : MonoBehaviour
         if (participant.Action == DuelAction.Offense)
         {
             currentDuel.AttackPressure += participant.Damage;
-            if (participant.Category == Category.Shoot && participant.IsDirect) 
+            if (participant.Category == Category.Shoot && participant.IsDirect)
                 currentDuel.AttackPressure += directBonus;
             currentDuel.LastOffense = participant;
             OnSetStatusPlayerAndCommand?.Invoke(participant, currentDuel.AttackPressure);
@@ -184,7 +257,7 @@ public class DuelManager : MonoBehaviour
         if (defender.Damage >= currentDuel.AttackPressure)
         {
             if (defender.Category == Category.Catch)
-                AudioManager.Instance.PlaySfx("SfxCatch");            
+                AudioManager.Instance.PlaySfx("SfxCatch");
 
             OnSetStatusPlayerAndCommand?.Invoke(defender, 0f);
             Debug.Log($"{defender.Player.name} stopped the attack! (-{defender.Damage})");
@@ -201,7 +274,7 @@ public class DuelManager : MonoBehaviour
             if (currentDuel.Mode == DuelMode.Field || defender.Category == Category.Catch)
             {
                 if (defender.Category == Category.Catch)
-                    AudioManager.Instance.PlaySfx("SfxKeeperScream");   
+                    AudioManager.Instance.PlaySfx("SfxKeeperScream");
 
                 Debug.Log("Partial block ends the duel.");
                 EndDuel(winningParticipant: currentDuel.LastOffense, winnerAction: DuelAction.Offense);
@@ -212,7 +285,7 @@ public class DuelManager : MonoBehaviour
 
     private void ApplyElementalEffectiveness(DuelParticipant offense, DuelParticipant defense)
     {
-        var elements = ElementManager.Instance; // Singleton assumed
+        var elements = ElementManager.Instance;
 
         if (elements.IsEffective(defense.CurrentElement, offense.CurrentElement))
         {
@@ -231,10 +304,40 @@ public class DuelManager : MonoBehaviour
 
     private void EndDuel(DuelParticipant winningParticipant, DuelAction winnerAction)
     {
-        if(winningParticipant.Player.IsAlly)
+        if (GameManager.Instance.IsMultiplayer)
+        {
+#if PHOTON_UNITY_NETWORKING
+            if (PhotonNetwork.IsMasterClient)
+            {
+                // Instead of sending the full participant, send identifying info (PlayerId, etc.)
+                photonView.RPC(nameof(RPC_EndDuel), RpcTarget.All, winningParticipant.Player.PlayerId, winningParticipant.Player.TeamIndex, (int)winnerAction);
+            }
+#endif
+            return;
+        }
+        EndDuel_Internal(winningParticipant, winnerAction);
+    }
+
+#if PHOTON_UNITY_NETWORKING
+    [PunRPC]
+    private void RPC_EndDuel(string playerId, int teamIndex, int winnerActionInt)
+    {
+        // Find the winning DuelParticipant object from the ID/side:
+        DuelParticipant winPart = currentDuel.Participants.Find(
+            p => p.Player.PlayerId == playerId && p.Player.TeamIndex == teamIndex
+        );
+        EndDuel_Internal(winPart, (DuelAction)winnerActionInt);
+    }
+#endif
+
+    private void EndDuel_Internal(DuelParticipant winningParticipant, DuelAction winnerAction)
+    {
+        if (winningParticipant.Player.ControlType == ControlType.LocalHuman)
         {
             AudioManager.Instance.PlaySfx("SfxDuelWin");
-        } else {
+        }
+        else
+        {
             AudioManager.Instance.PlaySfx("SfxDuelLose");
         }
 
@@ -274,7 +377,8 @@ public class DuelManager : MonoBehaviour
             StopCoroutine(unlockStatusCoroutine);
             unlockStatusCoroutine = null;
         }
-        if (currentDuel.IsResolved) {
+        if (currentDuel.IsResolved)
+        {
             UIManager.Instance.HideStatus();
             if (PossessionManager.Instance.PossessionPlayer != null)
                 UIManager.Instance.SetStatusPlayer(PossessionManager.Instance.PossessionPlayer);
@@ -286,7 +390,7 @@ public class DuelManager : MonoBehaviour
         const float unlockDelay = 2f;
         yield return new WaitForSeconds(unlockDelay);
 
-        StopAndCleanupUnlockStatus(); // <--- Now call it AFTER delay
+        StopAndCleanupUnlockStatus();
 
         UIManager.Instance.UnlockStatus();
     }
@@ -302,7 +406,7 @@ public class DuelManager : MonoBehaviour
         TryFinalizeParticipant(pd);
     }
 
-    public void RegisterUISelections(int index, Category category, DuelAction action, DuelCommand command, Secret secret)
+    public void RegisterSelection(int index, Category category, DuelCommand command, Secret secret)
     {
         if (index < 0 || index >= stagedParticipants.Count)
         {
@@ -311,7 +415,7 @@ public class DuelManager : MonoBehaviour
         }
         var pd = stagedParticipants[index];
         pd.Category = category;
-        pd.Action = action;
+        pd.Action = GetActionByCategory(category);
         pd.Command = command;
         pd.Secret = secret;
         TryFinalizeParticipant(pd);
@@ -331,8 +435,16 @@ public class DuelManager : MonoBehaviour
         );
 
         Debug.Log($"Created participant: {participant.Player.name}");
-        AddParticipantToDuel(participant);
+        AddParticipantToDuel(participant);  // Will use authority pattern now
     }
 
     #endregion
+
+#if PHOTON_UNITY_NETWORKING
+    // You could implement OnPhotonSerializeView if you want to sync fields (rarely needed with this RPC approach)
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        // (No extra sync needed for logic; all state is managed by explicit RPCs)
+    }
+#endif
 }
