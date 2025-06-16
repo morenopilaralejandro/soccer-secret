@@ -109,7 +109,7 @@ public class BallBehavior : MonoBehaviour
         {
             Vector2 kickTarget;
             pendingKickHandler.TryConsumePendingKick(out kickTarget);
-            bool triggeredDuel = ShootUser.Instance.TryStartGoalDuelIfValidTarget(kickTarget, false);
+            bool triggeredDuel = GoalDuelInitiator.Instance.TryStartGoalDuelIfValidTarget(kickTarget, false);
             if (!triggeredDuel)
             {
                 KickBallToNetworkAware(kickTarget);
@@ -168,7 +168,7 @@ public class BallBehavior : MonoBehaviour
         // 4. If ally is in possession and tap: handle kick or queue pending kick
         if (PossessionManager.Instance.PossessionPlayer && PossessionManager.Instance.PossessionPlayer.ControlType == ControlType.LocalHuman)
         {
-            if (ShootUser.Instance.TryStartGoalDuelIfValidTarget(screenPosition, false))
+            if (GoalDuelInitiator.Instance.TryStartGoalDuelIfValidTarget(screenPosition, false))
                 return;
 
             CrosshairManager.Instance.ShowCrosshair(screenPosition);
@@ -305,7 +305,7 @@ public class BallBehavior : MonoBehaviour
         {
             Vector2 targetPosition;
             pendingKickHandler.TryConsumePendingKick(out targetPosition);
-            if (!ShootUser.Instance.TryStartGoalDuelIfValidTarget(targetPosition, true))
+            if (!GoalDuelInitiator.Instance.TryStartGoalDuelIfValidTarget(targetPosition, true))
             {
                 Debug.Log("Detected pending ally kick. Kicking to target: " + targetPosition);
                 KickBallToNetworkAware(targetPosition);

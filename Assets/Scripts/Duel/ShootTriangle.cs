@@ -76,7 +76,7 @@ public class ShootTriangle : MonoBehaviour
     /// <summary>
     /// This should be called only by the master client in multiplayer, or anyone in single-player.
     /// </summary>
-    public void SetTriangleFromUser(Player player, Vector2 touchPosition)
+    public void SetTriangleFromTap(Player player, Vector2 touchPosition)
     {
         Debug.Log("ShootTriangle touchPosition: " + touchPosition);
 

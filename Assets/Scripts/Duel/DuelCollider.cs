@@ -94,11 +94,14 @@ public class DuelCollider : MonoBehaviour
                 OnSetStatusPlayer?.Invoke(_cachedPlayer);
                 OnSetStatusPlayer?.Invoke(otherPlayer);
 
-                AssignDuelRolesAndBegin(_cachedPlayer, otherPlayer);
+             AssignDuelRolesAndBegin(_cachedPlayer, otherPlayer);
 
-                if (_cachedPlayer.ControlType == ControlType.LocalHuman || otherPlayer.ControlType == ControlType.LocalHuman)
+                // *_Core UI logic for Field Duel only_*
+                if (DuelManager.Instance.GetDuelMode() == DuelMode.Field &&
+                   // This player is local human or the other is (supports either being local)
+                   (_cachedPlayer.ControlType == ControlType.LocalHuman ||
+                    otherPlayer.ControlType == ControlType.LocalHuman))
                 {
-                    Debug.Log("[DuelCollider] Beginning DuelSelectionPhase  for local human player(s).");
                     UIManager.Instance.BeginDuelSelectionPhase();
                 }
             }
@@ -130,36 +133,48 @@ public class DuelCollider : MonoBehaviour
     /// Assigns duel categories and selection slots for both participants.
     /// Both are team-based; no AI vs User special-casing.
     /// </summary>
-    private void AssignDuelRolesAndBegin(Player playerA, Player playerB)
+private void AssignDuelRolesAndBegin(Player playerA, Player playerB)
+{
+    Debug.Log("[DuelCollider] AssignDuelRolesAndBegin started.");
+
+    Category categoryA = Category.Dribble;
+    Category categoryB = Category.Block;
+    int indexA = 0, indexB = 1;
+
+    Debug.Log($"[DuelCollider] {playerA.name} assigned {categoryA}, {playerB.name} assigned {categoryB}");
+
+    UIManager.Instance.SetDuelSelection(playerA.TeamIndex, categoryA, indexA, playerA);
+    UIManager.Instance.SetDuelSelection(playerB.TeamIndex, categoryB, indexB, playerB);
+
+    Debug.Log($"[DuelCollider] Player A ({playerA.name}) ControlType: {playerA.ControlType}; indexA: {indexA}; team: {playerA.TeamIndex}");
+    Debug.Log($"[DuelCollider] Player B ({playerB.name}) ControlType: {playerB.ControlType}; indexB: {indexB}; team: {playerB.TeamIndex}");
+
+    // Defensive: only host/authority triggers AI moves in multiplayer, otherwise they race!
+    bool isMaster = !GameManager.Instance.IsMultiplayer
+#if PHOTON_UNITY_NETWORKING
+        || PhotonNetwork.IsMasterClient
+#endif
+        ;
+
+    if (playerA.ControlType == ControlType.Ai && isMaster)
     {
-        Debug.Log("[DuelCollider] AssignDuelRolesAndBegin started.");
-
-        Category categoryA = Category.Dribble;
-        Category categoryB = Category.Block;
-        int indexA = 0, indexB = 1;
-
-        if (!playerA.IsPossession && playerB.IsPossession)
-        {
-            categoryA = Category.Block;
-            categoryB = Category.Dribble;
-        }
-
-        Debug.Log($"[DuelCollider] {playerA.name} assigned {categoryA}, {playerB.name} assigned {categoryB}");
-
-        UIManager.Instance.SetDuelSelection(playerA.TeamIndex, categoryA, indexA, playerA);
-        UIManager.Instance.SetDuelSelection(playerB.TeamIndex, categoryB, indexB, playerB);
-
-        if (playerA.ControlType == ControlType.Ai)
-        {
-            Debug.Log($"[DuelCollider] Triggering AI selection for {playerA.name}");
-            playerA.GetComponent<PlayerAi>().RegisterAiSelections(indexA, categoryA);
-        }
-        if (playerB.ControlType == ControlType.Ai)
-        {
-            Debug.Log($"[DuelCollider] Triggering AI selection for {playerB.name}");
-            playerB.GetComponent<PlayerAi>().RegisterAiSelections(indexB, categoryB);
-        }
-    }
+        Debug.Log($"[DuelCollider] Triggering AI selection for {playerA.name} (team {playerA.TeamIndex}, indexA {indexA})");
+        var ai = playerA.GetComponent<PlayerAi>();
+        if (ai != null)
+            ai.RegisterAiSelections(playerA.TeamIndex, categoryA);
+        else
+            Debug.LogError($"[DuelCollider] PlayerAi component missing on {playerA.name}!");
+    } 
+    if (playerB.ControlType == ControlType.Ai && isMaster)
+    {
+        Debug.Log($"[DuelCollider] Triggering AI selection for {playerB.name} (team {playerB.TeamIndex}, indexB {indexB})");
+        var ai = playerB.GetComponent<PlayerAi>();
+        if (ai != null)
+            ai.RegisterAiSelections(playerB.TeamIndex, categoryB);
+        else
+            Debug.LogError($"[DuelCollider] PlayerAi component missing on {playerB.name}!");
+    } 
+}
 
     #endregion
 }

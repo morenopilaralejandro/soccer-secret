@@ -39,6 +39,7 @@ public class UIManager : MonoBehaviour
 
     private DuelTeamSelection[] _duelSelections = new DuelTeamSelection[2];
     private bool[] _isTeamReady = new bool[2];
+    private bool _selectionsRegistered = false;
     private DuelCommand[] _commands = new DuelCommand[2];
     private Secret[] _secrets = new Secret[2];
 
@@ -290,12 +291,14 @@ public class UIManager : MonoBehaviour
         DuelManager.Instance.RegisterSelection(localSel.ParticipantIndex, localSel.Category, command, secret);
 
         // Optionally, register for the other team if needed (for singleplayer AI)
+        /*
         int oppTeamIndex = 1 - localTeamIndex;
         var oppSel = _duelSelections[oppTeamIndex];
-        if (GetLocalCategory() == Category.Dribble && oppSel.Player != null && oppSel.Player.ControlType == ControlType.Ai)
+        if (oppSel.Category == Category.Dribble && oppSel.Player != null && oppSel.Player.ControlType == ControlType.Ai)
         {
             oppSel.Player.GetComponent<PlayerAi>().RegisterAiSelections(oppSel.ParticipantIndex, oppSel.Category);
         }
+    */
     }
     #endregion
 
@@ -389,92 +392,171 @@ public class UIManager : MonoBehaviour
     // ==============================
     #region Duel Selection Phase Logic
 
-    public void BeginDuelSelectionPhase()
+ public void BeginDuelSelectionPhase()
+{
+    Debug.Log("[UIManager] BeginDuelSelectionPhase called.");
+    _selectionsRegistered = false;
+    GameManager.Instance.FreezeGame();
+    GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Duel);
+
+    DuelMode duelMode = DuelManager.Instance.GetDuelMode();
+
+    if (GameManager.Instance.IsMultiplayer)
     {
-        Debug.Log("[UIManager] BeginDuelSelectionPhase called.");
-        GameManager.Instance.FreezeGame();
-        GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Duel);
+        Debug.Log("[UIManager] Multiplayer duel selection phase started.");
 
-        if (GameManager.Instance.IsMultiplayer)
+        _isTeamReady[0] = _isTeamReady[1] = false;
+        _commands[0] = _commands[1] = DuelCommand.Phys;
+        _secrets[0] = _secrets[1] = null;
+        _selectionTimer = 10f;
+        _waitingForMultiplayerDuel = true;
+
+        if (duelMode == DuelMode.Field)
         {
-            Debug.Log("[UIManager] Multiplayer duel selection phase started.");
-
-            _isTeamReady[0] = _isTeamReady[1] = false;
-            _commands[0] = _commands[1] = DuelCommand.Phys;
-            _secrets[0] = _secrets[1] = null;
-            _selectionTimer = 10f;
-            _waitingForMultiplayerDuel = true;
-
-            DuelMode duelMode = DuelManager.Instance.GetDuelMode();
-
-            if (duelMode == DuelMode.Field)
-            {
-                Debug.Log("[UIManager] DuelMode.Field: Showing duel UI for local player.");
-                ShowDuelUIForLocal();
-            }
-            else if (duelMode == DuelMode.Shoot)
-            {
-                Player localPlayer = _duelSelections[GameManager.Instance.GetLocalTeamIndex()].Player;
-                if (localPlayer?.ControlType == ControlType.LocalHuman)
-                {
-                    Debug.Log("[UIManager] DuelMode.Shoot: Local human must make a selection, showing UI.");
-                    ShowDuelUIForLocal();
-                    StartCoroutine(MultiplayerDuelSelectionTimerRoutine());
-                }
-                else
-                {
-                    Debug.Log("[UIManager] DuelMode.Shoot: Not local human, hiding UI.");
-                    HideDuelUi();
-                }
-            }
-        }
-        else
-        {
-            Debug.Log("[UIManager] Singleplayer duel selection phase started. Showing duel UI for local player.");
+            Debug.Log("[UIManager] DuelMode.Field: Both teams need to select.");
             ShowDuelUIForLocal();
+            StartCoroutine(MultiplayerFieldDuelSelectionTimerRoutine());
+        }
+        else if (duelMode == DuelMode.Shoot)
+        {
+            Player localPlayer = _duelSelections[GameManager.Instance.GetLocalTeamIndex()].Player;
+            if (localPlayer?.ControlType == ControlType.LocalHuman)
+            {
+                Debug.Log("[UIManager] DuelMode.Shoot: Only shooter (local human) selects.");
+                ShowDuelUIForLocal();
+                StartCoroutine(MultiplayerShootDuelSelectionTimerRoutine(GameManager.Instance.GetLocalTeamIndex()));
+            }
+            else
+            {
+                Debug.Log("[UIManager] DuelMode.Shoot: Not local human shooter, hiding UI.");
+                HideDuelUi();
+            }
         }
     }
+    else
+    {
+        Debug.Log("[UIManager] Singleplayer duel selection phase started. Showing duel UI for local player.");
+        ShowDuelUIForLocal();
+    }
+}
     private void ShowDuelUIForLocal()
     {
         SetButtonDuelToggleVisible(true);
         Debug.Log("[UIManager] Showing duel UI for local player.");
     }
 
-    private IEnumerator MultiplayerDuelSelectionTimerRoutine()
+ private IEnumerator MultiplayerFieldDuelSelectionTimerRoutine()
+{
+    Debug.Log("[UIManager] MultiplayerFieldDuelSelectionTimerRoutine started.");
+    while (_waitingForMultiplayerDuel && _selectionTimer > 0f)
     {
-        Debug.Log("[UIManager] MultiplayerDuelSelectionTimerRoutine started.");
-        while (_waitingForMultiplayerDuel && _selectionTimer > 0f)
-        {
-            _selectionTimer -= Time.deltaTime;
-            // Optionally update timer UI here
+        _selectionTimer -= Time.deltaTime;
+        // update timer UI if you want
+        if (_isTeamReady[0] && _isTeamReady[1])
+            break;
+        yield return null;
+    }
+    _waitingForMultiplayerDuel = false;
 
-            if (_isTeamReady[0] && _isTeamReady[1])
-                break;
-            yield return null;
-        }
-        _waitingForMultiplayerDuel = false;
-
-        // Default any unready
-        for (int i = 0; i < 2; i++)
+for (int i = 0; i < 2; i++)
+{
+    if (!_isTeamReady[i])
+    {
+        var sel = _duelSelections[i];
+        if (sel.Player != null && sel.Player.ControlType == ControlType.Ai)
         {
-            if (!_isTeamReady[i])
+            bool isMaster = !GameManager.Instance.IsMultiplayer
+#if PHOTON_UNITY_NETWORKING
+                || PhotonNetwork.IsMasterClient
+#endif
+                ;
+            if (isMaster)
             {
-                _commands[i] = DuelCommand.Phys;
-                _secrets[i] = null;
-                _isTeamReady[i] = true;
-                Debug.Log($"[UIManager] Team {i} was not ready - defaulting to Phys.");
-                if (IsLocalTeamIndex(i))
+                Debug.Log($"[UIManager] Timer expired: Forcing AI pick for Team {i} ({sel.Player.name})");
+                var ai = sel.Player.GetComponent<PlayerAi>();
+                if (ai != null)
                 {
-                    SendSelectionToRemote(i, DuelCommand.Phys, null);
+                    ai.RegisterAiSelections(i, sel.Category);
+                }
+                else
+                {
+                    // Fallback: if for some reason AI component is not found
+                    _commands[i] = DuelCommand.Phys;
+                    _secrets[i] = null;
+                    _isTeamReady[i] = true;
+                    if (IsLocalTeamIndex(i))
+                    {
+                        SendSelectionToRemote(i, DuelCommand.Phys, null);
+                    }
                 }
             }
         }
-        if (_isTeamReady[0] && _isTeamReady[1])
+        else
         {
-            RegisterBothSelections();
+            // For humans, default to Phys and notify remote as needed
+            _commands[i] = DuelCommand.Phys;
+            _secrets[i] = null;
+            _isTeamReady[i] = true;
+            Debug.Log($"[UIManager] Team {i} not ready - defaulted to Phys.");
+            if (IsLocalTeamIndex(i))
+            {
+                SendSelectionToRemote(i, DuelCommand.Phys, null);
+            }
         }
-        Debug.Log("[UIManager] MultiplayerDuelSelectionTimerRoutine complete.");
     }
+}
+    if (_isTeamReady[0] && _isTeamReady[1])
+    {
+        RegisterBothSelections();
+    }
+    Debug.Log("[UIManager] MultiplayerFieldDuelSelectionTimerRoutine complete.");
+}
+
+// NEW: This coroutine runs only for shooter selection in Shoot duel mode
+private IEnumerator MultiplayerShootDuelSelectionTimerRoutine(int shooterTeamIndex)
+{
+    Debug.Log("[UIManager] MultiplayerShootDuelSelectionTimerRoutine started.");
+    float timer = 10f;
+    while (timer > 0f && !_isTeamReady[shooterTeamIndex])
+    {
+        timer -= Time.deltaTime;
+        // update timer UI if you want
+        yield return null;
+    }
+
+    if (!_isTeamReady[shooterTeamIndex])
+    {
+        _commands[shooterTeamIndex] = DuelCommand.Phys;
+        _secrets[shooterTeamIndex] = null;
+        _isTeamReady[shooterTeamIndex] = true;
+        Debug.Log($"[UIManager] Shooter team {shooterTeamIndex} not ready - defaulted to Phys.");
+        if (IsLocalTeamIndex(shooterTeamIndex))
+        {
+            SendSelectionToRemote(shooterTeamIndex, DuelCommand.Phys, null);
+        }
+    }
+
+    // Register only the shooter's selection
+    RegisterShootSelectionAndClose(shooterTeamIndex);
+    Debug.Log("[UIManager] MultiplayerShootDuelSelectionTimerRoutine complete.");
+}
+
+private void RegisterShootSelectionAndClose(int teamIndex)
+{
+    // Always register the pick!
+    var sel = _duelSelections[teamIndex];
+    DuelManager.Instance.RegisterSelection(sel.ParticipantIndex, sel.Category, _commands[teamIndex], _secrets[teamIndex]);
+
+    // Only resolve duel/ui/game ONCE
+    if (_selectionsRegistered) return;
+    _selectionsRegistered = true;
+    _waitingForMultiplayerDuel = false;
+    StopAllCoroutines();
+
+    HideDuelUi();
+    GameManager.Instance.UnfreezeGame();
+    GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Battle);
+}
 
 #if PHOTON_UNITY_NETWORKING
     [PunRPC]
@@ -506,35 +588,52 @@ public class UIManager : MonoBehaviour
 #endif
     }
 
-    private void RegisterBothSelections()
+// Use this only for "field" mode:
+private void RegisterBothSelections()
+{
+    if (_selectionsRegistered) return;
+    _selectionsRegistered = true;
+    _waitingForMultiplayerDuel = false;
+    StopAllCoroutines();
+
+    for (int i = 0; i < 2; i++)
     {
-        _waitingForMultiplayerDuel = false;
-        StopAllCoroutines(); // Just in case
-
-        for (int i = 0; i < 2; i++)
-        {
-            var sel = _duelSelections[i];
-            DuelManager.Instance.RegisterSelection(sel.ParticipantIndex, sel.Category, _commands[i], _secrets[i]);
-            Debug.Log($"[UIManager] RegisterBothSelections: Team {i}, Command {_commands[i]}, Secret {(_secrets[i] != null ? _secrets[i].name : "None")}");
-        }
-        HideDuelUi();
-        GameManager.Instance.UnfreezeGame();
-        GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Battle);
+        var sel = _duelSelections[i];
+        DuelManager.Instance.RegisterSelection(sel.ParticipantIndex, sel.Category, _commands[i], _secrets[i]);
+        Debug.Log($"[UIManager] RegisterBothSelections: Team {i}, Command {_commands[i]}, Secret {(_secrets[i] != null ? _secrets[i].name : "None")}");
     }
+    HideDuelUi();
+    GameManager.Instance.UnfreezeGame();
+    GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Battle);
+}
 
-    public void DuelSelectionMade(int teamIndex, DuelCommand command, Secret secret)
-    {
-        _isTeamReady[teamIndex] = true;
-        _commands[teamIndex] = command;
-        _secrets[teamIndex] = secret;
-        Debug.Log($"[UIManager] DuelSelectionMade: Team {teamIndex}, Command {command}, Secret {(secret != null ? secret.name : "None")}");
+public void DuelSelectionMade(int teamIndex, DuelCommand command, Secret secret)
+{
+    _isTeamReady[teamIndex] = true;
+    _commands[teamIndex] = command;
+    _secrets[teamIndex] = secret;
+    Debug.Log($"[UIManager] DuelSelectionMade: Team {teamIndex}, Command {command}, Secret {(secret != null ? secret.name : "None")}");
 
-        if (GameManager.Instance.IsMultiplayer)
-            SendSelectionToRemote(teamIndex, command, secret);
+if (GameManager.Instance.IsMultiplayer)
+    SendSelectionToRemote(teamIndex, command, secret);
 
-        if (_isTeamReady[0] && _isTeamReady[1])
-            RegisterBothSelections();
-    }
+DuelMode mode = DuelManager.Instance.GetDuelMode();
+if (mode == DuelMode.Field)
+{
+    // For field duels, call RegisterSelection immediately
+    int participantIndex = _duelSelections[teamIndex].ParticipantIndex;
+    Debug.Log($"[UIManager] Calling RegisterSelection for participantIndex={participantIndex}, teamIndex={teamIndex}");
+    DuelManager.Instance.RegisterSelection(participantIndex, _duelSelections[teamIndex].Category, command, secret);
+
+    if (_isTeamReady[0] && _isTeamReady[1]) 
+        RegisterBothSelections();
+}
+else if (mode == DuelMode.Shoot)
+{
+    // For shoot duels, handle everything ONLY in RegisterShootSelectionAndClose
+    RegisterShootSelectionAndClose(teamIndex);
+}
+}
 
     #endregion
 }

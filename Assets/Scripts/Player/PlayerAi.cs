@@ -177,13 +177,20 @@ public class PlayerAi : MonoBehaviour
     private void ShootAi()
     {
         Debug.Log("ShootAi. Initiating Duel.");
+
+        ShootTriangle.Instance.SetTriangleFromPlayer(player, oppGoalTransform.position);
+        GoalDuelInitiator.Instance.StartDuel(false);
+        RegisterAiSelections(player.TeamIndex, Category.Shoot);
+
+        /*
         var duel = DuelManager.Instance;
 
         duel.StartDuel(DuelMode.Shoot);
         duel.RegisterTrigger(player.gameObject, false);
-        ShootTriangle.Instance.SetTriangleFromPlayer(player, oppGoalTransform.position);
+
         ShootTriangle.Instance.SetTriangleVisible(true);
         RegisterAiSelections(0, Category.Shoot);
+*/
     }
 
     private void ActKickOff()

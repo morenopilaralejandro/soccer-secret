@@ -94,7 +94,16 @@ public class ComboCollider : MonoBehaviour
             Debug.Log($"[ComboCollider] Registering trigger for {_cachedPlayer.name} as participant {participantIndex}.");
             DuelManager.Instance.RegisterTrigger(_cachedPlayer.gameObject, false);
             OnSetStatusPlayer?.Invoke(_cachedPlayer);
+
+
             AssignComboRoles(lastOffense.Player, participantIndex);
+            // <<<<< Core logic focus for Shoot >>>>>
+            if (DuelManager.Instance.GetDuelMode() == DuelMode.Shoot &&
+                _cachedPlayer.ControlType == ControlType.LocalHuman)
+            {
+                // Only the shooter gets UI, and only if human and local.
+                UIManager.Instance.BeginDuelSelectionPhase();
+            }
         }
         else
         {
@@ -102,36 +111,27 @@ public class ComboCollider : MonoBehaviour
         }
     }
 
-    private void AssignComboRoles(Player lastOffensePlayer, int participantIndex)
+ private void AssignComboRoles(Player lastOffensePlayer, int participantIndex)
     {
         bool isSameTeam = _cachedPlayer.TeamIndex == lastOffensePlayer.TeamIndex;
-        Category selectedCategory;
+        Category selectedCategory = isSameTeam
+            ? (_cachedPlayer.ControlType == ControlType.Ai ? Category.Block : Category.Shoot)
+            : (_cachedPlayer.ControlType == ControlType.Ai ? Category.Shoot : Category.Block);
 
-        if (isSameTeam)
-            selectedCategory = _cachedPlayer.ControlType == ControlType.Ai ? Category.Block : Category.Shoot;
-        else
-            selectedCategory = _cachedPlayer.ControlType == ControlType.Ai ? Category.Shoot : Category.Block;
-
-        Debug.Log($"[ComboCollider] AssignComboRoles: {_cachedPlayer.name} (Team: {_cachedPlayer.TeamIndex}, AI: {_cachedPlayer.ControlType == ControlType.Ai}, Category: {selectedCategory})");
+Debug.Log($"[ComboCollider] AssignComboRoles: {_cachedPlayer.name} (Team: {_cachedPlayer.TeamIndex}, AI: {_cachedPlayer.ControlType == ControlType.Ai}, Category: {selectedCategory})");
 
         if (_cachedPlayer.ControlType == ControlType.Ai)
         {
+Debug.Log("[ComboCollider] Registered AI selection.");
             _cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(participantIndex, selectedCategory);
-            Debug.Log("[ComboCollider] Registered AI selection.");
         }
         else
         {
-            HandleHumanComboChain(participantIndex, selectedCategory, _cachedPlayer);
+            // No need to call UIManager here; that happens above only for Shoot mode and local human
+            BallTravelController.Instance.PauseTravel();
+            UIManager.Instance.SetDuelSelection(_cachedPlayer.TeamIndex, selectedCategory, participantIndex, _cachedPlayer);
+            // UI prompt happens in BeginDuelSelectionPhase call (above)
         }
-    }
-
-    private void HandleHumanComboChain(int index, Category category, Player player)
-    {
-        Debug.Log("[ComboCollider] Handling human combo chain.");
-        BallTravelController.Instance.PauseTravel();
-        UIManager.Instance.SetDuelSelection(player.TeamIndex, category, index, player);
-        if (_cachedPlayer.ControlType == ControlType.LocalHuman /* or your equivalent check */)
-            UIManager.Instance.BeginDuelSelectionPhase();
     }
 
     #endregion

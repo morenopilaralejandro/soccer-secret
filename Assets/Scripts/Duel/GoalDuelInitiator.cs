@@ -3,9 +3,9 @@ using UnityEngine;
 using Photon.Pun;
 #endif
 
-public class ShootUser : MonoBehaviour
+public class GoalDuelInitiator : MonoBehaviour
 {
-    public static ShootUser Instance { get; private set; }
+    public static GoalDuelInitiator Instance { get; private set; }
 
     [SerializeField] private Camera mainCamera;
     [SerializeField] private float shootGoalDistance = 2.2f;
@@ -62,15 +62,15 @@ public class ShootUser : MonoBehaviour
 #endif
 
         // Only Master (or local) sets triangle and starts duel
-        ShootTriangle.Instance.SetTriangleFromUser(PossessionManager.Instance.PossessionPlayer, screenPos);
+        ShootTriangle.Instance.SetTriangleFromTap(PossessionManager.Instance.PossessionPlayer, screenPos);
         StartDuel(isDirect);
     }
 
-    private void StartDuel(bool isDirect)
+    public void StartDuel(bool isDirect)
     {
         DuelManager.Instance.StartDuel(DuelMode.Shoot);
-        DuelManager.Instance.RegisterTrigger(PossessionManager.Instance.PossessionPlayer.gameObject, isDirect);
         ShootTriangle.Instance.SetTriangleVisible(true);
+        DuelManager.Instance.RegisterTrigger(PossessionManager.Instance.PossessionPlayer.gameObject, isDirect);
         UIManager.Instance.SetDuelSelection(PossessionManager.Instance.PossessionPlayer.TeamIndex, Category.Shoot, 0, PossessionManager.Instance.PossessionPlayer);
         if (PossessionManager.Instance.PossessionPlayer.ControlType == ControlType.LocalHuman)
             UIManager.Instance.BeginDuelSelectionPhase();

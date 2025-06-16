@@ -98,31 +98,22 @@ public class KeeperCollider : MonoBehaviour
             Debug.Log($"[KeeperCollider] Registering trigger for {_cachedPlayer.name} as participant {participantIndex}.");
             DuelManager.Instance.RegisterTrigger(_cachedPlayer.gameObject, false);
             OnSetStatusPlayer?.Invoke(_cachedPlayer);
-            SetupKeeperDuelUI(participantIndex, lastOffense.Player);
-        }
-        else
-        {
-            //Debug.Log("[KeeperCollider] Not game authority. Duel not registered.");
-        }
-    }
-
-    private void SetupKeeperDuelUI(int participantIndex, Player lastOffensePlayer)
-    {
-        Debug.Log($"[KeeperCollider] SetupKeeperDuelUI called for participant {_cachedPlayer.name} (Index {participantIndex}).");
-
-        if (_cachedPlayer.ControlType == ControlType.Ai)
-        {
-            Debug.Log("[KeeperCollider] Cached player is AI. Registering AI 'Catch' selection.");
-            _cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(participantIndex, Category.Catch);
-        }
-        else
-        {
-            Debug.Log("[KeeperCollider] Cached player is human. Showing UI for 'Catch' selection.");
-            BallTravelController.Instance.PauseTravel();
-            UIManager.Instance.SetDuelSelection(_cachedPlayer.TeamIndex, Category.Catch, participantIndex, _cachedPlayer);
-            // Only run selection phase for the local human keeper
-            if (_cachedPlayer.ControlType == ControlType.LocalHuman /* or your equivalent check */)
-                UIManager.Instance.BeginDuelSelectionPhase();
+            
+            // Only care about Shoot duels for the keeper
+            if (DuelManager.Instance.GetDuelMode() == DuelMode.Shoot)
+            {
+                UIManager.Instance.SetDuelSelection(_cachedPlayer.TeamIndex, Category.Catch, participantIndex, _cachedPlayer);
+                if (_cachedPlayer.ControlType == ControlType.Ai)
+                {
+                    _cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(_cachedPlayer.TeamIndex, Category.Catch);
+                }
+                else
+                {
+                    BallTravelController.Instance.PauseTravel();
+                    if (_cachedPlayer.ControlType == ControlType.LocalHuman)
+                        UIManager.Instance.BeginDuelSelectionPhase();
+                }
+            }
         }
     }
 

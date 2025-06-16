@@ -408,6 +408,7 @@ public class DuelManager : MonoBehaviour
 
     public void RegisterSelection(int index, Category category, DuelCommand command, Secret secret)
     {
+        Debug.Log($"[DuelManager] RegisterSelection index={index}, category={category}, command={command}, secret={(secret != null ? secret.name : "None")}, stagedCount={stagedParticipants.Count}");
         if (index < 0 || index >= stagedParticipants.Count)
         {
             Debug.LogError("Invalid participant index");

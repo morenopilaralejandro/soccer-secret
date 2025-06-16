@@ -45,7 +45,6 @@ public class BallCollider : MonoBehaviour
             validPossession &&
             playerComp != null)
         {
-            Debug.Log("--- inside ---");
             if (!PossessionManager.Instance.IsCooldownActive(playerComp))
             {
                 // Only allow the master (multiplayer) or anyone (offline) to claim possession:
