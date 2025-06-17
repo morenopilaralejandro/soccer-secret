@@ -21,21 +21,6 @@ public class Player : MonoBehaviour
     , IPunInstantiateMagicCallback
 #endif
 {   
-    public bool IsLocal
-    {
-        get
-        {
-#if PHOTON_UNITY_NETWORKING
-            var view = GetComponent<PhotonView>();
-            // Multiplayer: This is “mine” if owned (will work even if view is null in single player)
-            return view == null || view.IsMine;
-#else
-            // Always true in single-player/AI mode
-            return true;
-#endif
-        }
-    }
-
     public string PlayerId => playerId;
     public string PlayerName => playerName;
     public Size Size => size;
@@ -97,6 +82,7 @@ public class Player : MonoBehaviour
     private int maxSp;
 
     private Collider[] colliders;
+    private Collider keeperCollider;
     private Coroutine stunRoutine;
     private Coroutine blinkRoutine;
 
@@ -318,6 +304,7 @@ public class Player : MonoBehaviour
     {
         // Cache all colliders on self and children
         colliders = GetComponentsInChildren<Collider>(true);
+        keeperCollider = Array.Find(colliders, c => c.name == "KeeperCollider");
         // You may want to cache your PhotonView here if used frequently!
     }
     //stun
@@ -381,11 +368,21 @@ public class Player : MonoBehaviour
         stunRoutine = null;
     }
 
-    private void SetAllCollidersEnabled(bool enabled)
+private void SetAllCollidersEnabled(bool enabled)
+{
+    foreach (var col in colliders)
     {
-        foreach (var col in colliders)
+        // If this collider is keeperCollider and we are NOT keeper, don't enable it.
+        if (col == keeperCollider && !IsKeeper)
+        {
+            col.enabled = false; // Always disable regardless of argument
+        }
+        else
+        {
             col.enabled = enabled;
+        }
     }
+}
 
     private IEnumerator BlinkEffect(float duration)
     {
@@ -662,4 +659,10 @@ public class Player : MonoBehaviour
         // You can leave this empty unless you want networked spawn logic
     }
     #endif
+
+public void UpdateKeeperColliderState()
+{
+    if (keeperCollider != null)
+        keeperCollider.enabled = IsKeeper;
+}
 }

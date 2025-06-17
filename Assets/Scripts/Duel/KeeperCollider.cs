@@ -45,7 +45,7 @@ public class KeeperCollider : MonoBehaviour
         //Debug.Log("[KeeperCollider] TryHandleTrigger invoked.");
 
         // Only respond to ball collision
-        if (!otherCollider.transform.root.CompareTag("Ball"))
+        if (!otherCollider.transform.CompareTag("Ball"))
         {
             //Debug.Log("[KeeperCollider] Non-ball collision. Exiting.");
             return;
@@ -84,6 +84,11 @@ public class KeeperCollider : MonoBehaviour
         if (lastOffense != null && _cachedPlayer == lastOffense.Player)
         {
             //Debug.Log("[KeeperCollider] Offense player is cached player. Exiting.");
+            return;
+        }
+        if (lastOffense.Player.TeamIndex == _cachedPlayer.TeamIndex) 
+        {
+            //prevent catching same team shoot
             return;
         }
 

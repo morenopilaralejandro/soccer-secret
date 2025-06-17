@@ -24,9 +24,22 @@ public class PlayerAi : MonoBehaviour
     private void Start()
     {
         InitializeCloseDistance();
-        aiDifficulty = AiDifficulty.Hard;
 
-        teammates = GameManager.Instance.Teams[1].players; 
+    if (player == null)
+        player = GetComponent<Player>();
+
+    // Example: Get all Player objects in team, assign based on something in your GameManager
+    teammates = GameManager.Instance.Teams[player.TeamIndex].players;
+
+    // Assign Transform references by finding them (if tag or name set)
+    if (ballTransform == null)
+        ballTransform = GameObject.FindGameObjectWithTag("Ball").transform;
+
+    if (allyGoalTransform == null)
+        allyGoalTransform = GameObject.Find("GoalTop").transform;
+
+    if (oppGoalTransform == null)
+        oppGoalTransform = GameObject.Find("GoalBottom").transform;
     }
 
     private void Update()

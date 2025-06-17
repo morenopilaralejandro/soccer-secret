@@ -11,12 +11,9 @@ public class BallCollider : MonoBehaviour
 
     private void OnTriggerEnter(Collider collider)
     {
-        GameObject rootObj = collider.transform.root.gameObject;
-        Debug.Log("BallBehavior OnTriggerEnter: " + rootObj.name + " (Tag: " + rootObj.tag + ")");
-
         if (BallTravelController.Instance.IsTraveling) return;
 
-        Player playerComp = rootObj.GetComponent<Player>();
+        Player playerComp = collider.GetComponentInParent<Player>();
         bool validPossession = false;
         bool isKeeper = false;
 

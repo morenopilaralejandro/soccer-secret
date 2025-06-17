@@ -34,17 +34,43 @@ public class PlayerLineRenderer : MonoBehaviour
 #if PHOTON_UNITY_NETWORKING
     // Helper for safe network mode
     private PhotonView photonView => PhotonView.Get(this);
-    private bool IsMultiplayer => PhotonNetwork.InRoom && PhotonNetwork.NetworkClientState == Photon.Realtime.ClientState.Joined;
-#else
-    private bool IsMultiplayer => false;
 #endif
 
     private Vector3 networkedPosition; // For smooth sync
 
+    void Awake()
+    {
+        if (player != null && player.ControlType != ControlType.LocalHuman)
+        {
+            Destroy(this);
+        }
+
+if (mainCamera == null)
+        mainCamera = Camera.main; // uses the camera tagged "MainCamera"
+
+    // --- LineRenderer Reference ---
+    if (lineRenderer == null)
+        lineRenderer = GetComponent<LineRenderer>();
+
+    // --- BOUNDARIES ---
+    // Option 1: Find by Tag (recommended for unique objects)
+    if (boundTop == null)
+        boundTop = GameObject.Find("BoundTop1").GetComponent<BoxCollider>();
+    if (boundBottom == null)
+        boundBottom = GameObject.Find("BoundBottom1").GetComponent<BoxCollider>();
+    if (boundLeft == null)
+        boundLeft = GameObject.Find("BoundLeft").GetComponent<BoxCollider>();
+    if (boundRight == null)
+        boundRight = GameObject.Find("BoundRight").GetComponent<BoxCollider>();
+
+
+touchAreaLayer = LayerMask.GetMask("PlayerTouchArea");
+    }
+
     void OnEnable()
     {
         // Only local player gets input hooks!
-        if (player != null && player.IsLocal && InputManager.Instance.DragDetector != null)
+        if (player != null && player.ControlType == ControlType.LocalHuman && InputManager.Instance.DragDetector != null)
         {
             InputManager.Instance.DragDetector.OnDragStart += HandleDragStart;
             InputManager.Instance.DragDetector.OnDrag += HandleDrag;
@@ -54,7 +80,7 @@ public class PlayerLineRenderer : MonoBehaviour
 
     void OnDisable()
     {
-        if (player != null && player.IsLocal && InputManager.Instance.DragDetector != null)
+        if (player != null && player.ControlType == ControlType.LocalHuman && InputManager.Instance.DragDetector != null)
         {
             InputManager.Instance.DragDetector.OnDragStart -= HandleDragStart;
             InputManager.Instance.DragDetector.OnDrag -= HandleDrag;
@@ -69,12 +95,12 @@ public class PlayerLineRenderer : MonoBehaviour
 
         if (GameManager.Instance.CurrentPhase == GamePhase.Battle)
         {
-            if (player.IsLocal) // Local/owned player
+            if (player.ControlType == ControlType.LocalHuman) // Local/owned player
             {
                 MoveAlongLine();
             }
 #if PHOTON_UNITY_NETWORKING
-            else if (IsMultiplayer) // Remote player, interpolate to networkedPosition
+            else if (GameManager.Instance.IsMultiplayer) // Remote player, interpolate to networkedPosition
             {
                 player.transform.position =
                     Vector3.Lerp(player.transform.position, networkedPosition, Time.deltaTime * 10f);
@@ -87,7 +113,7 @@ public class PlayerLineRenderer : MonoBehaviour
 
     private void HandleDragStart(Vector2 pointerPosition)
     {
-        if (!player.IsLocal) return;
+        if (player.ControlType != ControlType.LocalHuman) return;
         if (EventSystem.current && EventSystem.current.IsPointerOverGameObject()) return;
 
         if (IsTouchingCharacter(pointerPosition))
@@ -101,7 +127,7 @@ public class PlayerLineRenderer : MonoBehaviour
 
     private void HandleDrag(Vector2 pointerPosition)
     {
-        if (!player.IsLocal || !isDragging) return;
+        if (player.ControlType != ControlType.LocalHuman || !isDragging) return;
 
         Vector3 worldPosition = mainCamera.ScreenToWorldPoint(new Vector3(pointerPosition.x, pointerPosition.y, mainCamera.nearClipPlane));
         worldPosition.y = 0f;
@@ -148,7 +174,7 @@ public class PlayerLineRenderer : MonoBehaviour
 
     private void HandleDragEnd(Vector2 pointerPosition)
     {
-        if (!player.IsLocal) return;
+        if (player.ControlType != ControlType.LocalHuman) return;
 
         if (isDragging)
         {
@@ -160,7 +186,7 @@ public class PlayerLineRenderer : MonoBehaviour
 
 #if PHOTON_UNITY_NETWORKING
                 // Send line to all in multiplayer mode
-                if (IsMultiplayer && photonView.IsMine)
+                if (GameManager.Instance.IsMultiplayer && photonView.IsMine)
                 {
                     photonView.RPC(nameof(RPC_SetLinePoints), RpcTarget.All, Vector3ArrayToFloatArray(linePoints.ToArray()), linePoints.Count);
                 }
@@ -208,7 +234,7 @@ public class PlayerLineRenderer : MonoBehaviour
 
 #if PHOTON_UNITY_NETWORKING
             // Network sync current position for other clients only if multiplayer and owner
-            if (IsMultiplayer && photonView.IsMine)
+            if (GameManager.Instance.IsMultiplayer && photonView.IsMine)
             {
                 networkedPosition = newPosition;
             }

@@ -32,10 +32,9 @@ public class GameManager : MonoBehaviour
 
     public List<Team> Teams => teams;
 
+    public Transform FieldRoot => fieldRoot;
+
     [SerializeField] private List<Team> teams;
-    [SerializeField] private List<Player> localHumanPlayers;
-    [SerializeField] private List<Player> remoteHumanPlayers;
-    [SerializeField] private List<Player> aiPlayers;
     [SerializeField] private Transform ball;
     [SerializeField] private Vector3 initialBallPosition;
     [SerializeField] private Vector3 centerKickOffPosition = Vector3.zero;
@@ -50,6 +49,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<TextMeshProUGUI> textScores;
     [SerializeField] private int winScore = 3;
     [SerializeField] private int[] scores = new int[] {0, 0};
+
+    [SerializeField] private Transform fieldRoot;
+    [SerializeField] private GameObject prefabPlayer;
+    [SerializeField] private GameObject prefabPlayerOpp;
 
     private bool isActiveScene = true;
 
@@ -76,7 +79,15 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        StartBattle();
+    #if PHOTON_UNITY_NETWORKING
+        if (IsMultiplayer)
+            MultiplayerStart();
+        else
+            OfflineStart();
+    #else
+        OfflineStart();
+    #endif
+
     }
 
     void Update()
@@ -97,15 +108,19 @@ public class GameManager : MonoBehaviour
     {
         scores = new int[] {0, 0};
         timeRemaining = timeDefault;
-        SetActivePlayers(localHumanPlayers, false);
-        SetActivePlayers(remoteHumanPlayers, false);
-        SetActivePlayers(aiPlayers, false);
         AssignGoals();
-        AssignTeamPlayers();
-        AssignControlTypes();
         InitializeTeamPlayers();
         UpdateScoreDisplay();
         UpdateTimerDisplay(timeDefault);
+        FlipFieldIfNeeded(GetLocalTeamIndex());
+    }
+
+    void FlipFieldIfNeeded(int myTeamIndex)
+    {
+        if (myTeamIndex == 1)
+            fieldRoot.localScale = new Vector3(1, 1, -1);
+        else
+            fieldRoot.localScale = new Vector3(1, 1, 1);
     }
 
     public void SetIsKickOffReady(bool ready)
@@ -138,6 +153,78 @@ public class GameManager : MonoBehaviour
         StartKickOff(teams[0]);
     }
 
+    private void MultiplayerStart() {
+        SpawnMyPlayers_Multiplayer();
+        StartBattle();
+    }
+
+    private void OfflineStart()
+    {
+        SpawnMyPlayers_Singleplayer();
+        SpawnAiPlayers_Singleplayer();
+        StartBattle();
+    }
+
+    private void SpawnMyPlayers_Multiplayer()
+    {
+    #if PHOTON_UNITY_NETWORKING
+        int myTeamIndex = GetLocalTeamIndex();
+        Team myTeam = teams[myTeamIndex];
+
+        for (int i = 0; i < myTeam.PlayerDataList.Count; i++)
+        {
+            Vector3 spawnPos = myTeam.Formation.Coords[i];
+            // Only this client spawns its own team's players
+            Player player = InstantiatePlayer_Multiplayer(spawnPos, Quaternion.identity, myTeamIndex, ControlType.LocalHuman);
+            myTeam.players.Add(player);
+        }
+    #endif
+    }
+
+    void SpawnMyPlayers_Singleplayer()
+    {
+            int teamIndex = 0;
+            Team team = teams[teamIndex];
+            for (int i = 0; i < team.PlayerDataList.Count; i++)
+            {
+                Vector3 spawnPos = team.Formation.Coords[i];
+                Player player = InstantiatePlayer_Singleplayer(spawnPos, Quaternion.identity, teamIndex, ControlType.LocalHuman, prefabPlayer);
+                team.players.Add(player);
+            }   
+    }
+
+    void SpawnAiPlayers_Singleplayer()
+    {
+            int teamIndex = 1;
+            Team team = teams[teamIndex];
+            for (int i = 0; i < team.PlayerDataList.Count; i++)
+            {
+                Vector3 spawnPos = team.Formation.Coords[i];
+                Player player = InstantiatePlayer_Singleplayer(spawnPos, Quaternion.identity, teamIndex, ControlType.Ai, prefabPlayerOpp);
+                team.players.Add(player);
+            }   
+    }
+
+    private Player InstantiatePlayer_Singleplayer(Vector3 pos, Quaternion rot, int teamIndex, ControlType controlType, GameObject prefab)
+    {
+        GameObject go = Instantiate(prefab, pos, rot, fieldRoot);
+        Player playerComponent = go.GetComponent<Player>();
+        playerComponent.TeamIndex = teamIndex;
+        playerComponent.ControlType = controlType;
+        go.transform.Rotate(90f, 0f, 0f);
+        return playerComponent;
+    }
+
+    private Player InstantiatePlayer_Multiplayer(Vector3 pos, Quaternion rot, int teamIndex, ControlType controlType) {
+        // Pass teamIndex and/or controlType as instantiation data if needed:
+        object[] instantiationData = new object[] { teamIndex };
+        GameObject go = PhotonNetwork.Instantiate("Prefabs/Player/Player", pos, rot, 0, instantiationData);
+
+        // Return the Player component (could be null on remote clients, but is valid on the spawning client)
+        return go.GetComponent<Player>();
+    }
+
+
     public void InitializeTeamPlayers()
     {
         for (int i = 0; i < teams.Count; i++)
@@ -151,6 +238,7 @@ public class GameManager : MonoBehaviour
                 if (j == 0)
                 {
                     player.IsKeeper = true;
+                    player.UpdateKeeperColliderState();
                 }
                 player.Lv = team.Lv;
                 player.TeamIndex = i;
@@ -176,7 +264,7 @@ public class GameManager : MonoBehaviour
                 Player player = t.players[i];
                 player.Unstun();
                 player.transform.position = t.Formation.Coords[i];
-                if (player.ControlType != ControlType.LocalHuman)
+                if (player.TeamIndex != 0)
                 {
                     Vector3 pos = player.transform.position;
                     pos.z = pos.z * -1;
@@ -373,56 +461,5 @@ public class GameManager : MonoBehaviour
         {
             goals[i].Team = teams[i];
         }
-    }
-
-    private void AssignTeamPlayers()
-    {
-        int localTeamIndex = GetLocalTeamIndex();
-        bool isMultiplayer = IsMultiplayer;
-
-        if (!isMultiplayer)
-        {
-            // Singleplayer: Local human controls team[0], AI controls team[1]
-            teams[0].players = localHumanPlayers;
-            teams[1].players = aiPlayers;
-            SetActivePlayers(localHumanPlayers, true);
-            SetActivePlayers(aiPlayers, true);
-        }
-        else
-        {
-            // Multiplayer: Local controls team[localTeamIndex], remote controls the other
-            if (localTeamIndex == 0)
-            {
-                teams[0].players = localHumanPlayers;
-                teams[1].players = remoteHumanPlayers;
-            }
-            else // localTeamIndex == 1
-            {
-                teams[0].players = remoteHumanPlayers;
-                teams[1].players = localHumanPlayers;
-            }
-            SetActivePlayers(localHumanPlayers, true);
-            SetActivePlayers(remoteHumanPlayers, true);
-        }
-    }
-
-    private void AssignControlTypes()
-    {
-        int myTeamIndex = GetLocalTeamIndex();
-
-        for (int i = 0; i < teams.Count; i++)
-        {
-            ControlType ct = (i == myTeamIndex)
-                ? ControlType.LocalHuman
-                : (IsMultiplayer ? ControlType.RemoteHuman : ControlType.Ai);
-            foreach (var p in teams[i].players)
-                p.ControlType = ct;
-        }
-    }
-
-    public void SetActivePlayers(List<Player> players, bool isActive)
-    {
-        foreach (Player player in players)
-            player.gameObject.SetActive(isActive);
     }
 }

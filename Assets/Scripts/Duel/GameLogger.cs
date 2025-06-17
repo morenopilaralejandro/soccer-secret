@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public static class GameLogger
 {
     public enum LogLevel { Info, Warning, Error }

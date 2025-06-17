@@ -350,7 +350,7 @@ public class BallBehavior : MonoBehaviour
         }
 #if PHOTON_UNITY_NETWORKING
         // Ownership: only relevant if multiplayer, and local player just gained it
-        if (GameManager.Instance.IsMultiplayer && player.IsLocal /* or similar logic for local player */)
+        if (GameManager.Instance.IsMultiplayer && player.ControlType == ControlType.LocalHuman /* or similar logic for local player */)
         {
             photonView.RequestOwnership();
         }

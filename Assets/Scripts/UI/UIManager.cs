@@ -620,11 +620,6 @@ if (GameManager.Instance.IsMultiplayer)
 DuelMode mode = DuelManager.Instance.GetDuelMode();
 if (mode == DuelMode.Field)
 {
-    // For field duels, call RegisterSelection immediately
-    int participantIndex = _duelSelections[teamIndex].ParticipantIndex;
-    Debug.Log($"[UIManager] Calling RegisterSelection for participantIndex={participantIndex}, teamIndex={teamIndex}");
-    DuelManager.Instance.RegisterSelection(participantIndex, _duelSelections[teamIndex].Category, command, secret);
-
     if (_isTeamReady[0] && _isTeamReady[1]) 
         RegisterBothSelections();
 }
