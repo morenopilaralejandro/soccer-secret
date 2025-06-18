@@ -6,10 +6,10 @@ using Photon.Pun;
 #endif
 
 public class PlayerLineRenderer : MonoBehaviour
-#if PHOTON_UNITY_NETWORKING
-    , IPunObservable
-#endif
 {
+public static PlayerLineRenderer LocalInstance;
+
+
     [SerializeField] private Player player;
     [SerializeField] private LineRenderer lineRenderer;
     [SerializeField] private Collider touchArea;
@@ -40,10 +40,9 @@ public class PlayerLineRenderer : MonoBehaviour
 
     void Awake()
     {
-        if (player != null && player.ControlType != ControlType.LocalHuman)
-        {
-            Destroy(this);
-        }
+
+    if (IsInputLocalPlayer())
+        LocalInstance = this;
 
 if (mainCamera == null)
         mainCamera = Camera.main; // uses the camera tagged "MainCamera"
@@ -67,10 +66,15 @@ if (mainCamera == null)
 touchAreaLayer = LayerMask.GetMask("PlayerTouchArea");
     }
 
+void Start() {
+    // Only enable LineRenderer for the local/owned player
+    lineRenderer.enabled = IsInputLocalPlayer();
+}
+
     void OnEnable()
     {
         // Only local player gets input hooks!
-        if (player != null && player.ControlType == ControlType.LocalHuman && InputManager.Instance.DragDetector != null)
+        if (player != null && IsInputLocalPlayer() && InputManager.Instance.DragDetector != null)
         {
             InputManager.Instance.DragDetector.OnDragStart += HandleDragStart;
             InputManager.Instance.DragDetector.OnDrag += HandleDrag;
@@ -80,7 +84,7 @@ touchAreaLayer = LayerMask.GetMask("PlayerTouchArea");
 
     void OnDisable()
     {
-        if (player != null && player.ControlType == ControlType.LocalHuman && InputManager.Instance.DragDetector != null)
+        if (player != null && IsInputLocalPlayer() && InputManager.Instance.DragDetector != null)
         {
             InputManager.Instance.DragDetector.OnDragStart -= HandleDragStart;
             InputManager.Instance.DragDetector.OnDrag -= HandleDrag;
@@ -95,17 +99,10 @@ touchAreaLayer = LayerMask.GetMask("PlayerTouchArea");
 
         if (GameManager.Instance.CurrentPhase == GamePhase.Battle)
         {
-            if (player.ControlType == ControlType.LocalHuman) // Local/owned player
+            if (IsInputLocalPlayer()) // Local/owned player
             {
                 MoveAlongLine();
             }
-#if PHOTON_UNITY_NETWORKING
-            else if (GameManager.Instance.IsMultiplayer) // Remote player, interpolate to networkedPosition
-            {
-                player.transform.position =
-                    Vector3.Lerp(player.transform.position, networkedPosition, Time.deltaTime * 10f);
-            }
-#endif
         }
     }
 
@@ -113,7 +110,7 @@ touchAreaLayer = LayerMask.GetMask("PlayerTouchArea");
 
     private void HandleDragStart(Vector2 pointerPosition)
     {
-        if (player.ControlType != ControlType.LocalHuman) return;
+        if (!IsInputLocalPlayer()) return;
         if (EventSystem.current && EventSystem.current.IsPointerOverGameObject()) return;
 
         if (IsTouchingCharacter(pointerPosition))
@@ -127,7 +124,7 @@ touchAreaLayer = LayerMask.GetMask("PlayerTouchArea");
 
     private void HandleDrag(Vector2 pointerPosition)
     {
-        if (player.ControlType != ControlType.LocalHuman || !isDragging) return;
+        if (!IsInputLocalPlayer() || !isDragging) return;
 
         Vector3 worldPosition = mainCamera.ScreenToWorldPoint(new Vector3(pointerPosition.x, pointerPosition.y, mainCamera.nearClipPlane));
         worldPosition.y = 0f;
@@ -174,7 +171,7 @@ touchAreaLayer = LayerMask.GetMask("PlayerTouchArea");
 
     private void HandleDragEnd(Vector2 pointerPosition)
     {
-        if (player.ControlType != ControlType.LocalHuman) return;
+        if (!IsInputLocalPlayer()) return;
 
         if (isDragging)
         {
@@ -289,18 +286,14 @@ touchAreaLayer = LayerMask.GetMask("PlayerTouchArea");
         lineRenderer.positionCount = 0;
     }
 
+
+private bool IsInputLocalPlayer()
+{
 #if PHOTON_UNITY_NETWORKING
-    //--- Sync interpolated position for remote clients
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    {
-        if (stream.IsWriting)
-        {
-            stream.SendNext(player.transform.position);
-        }
-        else
-        {
-            networkedPosition = (Vector3)stream.ReceiveNext();
-        }
-    }
+    return photonView != null && photonView.IsMine;
+#else
+    return player != null && player.ControlType == ControlType.LocalHuman;
 #endif
+}
+
 }

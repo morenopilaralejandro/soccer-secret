@@ -50,6 +50,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int winScore = 3;
     [SerializeField] private int[] scores = new int[] {0, 0};
 
+    [SerializeField] private Camera mainCamera;
     [SerializeField] private Transform fieldRoot;
     [SerializeField] private GameObject prefabPlayer;
     [SerializeField] private GameObject prefabPlayerOpp;
@@ -77,18 +78,26 @@ public class GameManager : MonoBehaviour
         teams.Add(TeamManager.Instance.GetTeamById("T2"));
     }
 
-    void Start()
-    {
+void Start()
+{
+    // 1. SPAWN (instantiate) players. This should only be called ONCE per match!
     #if PHOTON_UNITY_NETWORKING
         if (IsMultiplayer)
-            MultiplayerStart();
+            SpawnMyPlayers_Multiplayer();
         else
-            OfflineStart();
+            OfflineSpawn();
     #else
-        OfflineStart();
+        OfflineSpawn();
     #endif
 
-    }
+    // 2. INITIALIZE all player components (setup stats, visuals, etc)
+    InitializeTeamPlayers();
+
+    // 4. Start the game!
+    SetCameraForMyTeam(GetLocalTeamIndex(), mainCamera);
+
+    StartBattle();
+}
 
     void Update()
     {
@@ -104,16 +113,23 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void Reset()
+    public void Reset()
     {
+        // We do NOT instantiate again! Only reset state here.
         scores = new int[] {0, 0};
         timeRemaining = timeDefault;
         AssignGoals();
-        InitializeTeamPlayers();
+#if PHOTON_UNITY_NETWORKING
+            // Only master sets phase in online games!
+            if (PhotonNetwork.IsMasterClient)
+            {
+        ResetDefaultPositions();
+            }
+#endif
         UpdateScoreDisplay();
         UpdateTimerDisplay(timeDefault);
-        FlipFieldIfNeeded(GetLocalTeamIndex());
     }
+
 
     void FlipFieldIfNeeded(int myTeamIndex)
     {
@@ -121,6 +137,20 @@ public class GameManager : MonoBehaviour
             fieldRoot.localScale = new Vector3(1, 1, -1);
         else
             fieldRoot.localScale = new Vector3(1, 1, 1);
+    }
+
+    public void SetCameraForMyTeam(int myTeamIndex, Camera mainCamera)
+    {
+        if (myTeamIndex == 0)
+        {
+            mainCamera.transform.position = new Vector3(0f, 1f, 2.4f);
+            mainCamera.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+        }
+        else
+        {
+            mainCamera.transform.position = new Vector3(0f, 1f, -2.4f);
+            mainCamera.transform.rotation = Quaternion.Euler(90f, 180f, 0f);
+        }
     }
 
     public void SetIsKickOffReady(bool ready)
@@ -153,17 +183,17 @@ public class GameManager : MonoBehaviour
         StartKickOff(teams[0]);
     }
 
+
+
     private void MultiplayerStart() {
         SpawnMyPlayers_Multiplayer();
         StartBattle();
     }
 
-    private void OfflineStart()
-    {
-        SpawnMyPlayers_Singleplayer();
-        SpawnAiPlayers_Singleplayer();
-        StartBattle();
-    }
+private void OfflineSpawn() {
+    SpawnMyPlayers_Singleplayer();
+    SpawnAiPlayers_Singleplayer();
+}
 
     private void SpawnMyPlayers_Multiplayer()
     {
@@ -175,8 +205,7 @@ public class GameManager : MonoBehaviour
         {
             Vector3 spawnPos = myTeam.Formation.Coords[i];
             // Only this client spawns its own team's players
-            Player player = InstantiatePlayer_Multiplayer(spawnPos, Quaternion.identity, myTeamIndex, ControlType.LocalHuman);
-            myTeam.players.Add(player);
+            InstantiatePlayer_Multiplayer(spawnPos, Quaternion.identity, myTeamIndex, ControlType.LocalHuman, myTeam.TeamId, myTeam.PlayerDataList[i].playerId);
         }
     #endif
     }
@@ -215,9 +244,9 @@ public class GameManager : MonoBehaviour
         return playerComponent;
     }
 
-    private Player InstantiatePlayer_Multiplayer(Vector3 pos, Quaternion rot, int teamIndex, ControlType controlType) {
+    private Player InstantiatePlayer_Multiplayer(Vector3 pos, Quaternion rot, int teamIndex, ControlType controlType, string teamId, string playerId) {
         // Pass teamIndex and/or controlType as instantiation data if needed:
-        object[] instantiationData = new object[] { teamIndex };
+        object[] instantiationData = new object[] { teamIndex, teamId, playerId };
         GameObject go = PhotonNetwork.Instantiate("Prefabs/Player/Player", pos, rot, 0, instantiationData);
 
         // Return the Player component (could be null on remote clients, but is valid on the spawning client)
@@ -272,7 +301,7 @@ public class GameManager : MonoBehaviour
                 }
                 if (player.ControlType != ControlType.Ai)
                 {
-                    player.transform.Find("Line").GetComponent<PlayerLineRenderer>().ResetLine();
+                    player.transform.GetComponent<PlayerLineRenderer>().ResetLine();
                 }
                 player.DefaultPosition = player.transform.position;
             }

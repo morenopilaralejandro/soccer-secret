@@ -27,6 +27,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject panelCommand;
     [SerializeField] private PanelStatusSide panelStatusSideAlly;
     [SerializeField] private PanelStatusSide panelStatusSideOpp;
+    [SerializeField] private GameObject panelWaitingForOpponent;
     [SerializeField] private GameObject buttonDuelToggle;
     [SerializeField] private GameObject buttonSwap;
     [SerializeField] private GameObject textWin;
@@ -392,6 +393,12 @@ public class UIManager : MonoBehaviour
     // ==============================
     #region Duel Selection Phase Logic
 
+[PunRPC]
+public void RpcDuelSelectionPhase()
+{
+    UIManager.Instance.BeginDuelSelectionPhase();
+}
+
  public void BeginDuelSelectionPhase()
 {
     Debug.Log("[UIManager] BeginDuelSelectionPhase called.");
@@ -565,7 +572,7 @@ private void RegisterShootSelectionAndClose(int teamIndex)
     {
         _isTeamReady[teamIndex] = true;
         _commands[teamIndex] = (DuelCommand)commandInt;
-        _secrets[teamIndex] = SecretManager.Instance.GetSecretById(secretIdOrNull);
+        _secrets[teamIndex] = secretIdOrNull == null ? null : SecretManager.Instance.GetSecretById(secretIdOrNull);
 
         Debug.Log($"[UIManager] NetworkDuelSelectionReceived: Team {teamIndex} | Command {commandInt} | SecretId {(string.IsNullOrEmpty(secretIdOrNull) ? "None" : secretIdOrNull)}");
 
@@ -584,7 +591,7 @@ private void RegisterShootSelectionAndClose(int teamIndex)
             Photon.Pun.RpcTarget.Others,
             teamIndex, (int)command, secretIdOrNull
         );
-        Debug.Log($"[UIManager] Sent selection to remote: Team {teamIndex}, Command {command}, SecretId {(secret == null ? "None" : secret.SecretId)}");
+        Debug.Log($"[UIManager] Sent selection to remote: Team {teamIndex}, Command {command}, SecretId {(secret == null ? null : secret.SecretId)}");
 #endif
     }
 
@@ -607,12 +614,30 @@ private void RegisterBothSelections()
     GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Battle);
 }
 
+void ShowWaitingForOpponentUI()
+{
+    SetActiveSafe(panelWaitingForOpponent, true);
+}
+void HideWaitingForOpponentUI()
+{
+    SetActiveSafe(panelWaitingForOpponent, false);
+}
+
 public void DuelSelectionMade(int teamIndex, DuelCommand command, Secret secret)
 {
     _isTeamReady[teamIndex] = true;
     _commands[teamIndex] = command;
     _secrets[teamIndex] = secret;
     Debug.Log($"[UIManager] DuelSelectionMade: Team {teamIndex}, Command {command}, Secret {(secret != null ? secret.name : "None")}");
+
+
+    if (GameManager.Instance.IsMultiplayer && IsLocalTeamIndex(teamIndex))
+    {
+        HideDuelUi();
+
+        // Optionally, display a "Waiting for Opponent..." overlay or message here
+        // ShowWaitingForOpponentUI();
+    }
 
 if (GameManager.Instance.IsMultiplayer)
     SendSelectionToRemote(teamIndex, command, secret);

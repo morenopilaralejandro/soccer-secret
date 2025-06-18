@@ -377,7 +377,9 @@ public class BallBehavior : MonoBehaviour
         else
         {
             transform.position = (Vector3)stream.ReceiveNext();
-            rb.velocity = (Vector3)stream.ReceiveNext();
+Vector3 networkVelocity = (Vector3)stream.ReceiveNext();
+if (!rb.isKinematic)
+    rb.velocity = networkVelocity;
         }
     }
 

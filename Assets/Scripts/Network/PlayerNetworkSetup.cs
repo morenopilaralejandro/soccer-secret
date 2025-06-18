@@ -5,24 +5,52 @@ public class PlayerNetworkSetup : MonoBehaviourPun, IPunInstantiateMagicCallback
 {
     public void OnPhotonInstantiate(PhotonMessageInfo info)
     {
-        // Parent to fieldRoot EVERY time (on all clients)
+        // Always parent under the field!
         transform.SetParent(GameManager.Instance.FieldRoot, worldPositionStays: true);
 
-        // Optional: Reset position/rotation to match spawned values (should not be needed unless transforms are acting up)
-        // transform.position = transform.position; // Not needed, shown for clarity
-        // transform.rotation = transform.rotation;
-
-        // Rotate 90° round X axis, if needed for your game's visuals:
+        // Consistent visual orientation
         transform.Rotate(90f, 0f, 0f, Space.Self);
 
-        // ControlType: Is this my own player or a remote one?
+        // Set up references
         var player = GetComponent<Player>();
+        
+        // Control type: local or remote?
         player.ControlType = photonView.IsMine ? ControlType.LocalHuman : ControlType.RemoteHuman;
 
-        // Retrieve any custom instantiation data (like which team this player is on!):
-        if (photonView.InstantiationData != null && photonView.InstantiationData.Length > 0)
+        // Get team index and playerId from instantiation data
+        if (photonView.InstantiationData != null && photonView.InstantiationData.Length >= 2)
         {
-            player.TeamIndex = (int)photonView.InstantiationData[0];
+            int teamIndex = (int)photonView.InstantiationData[0];
+            string teamId = (string)photonView.InstantiationData[1];
+            string playerId = (string)photonView.InstantiationData[2];
+
+            player.TeamIndex = teamIndex;
+
+            // Look up PlayerData
+            Team team = TeamManager.Instance.GetTeamById(teamId);
+            PlayerData pdata = null;
+            if (team != null)
+            {
+                pdata = PlayerManager.Instance.GetPlayerDataById(playerId);
+            }
+            if (pdata != null)
+            {
+                player.Initialize(pdata);
+                player.SetWear(team);
+            }
+            else
+            {
+                Debug.LogWarning($"Could not initialize remote player: TeamIndex={teamIndex}, PlayerId={playerId}");
+            }
+
+            if (!GameManager.Instance.Teams[teamIndex].players.Contains(player))
+            {
+                GameManager.Instance.Teams[teamIndex].players.Add(player);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("No instantiation data found for Player setup!");
         }
     }
 }

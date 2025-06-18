@@ -29,7 +29,8 @@ public class BallCollider : MonoBehaviour
         else if (
             collider.CompareTag("PlayerKeeperCollider") &&
             playerComp != null &&
-            PossessionManager.Instance.LastPossessionPlayer.ControlType != ControlType.LocalHuman && //keeper won't stop a pass from a player in its same team
+            PossessionManager.Instance.LastPossessionPlayer &&
+            PossessionManager.Instance.LastPossessionPlayer.TeamIndex != playerComp.TeamIndex && //keeper won't stop a pass from a player in its same team
             GameManager.Instance.GetDistanceToAllyGoal(playerComp) < keeperGoalDistance)
         {
             isKeeper = true;
