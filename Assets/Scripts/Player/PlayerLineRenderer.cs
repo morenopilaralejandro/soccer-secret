@@ -73,6 +73,8 @@ void Start() {
 
     void OnEnable()
     {
+   
+
         // Only local player gets input hooks!
         if (player != null && IsInputLocalPlayer() && InputManager.Instance.DragDetector != null)
         {
@@ -110,6 +112,8 @@ void Start() {
 
     private void HandleDragStart(Vector2 pointerPosition)
     {
+      
+
         if (!IsInputLocalPlayer()) return;
         if (EventSystem.current && EventSystem.current.IsPointerOverGameObject()) return;
 
@@ -290,7 +294,11 @@ void Start() {
 private bool IsInputLocalPlayer()
 {
 #if PHOTON_UNITY_NETWORKING
-    return photonView != null && photonView.IsMine;
+    if (GameManager.Instance.IsMultiplayer) {
+        return photonView != null && photonView.IsMine;
+    } else {
+        return  player != null && player.ControlType == ControlType.LocalHuman;
+    }
 #else
     return player != null && player.ControlType == ControlType.LocalHuman;
 #endif

@@ -81,17 +81,16 @@ public class GameManager : MonoBehaviour
 void Start()
 {
     // 1. SPAWN (instantiate) players. This should only be called ONCE per match!
-    #if PHOTON_UNITY_NETWORKING
-        if (IsMultiplayer)
-            SpawnMyPlayers_Multiplayer();
-        else
-            OfflineSpawn();
-    #else
-        OfflineSpawn();
-    #endif
 
-    // 2. INITIALIZE all player components (setup stats, visuals, etc)
-    InitializeTeamPlayers();
+        if (IsMultiplayer) {
+            #if PHOTON_UNITY_NETWORKING
+            SpawnMyPlayers_Multiplayer();
+            #endif
+        }
+        else {
+            OfflineSpawn();
+            InitializeTeamPlayers(); 
+        }
 
     // 4. Start the game!
     SetCameraForMyTeam(GetLocalTeamIndex(), mainCamera);
@@ -267,8 +266,8 @@ private void OfflineSpawn() {
                 if (j == 0)
                 {
                     player.IsKeeper = true;
-                    player.UpdateKeeperColliderState();
                 }
+                player.UpdateKeeperColliderState();
                 player.Lv = team.Lv;
                 player.TeamIndex = i;
                 player.SetWear(team);
@@ -483,6 +482,7 @@ private void OfflineSpawn() {
         return 0;
     #endif
     }
+
 
     private void AssignGoals() 
     {

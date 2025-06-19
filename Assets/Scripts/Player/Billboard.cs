@@ -3,8 +3,6 @@ using UnityEngine;
 public class Billboard : MonoBehaviour
 {
     public Camera targetCamera; // If left null, will auto-use Camera.main
-
-    // If you want the sprite to always remain upright on the screen, set this to true!
     public bool keepUpright = true;
 
     void LateUpdate()
@@ -15,13 +13,22 @@ public class Billboard : MonoBehaviour
         if (targetCamera == null)
             return;
 
-        // Calculate the look direction and "up" (for upright billboarding)
         Vector3 lookDirection = transform.position - targetCamera.transform.position;
 
         if (keepUpright)
         {
-            // 'Up' is the camera's up direction—prevents upside-down look
-            transform.rotation = Quaternion.LookRotation(lookDirection, targetCamera.transform.up);
+            float originalX = transform.eulerAngles.x; // Save the current X rotation
+
+            // Generate the "upright" rotation
+            Quaternion uprightRotation = Quaternion.LookRotation(lookDirection, targetCamera.transform.up);
+
+            // Apply that rotation
+            transform.rotation = uprightRotation;
+
+            // Restore the original X angle, keep the new Y and Z
+            Vector3 fixedEuler = transform.eulerAngles;
+            fixedEuler.x = originalX;
+            transform.eulerAngles = fixedEuler;
         }
         else
         {

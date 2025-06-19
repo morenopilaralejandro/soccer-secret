@@ -26,6 +26,8 @@ public class SecretPanel : MonoBehaviour
         // Fill slots only with secrets matching the given category
         foreach (var secret in currentSecret)
         {
+            Debug.Log($"Slot {slotIndex} possible: {secret.SecretId} ({secret.Category})");
+
             if (secret.Category == category && slotIndex < slots.Count)
             {
                 slots[slotIndex].SetSecret(secret);

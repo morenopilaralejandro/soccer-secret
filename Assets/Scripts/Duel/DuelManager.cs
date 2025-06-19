@@ -69,6 +69,58 @@ public class DuelManager : MonoBehaviour
 
     #region Duel Flow
 
+    public void ResolveDuelAndBroadcast()
+    {
+        if (!currentDuel.IsResolved && currentDuel.Participants.Count == 2)
+        {
+            // Put your duel outcome logic here.
+            DuelParticipant winner;
+            DuelAction winnerAction;
+            // ------- Your win/lose logic here -------
+            // Assume you already have EndDuel_Internal/who wins, etc.
+            if (currentDuel.LastDefense != null && currentDuel.LastDefense.Damage >= currentDuel.AttackPressure)
+            {
+                winner = currentDuel.LastDefense;
+                winnerAction = DuelAction.Defense;
+            }
+            else
+            {
+                winner = currentDuel.LastOffense;
+                winnerAction = DuelAction.Offense;
+            }
+            // Mark duel as resolved so we don't do it again
+            currentDuel.IsResolved = true;
+
+            // Prepare data for UI (pass only IDs, not objects)
+            string winnerPlayerId = winner.Player.PlayerId;
+            int winnerTeamIndex = winner.Player.TeamIndex;
+            int winnerActionInt = (int)winnerAction;
+
+            #if PHOTON_UNITY_NETWORKING
+            // Master broadcasts outcome
+PhotonView.Get(UIManager.Instance).RPC(
+    "RpcDuelOutcome",
+    RpcTarget.All,
+    winnerPlayerId, winnerTeamIndex, winnerActionInt
+);
+            #else
+            // Singleplayer -- just call RPC locally
+            UIManager.Instance.RpcDuelOutcome(winnerPlayerId, winnerTeamIndex, winnerActionInt);
+            #endif
+        }
+    }
+
+    // Optionally, you call this from RegisterBothSelections (ONLY on master, field duel)
+    public void TryResolveFromSelections()
+    {
+        #if PHOTON_UNITY_NETWORKING
+        if (GameManager.Instance.IsMultiplayer && !PhotonNetwork.IsMasterClient)
+            return;
+        #endif
+        ResolveDuelAndBroadcast();
+    }
+
+
     public void StartDuel(DuelMode mode)
     {
         // Only authority may start duel, everyone else only updates by RPC!
@@ -438,6 +490,16 @@ public class DuelManager : MonoBehaviour
         Debug.Log($"Created participant: {participant.Player.name}");
         AddParticipantToDuel(participant);  // Will use authority pattern now
     }
+
+public void ResolveDuelIfReady()
+{
+    if(currentDuel.Participants.Count >= 2)
+    {
+        var offense = currentDuel.Participants.First(p => p.Action == DuelAction.Offense);
+        var defense = currentDuel.Participants.First(p => p.Action == DuelAction.Defense);
+        ResolveDefense(defense); // Your own logic
+    }
+}
 
     #endregion
 

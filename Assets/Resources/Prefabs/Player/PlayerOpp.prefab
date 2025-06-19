@@ -88,7 +88,9 @@ PrefabInstance:
       propertyPath: m_Radius
       value: 0.6
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3303501255187513126, guid: aa2275c79da51bb7b8f5dc1562fb2501, type: 3}
+    - {fileID: 7293294000033721669, guid: aa2275c79da51bb7b8f5dc1562fb2501, type: 3}
     m_RemovedGameObjects:
     - {fileID: 6926927551590348990, guid: aa2275c79da51bb7b8f5dc1562fb2501, type: 3}
     m_AddedGameObjects: []
@@ -129,5 +131,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 2968101766863181003}
+  teammates: []
+  bestTeammate: {fileID: 0}
   ballTransform: {fileID: 0}
-  ballCloseDistance: 0
+  allyGoalTransform: {fileID: 0}
+  oppGoalTransform: {fileID: 0}
+  aiDifficulty: 1
+  currentState: 0
+  closeDistance: 0
+  shootGoalDistance: 1.5
