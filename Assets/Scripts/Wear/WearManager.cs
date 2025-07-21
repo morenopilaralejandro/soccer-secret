@@ -1,11 +1,11 @@
 using UnityEngine;
 
+public enum PortraitSize { Xs, S, Ms, M, Ml, L, Xl }
 public enum WearRole { Field, Keeper }
 public enum WearVariant { Home, Away }
 
 public class WearManager : MonoBehaviour
 {
-
     public static WearManager Instance { get; private set; }
     public WearPortraitLibrary wearPortraitLibrary; // Drag your asset here in inspector
     public WearLibrary wearLibrary; // Drag your asset here in inspector
@@ -22,20 +22,21 @@ public class WearManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    // Update these methods to use wearId and PortraitSize
     public Sprite GetWearPortraitSprite(
-        string teamId,
-        Size size,
-        WearRole role,
-        WearVariant variant)
+        string wearId,
+        PortraitSize portraitSize,
+        WearRole wearRole,
+        WearVariant wearVariant)
     {
-        return wearPortraitLibrary.GetWearPortraitSprite(teamId, size, role, variant);
+        return wearPortraitLibrary.GetWearPortraitSprite(wearId, portraitSize, wearRole, wearVariant);
     }
 
     public Sprite GetWearSprite(
-        string teamId,
-        WearRole role,
-        WearVariant variant)
+        string wearId,
+        WearRole wearRole,
+        WearVariant wearVariant)
     {
-        return wearLibrary.GetWearSprite(teamId, role, variant);
+        return wearLibrary.GetWearSprite(wearId, wearRole, wearVariant);
     }
 }

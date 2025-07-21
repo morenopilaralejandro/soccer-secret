@@ -38,51 +38,56 @@ public class BulkWearImporter : EditorWindow
     {
         var newWears = new List<WearEntry>();
 
-            foreach (var role in System.Enum.GetNames(typeof(WearRole)))
+        // Get all PNG files in all subdirectories
+        string[] files = Directory.GetFiles(baseFolder, "*.png", SearchOption.AllDirectories);
+        foreach (string file in files)
+        {
+            string filename = Path.GetFileNameWithoutExtension(file); // Example: wearId-wearVariant-wearRole
+            string[] parts = filename.Split('-');
+            if (parts.Length != 4)
             {
-                foreach (var variant in System.Enum.GetNames(typeof(WearVariant)))
-                {
-                    string path = Path.Combine(baseFolder, role, variant);
-                    
-                    if (!Directory.Exists(path))
-                        continue;
+                Debug.LogWarning($"Filename format incorrect: {filename}");
+                continue;
+            }
 
-                    Debug.Log($"Found directory: {path}");
+            string wearIdString = parts[0];
+            string wearVariantString = parts[1];
+            string wearRoleString = parts[2];
 
-                    string[] files = Directory.GetFiles(path, "*.png");
-                    foreach (string file in files)
-                    {
-                        Debug.Log($"Trying: {role}/{variant}");
-                        string teamId = Path.GetFileNameWithoutExtension(file);
-                        Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(file);
-                        if (sprite == null)
-                        {
-                            Debug.LogWarning($"Couldn't load sprite at {file}");
-                            continue;
-                        }
+            // Parse enums, case-insensitive
+            if (!System.Enum.TryParse(typeof(WearVariant), wearVariantString, true, out object wearVariantObj)
+                || !System.Enum.TryParse(typeof(WearRole), wearRoleString, true, out object wearRoleObj))
+            {
+                Debug.LogWarning($"Enum parse failed for file: {filename}");
+                continue;
+            }
 
-                        // Prevent duplicates
-                        if (wearLibrary.wears.Exists(w =>
-                            w.teamId == teamId &&
-                            w.role.ToString() == role &&
-                            w.variant.ToString() == variant
-                        ))
-                        {
-                            Debug.Log($"Duplicate skipped: {role}/{variant}/{teamId}");
-                            continue;
-                        }
+            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(file);
+            if (sprite == null)
+            {
+                Debug.LogWarning($"Couldn't load sprite at {file}");
+                continue;
+            }
 
-                        WearEntry entry = new WearEntry
-                        {
-                            teamId = teamId,
-                            role = (WearRole)System.Enum.Parse(typeof(WearRole), role),
-                            variant = (WearVariant)System.Enum.Parse(typeof(WearVariant), variant),
-                            sprite = sprite
-                        };
-                        newWears.Add(entry);
-                        Debug.Log($"Imported: {role}/{variant}/{teamId}");
-                    }
-                }
+            // Prevent duplicates
+            if (wearLibrary.wears.Exists(w =>
+                w.wearId == wearIdString
+                && w.wearVariant == (WearVariant)wearVariantObj
+                && w.wearRole == (WearRole)wearRoleObj))
+            {
+                Debug.Log($"Duplicate skipped: {filename}");
+                continue;
+            }
+
+            WearEntry entry = new WearEntry
+            {
+                wearId = wearIdString,
+                wearVariant = (WearVariant)wearVariantObj,
+                wearRole = (WearRole)wearRoleObj,
+                sprite = sprite
+            };
+            newWears.Add(entry);
+            Debug.Log($"Imported: {filename}");
         }
 
         wearLibrary.wears.AddRange(newWears);

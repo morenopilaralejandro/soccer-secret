@@ -14,7 +14,7 @@ public enum PlayerStats { Hp, Sp, Kick, Body, Control, Guard, Speed, Stamina, Co
 
 public enum ControlType { LocalHuman, RemoteHuman, Ai }
 
-public enum Size { Small, MediumF, MediumM, Large }
+public enum PlayerSize { S, M, L, Xl }
 
 public class Player : MonoBehaviour
 #if PHOTON_UNITY_NETWORKING
@@ -23,7 +23,7 @@ public class Player : MonoBehaviour
 {   
     public string PlayerId => playerId;
     public string PlayerName => playerName;
-    public Size Size => size;
+    public PlayerSize PlayerSize => playerSize;
     public Gender Gender => gender;
     public Element Element => element;
     public Position Position => position;
@@ -52,13 +52,12 @@ public class Player : MonoBehaviour
     [SerializeField] private string pathPigment = "Pigment/";
     [SerializeField] private string pathHair = "Hair/";
     [SerializeField] private string pathAccessory = "Accessory/";
-    [SerializeField] private string pathPlayerPortrait = "PlayerPortrait/";
     [SerializeField] private string tableCollectionName = "PlayerNames";
 
     [SerializeField] private float defaultPositionY = 0f;    
     [SerializeField] private string playerId;
     [SerializeField] private string playerName;
-    [SerializeField] private Size size;
+    [SerializeField] private PlayerSize playerSize;
     [SerializeField] private Gender gender;
     [SerializeField] private Element element;
     [SerializeField] private Position position;
@@ -154,13 +153,13 @@ public class Player : MonoBehaviour
         }
 
         auxString = playerData.size;
-        Size auxSize;
-        isValid = Enum.TryParse(auxString, true, out auxSize); // case-insensitive parse
+        PlayerSize auxPlayerSize;
+        isValid = Enum.TryParse(auxString, true, out auxPlayerSize); // case-insensitive parse
         if (isValid)
         {
-            size = auxSize;
+            playerSize = auxPlayerSize;
         } else {
-            size = Size.Small;
+            playerSize = PlayerSize.S;
         }
 
         IsPossession = false;
@@ -264,15 +263,13 @@ public class Player : MonoBehaviour
             Debug.LogWarning("SpriteRendererElement reference is missing!");
         }
 
-        spriteAux = Resources.Load<Sprite>(pathPlayerPortrait + playerData.playerId);
+        spriteAux = PlayerManager.Instance.GetPlayerPortraitSpriteById(playerData.playerId);
         if (spriteAux != null)
         {
             spritePlayerPortrait = spriteAux;
         }
         else
         {
-            spriteAux = Resources.Load<Sprite>(pathPlayerPortrait + "P1");
-            spritePlayerPortrait = spriteAux;
             Debug.LogWarning("SpritePlayerPortrait not found for player id: " + playerData.playerId);
         }
 
@@ -646,7 +643,7 @@ private void SetAllCollidersEnabled(bool enabled)
             Debug.LogWarning("SpriteRendererWear reference is missing!");
         }
 
-        spriteAux = WearManager.Instance.GetWearPortraitSprite(team.TeamId, size, role, variant);
+        spriteAux = WearManager.Instance.GetWearPortraitSprite("wearId", PortraitSize.M, role, variant);
         if (spriteAux != null)
             spriteWearPortrait = spriteAux;
         else

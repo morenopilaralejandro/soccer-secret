@@ -38,56 +38,60 @@ public class BulkWearPortraitImporter : EditorWindow
     {
         var newWearPortraits = new List<WearPortraitEntry>();
 
-        foreach (var size in System.Enum.GetNames(typeof(Size)))
+        // Get all PNG files in all subdirectories
+        string[] files = Directory.GetFiles(baseFolder, "*.png", SearchOption.AllDirectories);
+        foreach (string file in files)
         {
-            foreach (var role in System.Enum.GetNames(typeof(WearRole)))
+            string filename = Path.GetFileNameWithoutExtension(file); // Example: wearId-wearVariant-wearRole-portraitSize
+            string[] parts = filename.Split('-');
+            if (parts.Length != 4)
             {
-                foreach (var variant in System.Enum.GetNames(typeof(WearVariant)))
-                {
-                    string path = Path.Combine(baseFolder, size, role, variant);
-                    
-                    if (!Directory.Exists(path))
-                        continue;
-
-                    Debug.Log($"Found directory: {path}");
-
-                    string[] files = Directory.GetFiles(path, "*.png");
-                    foreach (string file in files)
-                    {
-                        Debug.Log($"Trying: {size}/{role}/{variant}");
-                        string teamId = Path.GetFileNameWithoutExtension(file);
-                        Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(file);
-                        if (sprite == null)
-                        {
-                            Debug.LogWarning($"Couldn't load sprite at {file}");
-                            continue;
-                        }
-
-                        // Prevent duplicates
-                        if (wearPortraitLibrary.wearPortraits.Exists(w =>
-                            w.teamId == teamId &&
-                            w.size.ToString() == size &&
-                            w.role.ToString() == role &&
-                            w.variant.ToString() == variant
-                        ))
-                        {
-                            Debug.Log($"Duplicate skipped: {size}/{role}/{variant}/{teamId}");
-                            continue;
-                        }
-
-                        WearPortraitEntry entry = new WearPortraitEntry
-                        {
-                            teamId = teamId,
-                            size = (Size)System.Enum.Parse(typeof(Size), size),
-                            role = (WearRole)System.Enum.Parse(typeof(WearRole), role),
-                            variant = (WearVariant)System.Enum.Parse(typeof(WearVariant), variant),
-                            sprite = sprite
-                        };
-                        newWearPortraits.Add(entry);
-                        Debug.Log($"Imported: {size}/{role}/{variant}/{teamId}");
-                    }
-                }
+                Debug.LogWarning($"Filename format incorrect: {filename}");
+                continue;
             }
+
+            string wearIdString = parts[0];
+            string wearVariantString = parts[1];
+            string wearRoleString = parts[2];
+            string portraitSizeString = parts[3];
+
+            // Parse enums, case-insensitive
+            if (!System.Enum.TryParse(typeof(WearVariant), wearVariantString, true, out object wearVariantObj)
+                || !System.Enum.TryParse(typeof(WearRole), wearRoleString, true, out object wearRoleObj)
+                || !System.Enum.TryParse(typeof(PortraitSize), portraitSizeString, true, out object portraitSizeObj))
+            {
+                Debug.LogWarning($"Enum parse failed for file: {filename}");
+                continue;
+            }
+
+            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(file);
+            if (sprite == null)
+            {
+                Debug.LogWarning($"Couldn't load sprite at {file}");
+                continue;
+            }
+
+            // Prevent duplicates
+            if (wearPortraitLibrary.wearPortraits.Exists(w =>
+                w.wearId == wearIdString
+                && w.wearVariant == (WearVariant)wearVariantObj
+                && w.wearRole == (WearRole)wearRoleObj
+                && w.portraitSize == (PortraitSize)portraitSizeObj))
+            {
+                Debug.Log($"Duplicate skipped: {filename}");
+                continue;
+            }
+
+            WearPortraitEntry entry = new WearPortraitEntry
+            {
+                wearId = wearIdString,
+                wearVariant = (WearVariant)wearVariantObj,
+                wearRole = (WearRole)wearRoleObj,
+                portraitSize = (PortraitSize)portraitSizeObj,
+                sprite = sprite
+            };
+            newWearPortraits.Add(entry);
+            Debug.Log($"Imported: {filename}");
         }
 
         wearPortraitLibrary.wearPortraits.AddRange(newWearPortraits);
