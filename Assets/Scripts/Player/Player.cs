@@ -49,9 +49,8 @@ public class Player : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRendererElement;
     [SerializeField] private Sprite spritePlayerPortrait;
     [SerializeField] private Sprite spriteWearPortrait;
-    [SerializeField] private string pathPigment = "Pigment/";
-    [SerializeField] private string pathHair = "Hair/";
-    [SerializeField] private string pathAccessory = "Accessory/";
+    [SerializeField] private string pathHairStyle = "HairStyle/";
+    [SerializeField] private string pathAccessoryStyle = "AccessoryStyle/";
     [SerializeField] private string tableCollectionName = "PlayerNames";
 
     [SerializeField] private float defaultPositionY = 0f;    
@@ -152,7 +151,7 @@ public class Player : MonoBehaviour
             position = Position.Fw;
         }
 
-        auxString = playerData.size;
+        auxString = playerData.playerSize;
         PlayerSize auxPlayerSize;
         isValid = Enum.TryParse(auxString, true, out auxPlayerSize); // case-insensitive parse
         if (isValid)
@@ -193,16 +192,15 @@ public class Player : MonoBehaviour
         //sprite
         Sprite spriteAux = null;
 
-        spriteAux = Resources.Load<Sprite>(pathPigment + playerData.pigment);
         if (spriteRendererPigment != null)
         {
-            if (spriteAux != null)
+            if (playerData.pigment != null)
             {
-                spriteRendererPigment.sprite = spriteAux;
+                spriteRendererPigment.color = ColorManager.GetPigmentColor(playerData.pigment);
             }
             else
             {
-                Debug.LogWarning($"Pigment sprite not found: {pathPigment}{playerData.pigment} for player {playerData.playerId}");
+                Debug.LogWarning($"Pigment color not found: {playerData.pigment} for player {playerData.playerId}");
             }
         }
         else
@@ -210,16 +208,17 @@ public class Player : MonoBehaviour
             Debug.LogWarning("SpriteRendererPigment reference is missing!");
         }
 
-        spriteAux = Resources.Load<Sprite>(pathHair + playerData.hair);
+        spriteAux = Resources.Load<Sprite>(pathHairStyle + playerData.hairStyle);
         if (spriteRendererHair != null)
         {
             if (spriteAux != null)
             {
                 spriteRendererHair.sprite = spriteAux;
+                spriteRendererHair.color = ColorManager.GetHairColor(playerData.hairColor);
             }
             else
             {
-                Debug.LogWarning($"Hair sprite not found: {pathHair}{playerData.hair} for player {playerData.playerId}");
+                Debug.LogWarning($"Hair sprite not found: {pathHairStyle}{playerData.hairStyle} for player {playerData.playerId}");
             }
         }
         else
@@ -227,17 +226,22 @@ public class Player : MonoBehaviour
             Debug.LogWarning("SpriteRendererHair reference is missing!");
         }
 
-        spriteAux = Resources.Load<Sprite>(pathAccessory + playerData.accessory);
+        spriteAux = Resources.Load<Sprite>(pathAccessoryStyle + playerData.accessoryStyle);
         if (spriteRendererAccessory != null)
         {
-            if (spriteAux != null && playerData.accessory != "none")
+            if (spriteAux != null && playerData.accessoryStyle != "none")
             {
                 spriteRendererAccessory.sprite = spriteAux;
+                spriteRendererAccessory.color = Color.red;
             }
             else
             {
                 spriteRendererAccessory.enabled = false;
-                Debug.LogWarning($"Accessory sprite not found: {pathAccessory}{playerData.accessory} for player {playerData.playerId}");
+                if (playerData.accessoryStyle != "none") {
+                    Debug.Log($"Accessory sprite not found: {pathAccessoryStyle}{playerData.accessoryStyle} for player {playerData.playerId}");
+                } else {
+                    Debug.LogWarning($"Accessory sprite not found: {pathAccessoryStyle}{playerData.accessoryStyle} for player {playerData.playerId}");
+                }
             }
         }
         else

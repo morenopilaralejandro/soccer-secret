@@ -44,7 +44,7 @@ public class BulkWearImporter : EditorWindow
         {
             string filename = Path.GetFileNameWithoutExtension(file); // Example: wearId-wearVariant-wearRole
             string[] parts = filename.Split('-');
-            if (parts.Length != 4)
+            if (parts.Length != 3)
             {
                 Debug.LogWarning($"Filename format incorrect: {filename}");
                 continue;

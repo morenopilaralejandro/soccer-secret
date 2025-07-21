@@ -51,6 +51,13 @@ public class CSVPlayerImporter
         string[] headers = lines[0].Split(',');
 
         int playerIdIndex       = System.Array.IndexOf(headers, "id");
+        int pigmentIndex        = System.Array.IndexOf(headers, "pigment");
+        int hairStyleIndex      = System.Array.IndexOf(headers, "hair-style");
+        int hairColorIndex      = System.Array.IndexOf(headers, "hair-color");
+        int accessoryStyleIndex = System.Array.IndexOf(headers, "accessory-style");
+        int accessoryColorIndex = System.Array.IndexOf(headers, "accessory-color");
+        int portraitSizeIndex   = System.Array.IndexOf(headers, "portrait-size");
+        int playerSizeIndex     = System.Array.IndexOf(headers, "player-size");
         int playerNameEnIndex   = System.Array.IndexOf(headers, "name-en");
         int playerNameJaIndex   = System.Array.IndexOf(headers, "name-ja");
         int genderIndex         = System.Array.IndexOf(headers, "gender");
@@ -85,6 +92,13 @@ public class CSVPlayerImporter
             PlayerData playerData = ScriptableObject.CreateInstance<PlayerData>();
 
             playerData.playerId      = values[playerIdIndex].Trim();
+            playerData.pigment       = values[pigmentIndex].Trim();
+            playerData.hairStyle     = values[hairStyleIndex].Trim();
+            playerData.hairColor     = values[hairColorIndex].Trim();
+            playerData.accessoryStyle= values[accessoryStyleIndex].Trim();
+            playerData.accessoryColor= values[accessoryColorIndex].Trim();
+            playerData.portraitSize  = values[portraitSizeIndex].Trim();
+            playerData.playerSize    = values[playerSizeIndex].Trim();
             playerData.playerNameEn  = values[playerNameEnIndex].Trim();
             playerData.playerNameJa  = values[playerNameJaIndex].Trim();
             playerData.gender        = values[genderIndex].Trim();

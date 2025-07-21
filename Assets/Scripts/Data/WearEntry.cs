@@ -4,7 +4,7 @@ using UnityEngine;
 public class WearEntry
 {
     public string wearId;
-    public WearRole wearRole;
     public WearVariant wearVariant;
+    public WearRole wearRole;
     public Sprite sprite;
 }
