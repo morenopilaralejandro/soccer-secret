@@ -27,7 +27,6 @@ public class Player : MonoBehaviour
     public Gender Gender => gender;
     public Element Element => element;
     public Position Position => position;
-    public float DefaultPositionY => defaultPositionY;
     public int TeamIndex;  
     public Vector3 DefaultPosition;
     public ControlType ControlType;
@@ -42,18 +41,17 @@ public class Player : MonoBehaviour
     public Sprite SpritePlayerPortrait => spritePlayerPortrait;
     public Sprite SpriteWearPortrait => spriteWearPortrait;
 
+    [SerializeField] private PlayerNameTag playerNameTag;
     [SerializeField] private SpriteRenderer spriteRendererPigment;
     [SerializeField] private SpriteRenderer spriteRendererHair;
     [SerializeField] private SpriteRenderer spriteRendererAccessory;
     [SerializeField] private SpriteRenderer spriteRendererWear;
-    [SerializeField] private SpriteRenderer spriteRendererElement;
     [SerializeField] private Sprite spritePlayerPortrait;
     [SerializeField] private Sprite spriteWearPortrait;
     [SerializeField] private string pathHairStyle = "HairStyle/";
     [SerializeField] private string pathAccessoryStyle = "AccessoryStyle/";
     [SerializeField] private string tableCollectionName = "PlayerNames";
-
-    [SerializeField] private float defaultPositionY = 0f;    
+ 
     [SerializeField] private string playerId;
     [SerializeField] private string playerName;
     [SerializeField] private PlayerSize playerSize;
@@ -86,8 +84,8 @@ public class Player : MonoBehaviour
 
     [Header("Movement Parameters")]
     [SerializeField] private float speedBase = 0.2f;
-    [SerializeField] private float speedMultiplierUser = 0.02f;
-    [SerializeField] private float speedMultiplierAi = 0.006f;
+    [SerializeField] private float speedMultiplierUser = 0.01f;
+    [SerializeField] private float speedMultiplierAi = 0.005f;
     [SerializeField] private float speedDebuffDefault = 1f;
     [SerializeField] private float speedDebuffLow = 0.5f;
     [SerializeField] private float speedDebuffHigh = 0.2f;
@@ -249,24 +247,6 @@ public class Player : MonoBehaviour
             Debug.LogWarning("SpriteRendererAccessory reference is missing!");
         }
 
-
-        spriteAux = ElementManager.Instance.GetElementIcon(element);
-        if (spriteRendererElement != null)
-        {
-            if (spriteAux != null)
-            {
-                spriteRendererElement.sprite = spriteAux;
-            }
-            else
-            {
-                Debug.LogWarning($"Element sprite not found: {element} for player {playerData.playerId}");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("SpriteRendererElement reference is missing!");
-        }
-
         spriteAux = PlayerManager.Instance.GetPlayerPortraitSpriteById(playerData.playerId);
         if (spriteAux != null)
         {
@@ -283,6 +263,7 @@ public class Player : MonoBehaviour
         UpdateStats();
         learnedSecret = GetLearnedSecretByLv();
         currentSecret.AddRange(learnedSecret);
+        playerNameTag.SetPlayer(this);
     }
 
     private async void SetName()
@@ -336,7 +317,7 @@ public class Player : MonoBehaviour
 
         isStunned = false;
         SetAllCollidersEnabled(true);
-        SetYPosition(defaultPositionY);
+        SetYPosition(DefaultPosition.y);
     }
 
     public IEnumerator StunPlayer()
@@ -365,7 +346,7 @@ public class Player : MonoBehaviour
         }
         SetAllCollidersEnabled(true);
         isStunned = false;
-        SetYPosition(defaultPositionY);
+        SetYPosition(DefaultPosition.y);
         stunRoutine = null;
     }
 
@@ -399,16 +380,16 @@ private void SetAllCollidersEnabled(bool enabled)
                 blinkElapsed += Time.deltaTime;
                 if (blinkElapsed >= blinkInterval)
                 {
-                    SetYPosition(visible ? defaultPositionY : -1f);
+                    SetYPosition(visible ? DefaultPosition.y : -1f);
                     visible = !visible;
                     blinkElapsed = 0f;
                 }
             } else {
-                SetYPosition(defaultPositionY);
+                SetYPosition(DefaultPosition.y);
             }
             yield return null;
         }
-        SetYPosition(defaultPositionY);
+        SetYPosition(DefaultPosition.y);
     }
 
     public void Kick()

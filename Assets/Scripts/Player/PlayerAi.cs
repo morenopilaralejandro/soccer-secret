@@ -175,7 +175,7 @@ public class PlayerAi : MonoBehaviour
     private void MoveTowards(Vector3 targetPosition)
     {
         float moveSpeed = player.GetMoveSpeed();
-        targetPosition.y = player.DefaultPositionY;
+        targetPosition.y = player.DefaultPosition.y;
         player.transform.position = Vector3.MoveTowards(player.transform.position, targetPosition, moveSpeed);
     }
 

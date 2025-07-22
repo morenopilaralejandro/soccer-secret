@@ -22,7 +22,7 @@ public class PlayerCard : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
@@ -35,10 +35,10 @@ public class PlayerCard : MonoBehaviour
     {
         this.player = player;
         this.player.OnPlayerNameChanged += UpdatePlayer;
-        playerCard.color = ElementManager.Instance.GetPositionColor(player.Position);
         if (player != null)
         {
             textName.text = player.PlayerName;
+            playerCard.color = ElementManager.Instance.GetPositionColor(player.Position);
             playerPortrait.SetPlayerImage(player.SpritePlayerPortrait);
             playerPortrait.SetWearImage(player.SpriteWearPortrait);
             imageElement.sprite = ElementManager.Instance.GetElementIcon(player.Element);
