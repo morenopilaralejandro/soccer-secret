@@ -242,7 +242,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.3
+  m_Radius: 0.25
   m_Height: 0.1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
@@ -672,6 +672,7 @@ MonoBehaviour:
   tableCollectionName: PlayerNames
   playerId: 
   playerName: 
+  portraitSize: 0
   playerSize: 0
   gender: 0
   element: 0
@@ -817,20 +818,11 @@ MonoBehaviour:
   touchArea: {fileID: 725982291212298075}
   mainCamera: {fileID: 0}
   moveTolerance: 0.1
-  minSegmentDistance: 0.3
+  minSegmentDistance: 0.2
   maxLineLength: 6
   touchAreaLayer:
     serializedVersion: 2
     m_Bits: 1024
-  boundTop: {fileID: 0}
-  boundBottom: {fileID: 0}
-  boundLeft: {fileID: 0}
-  boundRight: {fileID: 0}
-  topOffset: 0.3
-  bottomOffset: 0.5
-  leftOffset: 0.4
-  rightOffset: 0.4
-  touchAreaOffset: 0.1
 --- !u!114 &8823299660366298976
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1045,7 +1037,7 @@ Transform:
   m_GameObject: {fileID: 7595277959914605761}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.05, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1070,8 +1062,8 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.3
-  m_Height: 0.1
+  m_Radius: 0.2
+  m_Height: 0.5
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &6558078107428148359
@@ -1082,6 +1074,16 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1273373189928147067}
     m_Modifications:
+    - target: {fileID: 723561909000702496, guid: 1c97a46a3925f473fae26e05459c112d,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4129347334622924287, guid: 1c97a46a3925f473fae26e05459c112d,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6525124849856603941, guid: 1c97a46a3925f473fae26e05459c112d,
         type: 3}
       propertyPath: player

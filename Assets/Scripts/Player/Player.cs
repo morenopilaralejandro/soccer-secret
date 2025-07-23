@@ -14,8 +14,6 @@ public enum PlayerStats { Hp, Sp, Kick, Body, Control, Guard, Speed, Stamina, Co
 
 public enum ControlType { LocalHuman, RemoteHuman, Ai }
 
-public enum PlayerSize { S, M, L, Xl }
-
 public class Player : MonoBehaviour
 #if PHOTON_UNITY_NETWORKING
     , IPunInstantiateMagicCallback
@@ -23,6 +21,7 @@ public class Player : MonoBehaviour
 {   
     public string PlayerId => playerId;
     public string PlayerName => playerName;
+    public PortraitSize PortraitSize => portraitSize;    
     public PlayerSize PlayerSize => playerSize;
     public Gender Gender => gender;
     public Element Element => element;
@@ -54,6 +53,7 @@ public class Player : MonoBehaviour
  
     [SerializeField] private string playerId;
     [SerializeField] private string playerName;
+    [SerializeField] private PortraitSize portraitSize;
     [SerializeField] private PlayerSize playerSize;
     [SerializeField] private Gender gender;
     [SerializeField] private Element element;
@@ -149,15 +149,8 @@ public class Player : MonoBehaviour
             position = Position.Fw;
         }
 
-        auxString = playerData.playerSize;
-        PlayerSize auxPlayerSize;
-        isValid = Enum.TryParse(auxString, true, out auxPlayerSize); // case-insensitive parse
-        if (isValid)
-        {
-            playerSize = auxPlayerSize;
-        } else {
-            playerSize = PlayerSize.S;
-        }
+        portraitSize = WearManager.Instance.GetPortraitSizeByString(playerData.portraitSize);
+        playerSize = WearManager.Instance.GetPlayerSizeByString(playerData.playerSize);
 
         IsPossession = false;
         isStunned = false;
@@ -608,27 +601,25 @@ private void SetAllCollidersEnabled(bool enabled)
         UpdateStats();
     }
 
-    public void SetWear(Team team) 
+    public void SetWear(string wearId, bool isHome) 
     {
-        bool isHome = true;
-
         WearRole role = IsKeeper ? WearRole.Keeper : WearRole.Field;
         WearVariant variant = isHome ? WearVariant.Home : WearVariant.Away;
     
-        Sprite spriteAux = WearManager.Instance.GetWearSprite(team.TeamId, role, variant);
+        Sprite spriteAux = WearManager.Instance.GetWearSprite(wearId, role, variant);
         if (spriteRendererWear != null)
         {
             if (spriteAux != null)
                 spriteRendererWear.sprite = spriteAux;
             else
-                Debug.LogWarning("No matching wear sprite found for {role}/{variant}/{team.TeamId}");
+                Debug.LogWarning("No matching wear sprite found for {role}/{variant}/{wearId}");
         }
         else
         {
             Debug.LogWarning("SpriteRendererWear reference is missing!");
         }
 
-        spriteAux = WearManager.Instance.GetWearPortraitSprite("wearId", PortraitSize.M, role, variant);
+        spriteAux = WearManager.Instance.GetWearPortraitSprite(wearId, portraitSize, role, variant);
         if (spriteAux != null)
             spriteWearPortrait = spriteAux;
         else

@@ -48,9 +48,9 @@ public class PlayerNameTag : MonoBehaviour
             SetName(player.PlayerName);
             if (player.TeamIndex == 0) 
             {
-                SetBackgroundColor(Color.blue);
+                SetBackgroundColor(ColorManager.GetTeamIndicatorColor("ally"));
             } else {
-                SetBackgroundColor(Color.red);
+                SetBackgroundColor(ColorManager.GetTeamIndicatorColor("opp"));
             }
         }
         else

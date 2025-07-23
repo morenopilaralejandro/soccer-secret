@@ -31,8 +31,9 @@ public class GameManager : MonoBehaviour
     public bool IsKickOffReady { get; private set; } = false;
 
     public List<Team> Teams => teams;
-
     public Transform FieldRoot => fieldRoot;
+
+    public float TouchAreaOffset = 0.1f;
 
     [SerializeField] private List<Team> teams;
     [SerializeField] private Transform ball;
@@ -55,6 +56,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject prefabPlayer;
     [SerializeField] private GameObject prefabPlayerOpp;
 
+    [SerializeField] private BoxCollider boundTop;
+    [SerializeField] private BoxCollider boundBottom;
+    [SerializeField] private BoxCollider boundLeft;
+    [SerializeField] private BoxCollider boundRight;
+    [SerializeField] private float topOffset = 0.3f;
+    [SerializeField] private float bottomOffset = 0.5f;
+    [SerializeField] private float leftOffset = 0.4f;
+    [SerializeField] private float rightOffset = 0.4f;
+
     private bool isActiveScene = true;
 
 #if PHOTON_UNITY_NETWORKING
@@ -76,6 +86,9 @@ public class GameManager : MonoBehaviour
         teams = new List<Team>();
         teams.Add(TeamManager.Instance.GetTeamById("T1"));
         teams.Add(TeamManager.Instance.GetTeamById("T2"));
+
+        BoundsClamp.Setup(boundTop, boundBottom, boundLeft, boundRight, 
+                       topOffset, bottomOffset, leftOffset, rightOffset, TouchAreaOffset);
     }
 
 void Start()
@@ -263,14 +276,10 @@ private void OfflineSpawn() {
                 Player player = team.players[j];
                 PlayerData playerData = team.PlayerDataList[j];
                 player.Initialize(playerData);
-                if (j == 0)
-                {
-                    player.IsKeeper = true;
-                }
                 player.UpdateKeeperColliderState();
                 player.Lv = team.Lv;
                 player.TeamIndex = i;
-                player.SetWear(team);
+                player.SetWear(team.WearId, WearManager.Instance.IsHome(teams, player.TeamIndex));
             }
         }                
 

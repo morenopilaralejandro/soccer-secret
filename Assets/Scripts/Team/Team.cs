@@ -10,6 +10,7 @@ public class Team
     public string TeamName => teamName;
     public int Lv => lv;
     public Formation Formation => formation;
+    public string WearId => wearId;
     public List<PlayerData> PlayerDataList => playerDataList;
     public List<Player> players = new List<Player>();
 
@@ -17,6 +18,7 @@ public class Team
     [SerializeField] private string teamName;
     [SerializeField] private int lv;
     [SerializeField] private Formation formation;
+    [SerializeField] private string wearId;
     [SerializeField] private List<PlayerData> playerDataList = new List<PlayerData>();
     [SerializeField] private string tableCollectionName = "TeamNames";
 
@@ -36,6 +38,7 @@ public class Team
         teamId = teamData.teamId;
         lv = teamData.lv;
         formation = TeamManager.Instance.GetFormationById(teamData.formation);
+        wearId = teamData.wearId;
 
         playerDataList.Clear();
         foreach (var playerId in teamData.playerIds)

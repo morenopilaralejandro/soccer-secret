@@ -124,9 +124,9 @@ public class BallBehavior : MonoBehaviour
         if (PossessionManager.Instance.PossessionPlayer == null) return;
 
         Vector3 targetPosition = PossessionManager.Instance.PossessionPlayer.transform.position + PossessionManager.Instance.PossessionPlayer.transform.forward * 0.5f;
-        targetPosition.x += 0.1f;
+        targetPosition.x += 0.0f;
         targetPosition.y = transform.position.y;
-        targetPosition.z -= 0.1f;
+        targetPosition.z -= 0.2f;
         transform.position = Vector3.Lerp(transform.position, targetPosition, dribbleSpeed * Time.deltaTime);
     }
 

@@ -8,5 +8,6 @@ public class TeamData : ScriptableObject
     public string teamNameJa;
     public int lv;
     public string formation;
+    public string wearId;
     public string[] playerIds = new string[4];
 }

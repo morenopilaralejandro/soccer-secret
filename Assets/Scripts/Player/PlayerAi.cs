@@ -176,7 +176,9 @@ public class PlayerAi : MonoBehaviour
     {
         float moveSpeed = player.GetMoveSpeed();
         targetPosition.y = player.DefaultPosition.y;
-        player.transform.position = Vector3.MoveTowards(player.transform.position, targetPosition, moveSpeed);
+        Vector3 nextPos = Vector3.MoveTowards(player.transform.position, targetPosition, moveSpeed);
+        nextPos = BoundsClamp.Clamp(nextPos);
+        player.transform.position = nextPos;
     }
 
     private void PassToBestTeammate()

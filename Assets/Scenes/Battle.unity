@@ -577,7 +577,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 215337010}
-  m_Material: {fileID: 13400000, guid: 693f7a47230407fa99877a51b4c4389d, type: 2}
+  m_Material: {fileID: 13400000, guid: b9ef5d2d1ec840a0b9ace2bb73ccad5c, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -3086,6 +3086,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b61d7076455dcf2e1a437ec984eac240, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TouchAreaOffset: 0.1
   ball: {fileID: 1819152895}
   initialBallPosition: {x: 0, y: 0, z: 0}
   centerKickOffPosition: {x: 0, y: 0, z: 0}
@@ -3110,6 +3111,14 @@ MonoBehaviour:
     type: 3}
   prefabPlayerOpp: {fileID: 4540109065729436189, guid: 9e6723ba46099224d9c2fc6105c8f58c,
     type: 3}
+  boundTop: {fileID: 513570712}
+  boundBottom: {fileID: 1210914613}
+  boundLeft: {fileID: 433088756}
+  boundRight: {fileID: 233756772}
+  topOffset: 0.3
+  bottomOffset: 0.5
+  leftOffset: 0.4
+  rightOffset: 0.4
 --- !u!4 &986222093
 Transform:
   m_ObjectHideFlags: 0
@@ -3861,7 +3870,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1200981119}
-  m_Material: {fileID: 13400000, guid: 693f7a47230407fa99877a51b4c4389d, type: 2}
+  m_Material: {fileID: 13400000, guid: b9ef5d2d1ec840a0b9ace2bb73ccad5c, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -6269,7 +6278,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1635353919}
-  m_Material: {fileID: 13400000, guid: 693f7a47230407fa99877a51b4c4389d, type: 2}
+  m_Material: {fileID: 13400000, guid: b9ef5d2d1ec840a0b9ace2bb73ccad5c, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -6712,7 +6721,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1700651463}
-  m_Material: {fileID: 13400000, guid: 693f7a47230407fa99877a51b4c4389d, type: 2}
+  m_Material: {fileID: 13400000, guid: b9ef5d2d1ec840a0b9ace2bb73ccad5c, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -9411,6 +9420,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 420483824}
     m_Modifications:
+    - target: {fileID: 470069050765080491, guid: cbee568be09ab63f8b56a77ac04c33e9,
+        type: 3}
+      propertyPath: m_AngularDrag
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1069345296961710777, guid: cbee568be09ab63f8b56a77ac04c33e9,
         type: 3}
       propertyPath: sceneViewId
@@ -9506,6 +9520,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Radius
       value: 0.0085
+      objectReference: {fileID: 0}
+    - target: {fileID: 5406903634057510618, guid: cbee568be09ab63f8b56a77ac04c33e9,
+        type: 3}
+      propertyPath: m_Material
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 7727033531516260282, guid: cbee568be09ab63f8b56a77ac04c33e9,
         type: 3}

@@ -14,18 +14,9 @@ public class PlayerLineRenderer : MonoBehaviour
     [SerializeField] private Collider touchArea;
     [SerializeField] private Camera mainCamera;
     [SerializeField] private float moveTolerance = 0.1f;
-    [SerializeField] private float minSegmentDistance = 0.3f;
+    [SerializeField] private float minSegmentDistance = 0.2f;
     [SerializeField] private float maxLineLength = 6f;
     [SerializeField] private LayerMask touchAreaLayer;
-    [SerializeField] private BoxCollider boundTop;
-    [SerializeField] private BoxCollider boundBottom;
-    [SerializeField] private BoxCollider boundLeft;
-    [SerializeField] private BoxCollider boundRight;
-    [SerializeField] private float topOffset = 0.3f;
-    [SerializeField] private float bottomOffset = 0.5f;
-    [SerializeField] private float leftOffset = 0.4f;
-    [SerializeField] private float rightOffset = 0.5f;
-    [SerializeField] private float  touchAreaOffset = 0.1f;
 
     private bool isDragging = false;
     private bool awaitingFirstSegment = false;
@@ -47,16 +38,6 @@ public class PlayerLineRenderer : MonoBehaviour
 
         if (lineRenderer == null)
             lineRenderer = GetComponent<LineRenderer>();
-
-        // Find by name if missing
-        if (boundTop == null)
-            boundTop = GameObject.Find("BoundTop1")?.GetComponent<BoxCollider>();
-        if (boundBottom == null)
-            boundBottom = GameObject.Find("BoundBottom1")?.GetComponent<BoxCollider>();
-        if (boundLeft == null)
-            boundLeft = GameObject.Find("BoundLeft")?.GetComponent<BoxCollider>();
-        if (boundRight == null)
-            boundRight = GameObject.Find("BoundRight")?.GetComponent<BoxCollider>();
 
         touchAreaLayer = LayerMask.GetMask("PlayerTouchArea");
     }
@@ -120,7 +101,7 @@ public class PlayerLineRenderer : MonoBehaviour
             return;
 
         var worldPosition = mainCamera.ScreenToWorldPoint(new Vector3(pointerPosition.x, pointerPosition.y, mainCamera.nearClipPlane));
-        worldPosition = ClampToBounds(worldPosition);
+        worldPosition = BoundsClamp.Clamp(worldPosition);
         worldPosition.y = player.DefaultPosition.y;
 
         AudioManager.Instance.PlaySfx("SfxDrawLine");
@@ -173,12 +154,12 @@ public class PlayerLineRenderer : MonoBehaviour
 
     private void AddInitialLine(Vector3 start, Vector3 end)
     {
-        start.z -= touchAreaOffset;
+        start.z -= GameManager.Instance.TouchAreaOffset;
         start.y = player.DefaultPosition.y;
         end.y = player.DefaultPosition.y;
 
-        start = ClampToBounds(start);
-        end = ClampToBounds(end);
+        start = BoundsClamp.Clamp(start);
+        end = BoundsClamp.Clamp(end);
         
         lineRenderer.positionCount = 1;
         lineRenderer.SetPosition(0, start);
@@ -224,7 +205,7 @@ public class PlayerLineRenderer : MonoBehaviour
             Vector3 target = linePoints[currentPointIndex];
             float moveSpeed = player.GetMoveSpeed();
             Vector3 newPosition = Vector3.MoveTowards(player.transform.position, target, moveSpeed);
-            newPosition = ClampToBounds(newPosition);
+            newPosition = BoundsClamp.Clamp(newPosition);
             newPosition.y = player.DefaultPosition.y;    // Ensures the player never goes below default Y
             player.transform.position = newPosition;
 
@@ -264,20 +245,6 @@ public class PlayerLineRenderer : MonoBehaviour
     {
         if (linePoints.Count == 0) return true;
         return Vector3.Distance(linePoints[^1], newPoint) >= minSegmentDistance;
-    }
-
-    private Vector3 ClampToBounds(Vector3 point)
-    {
-        float minX = boundLeft.bounds.min.x + leftOffset;
-        float maxX = boundRight.bounds.max.x - rightOffset;
-        float minZ = boundBottom.bounds.min.z + bottomOffset - touchAreaOffset;
-        float maxZ = boundTop.bounds.max.z - topOffset;
-
-        return new Vector3(
-            Mathf.Clamp(point.x, minX, maxX),
-            point.y,
-            Mathf.Clamp(point.z, minZ, maxZ)
-        );
     }
 
     public void ResetLine()

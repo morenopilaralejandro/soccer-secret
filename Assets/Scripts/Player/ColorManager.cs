@@ -41,6 +41,18 @@ public static class ColorManager
         {"yellow",  new Color(0.98f, 0.87f, 0.49f)}
     };
 
+    static Dictionary<string, Color> teamIndicatorColors = new Dictionary<string, Color>()
+    {
+        {"ally",    Color.blue},
+        {"opp",     Color.red},
+    };
+
+    static Dictionary<string, Color> duelOutcomeColors = new Dictionary<string, Color>()
+    {
+        {"win",     new Color(0.98f, 0.84f, 0.09f)},
+        {"lose",    new Color(0.61f, 0.61f, 1.00f)},
+    };
+
     public static Color GetPigmentColor(string pigment)
     {
         if(pigmentColors.TryGetValue(pigment.ToLower(), out var color))
@@ -60,5 +72,19 @@ public static class ColorManager
         if(accessoryColors.TryGetValue(accessoryColor.ToLower(), out var color))
             return color;
         return accessoryColors["default"];
+    }
+
+    public static Color GetTeamIndicatorColor(string teamIndicatorColor)
+    {
+        if(teamIndicatorColors.TryGetValue(teamIndicatorColor.ToLower(), out var color))
+            return color;
+        return teamIndicatorColors["ally"];
+    }
+
+    public static Color GetDuelOutcomeColor(string duelOutcomeColor)
+    {
+        if(duelOutcomeColors.TryGetValue(duelOutcomeColor.ToLower(), out var color))
+            return color;
+        return duelOutcomeColors["win"];
     }
 }

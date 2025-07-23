@@ -36,7 +36,7 @@ public class PlayerNetworkSetup : MonoBehaviourPun, IPunInstantiateMagicCallback
             if (pdata != null)
             {
                 player.Initialize(pdata);
-                player.SetWear(team);
+                player.SetWear("faith", true);
             }
             else
             {
