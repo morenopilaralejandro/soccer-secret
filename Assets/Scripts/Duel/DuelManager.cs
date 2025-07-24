@@ -21,13 +21,14 @@ public class DuelManager : MonoBehaviour
     public static event Action<Player> OnSetStatusPlayer;
     public static event Action<DuelParticipant, float> OnSetStatusPlayerAndCommand;
 
+    public float KeeperGoalDistance = 1.5f;
+
     private List<DuelParticipantData> stagedParticipants = new List<DuelParticipantData>();
     private Duel currentDuel = new Duel();
     private Coroutine unlockStatusCoroutine;
     private float hpMultiplier = 0.1f;
     private float directBonus = 20f;
     private float keeperBonus = 50f;
-    private float keeperGoalDistance = 0.5f;
 
 #if PHOTON_UNITY_NETWORKING
     private PhotonView photonView => PhotonView.Get(this);
@@ -68,7 +69,7 @@ public class DuelManager : MonoBehaviour
     #endregion
 
     #region Duel Flow
-
+/*
     public void ResolveDuelAndBroadcast()
     {
         if (!currentDuel.IsResolved && currentDuel.Participants.Count == 2)
@@ -120,7 +121,7 @@ PhotonView.Get(UIManager.Instance).RPC(
         ResolveDuelAndBroadcast();
     }
 
-
+*/
     public void StartDuel(DuelMode mode)
     {
         // Only authority may start duel, everyone else only updates by RPC!
@@ -185,6 +186,7 @@ PhotonView.Get(UIManager.Instance).RPC(
 
     private void CancelDuel_Internal()
     {
+        Debug.Log("CancelDuel_Internal");
         currentDuel.IsResolved = true;
         ShootTriangle.Instance.SetTriangleVisible(false);
         BallTrail.Instance.SetTrailVisible(false);
@@ -300,7 +302,7 @@ PhotonView.Get(UIManager.Instance).RPC(
         currentDuel.LastDefense = defender;
 
         ApplyElementalEffectiveness(currentDuel.LastOffense, defender);
-        if (defender.Category == Category.Block && defender.Player.IsKeeper && GameManager.Instance.GetDistanceToAllyGoal(defender.Player) < keeperGoalDistance)
+        if (defender.Category == Category.Block && defender.Player.IsKeeper && GameManager.Instance.GetDistanceToAllyGoal(defender.Player) < KeeperGoalDistance)
         {
             defender.Damage *= keeperBonus;
             Debug.Log("Keeper gets a block bonus!");

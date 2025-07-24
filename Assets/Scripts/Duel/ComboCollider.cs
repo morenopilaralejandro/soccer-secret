@@ -50,6 +50,11 @@ public class ComboCollider : MonoBehaviour
             //Debug.Log("[ComboCollider] Duel already resolved. Exiting.");
             return;
         }
+
+        if (DuelManager.Instance.GetDuelMode() != DuelMode.Shoot) {
+           return;
+        }
+
         if (GameManager.Instance.IsMovementFrozen)
         {
             //Debug.Log("[ComboCollider] Movement is frozen. Exiting.");
@@ -63,6 +68,7 @@ public class ComboCollider : MonoBehaviour
 
         DuelParticipant lastOffense = DuelManager.Instance.GetLastOffense();
         DuelParticipant lastDefense = DuelManager.Instance.GetLastDefense();
+        bool isSameTeam = _cachedPlayer.TeamIndex == lastOffense.Player.TeamIndex;
 
         // Prevent repeat triggers by the same defense player
         if (lastDefense != null && lastDefense.Player == _cachedPlayer)
@@ -83,6 +89,11 @@ public class ComboCollider : MonoBehaviour
             return;
         }
 
+        if (!isSameTeam && _cachedPlayer.IsKeeper && (GameManager.Instance.GetDistanceToAllyGoal(_cachedPlayer) < DuelManager.Instance.KeeperGoalDistance)) 
+        {
+            return;
+        }
+
         // Network pattern: only game authority can register
         if (!GameManager.Instance.IsMultiplayer
 #if PHOTON_UNITY_NETWORKING
@@ -91,12 +102,13 @@ public class ComboCollider : MonoBehaviour
             )
         {
             int participantIndex = DuelManager.Instance.GetDuelParticipants().Count;
-            Debug.Log($"[KeeperCollider] Registering trigger for {_cachedPlayer.name} as participant {participantIndex}.");
-            DuelManager.Instance.RegisterTrigger(_cachedPlayer.gameObject, false);
+            Debug.Log($"[ComboCollider] Registering trigger for {_cachedPlayer.name} as participant {participantIndex}.");
             OnSetStatusPlayer?.Invoke(_cachedPlayer);
+           
+            //DuelManager.Instance.RegisterTrigger(_cachedPlayer.gameObject, false);
 
 
-        bool isSameTeam = _cachedPlayer.TeamIndex == lastOffense.Player.TeamIndex;
+
         Category selectedCategory;
 
         if (isSameTeam) 
@@ -105,8 +117,27 @@ public class ComboCollider : MonoBehaviour
         } else {
             selectedCategory = Category.Block;
         }
-            
 
+        
+            if (GameManager.Instance.IsMultiplayer)
+            {
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    Debug.Log("[ComboCollider] Multiplayer");
+                }
+            }
+            else // Singleplayer/offline
+            {
+                // Important: Register both participants BEFORE selections!
+                DuelManager.Instance.RegisterTrigger(_cachedPlayer.gameObject, false);
+                UIManager.Instance.SetDuelSelection(_cachedPlayer.TeamIndex, selectedCategory, participantIndex, _cachedPlayer);
+                UIManager.Instance.SetShootTeamIndex(_cachedPlayer.TeamIndex); 
+                BallTravelController.Instance.PauseTravel();
+                UIManager.Instance.BeginDuelSelectionPhase();
+            }
+
+
+/*
             if (DuelManager.Instance.GetDuelMode() == DuelMode.Shoot)
             {
                 UIManager.Instance.SetDuelSelection(_cachedPlayer.TeamIndex, selectedCategory, participantIndex, _cachedPlayer);
@@ -121,7 +152,7 @@ public class ComboCollider : MonoBehaviour
                         UIManager.Instance.BeginDuelSelectionPhase();
                 }
             }
-
+/*
             /*
             int participantIndex = DuelManager.Instance.GetDuelParticipants().Count;
             Debug.Log($"[ComboCollider] Registering trigger for {_cachedPlayer.name} as participant {participantIndex}.");

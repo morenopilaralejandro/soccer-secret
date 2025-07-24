@@ -5,8 +5,6 @@ using Photon.Pun;
 
 public class BallCollider : MonoBehaviour
 {
-    [SerializeField] private float keeperGoalDistance = 0.5f;
-
     private void Awake() { }
 
     private void OnTriggerEnter(Collider collider)
@@ -31,7 +29,7 @@ public class BallCollider : MonoBehaviour
             playerComp != null &&
             PossessionManager.Instance.LastPossessionPlayer &&
             PossessionManager.Instance.LastPossessionPlayer.TeamIndex != playerComp.TeamIndex && //keeper won't stop a pass from a player in its same team
-            GameManager.Instance.GetDistanceToAllyGoal(playerComp) < keeperGoalDistance)
+            GameManager.Instance.GetDistanceToAllyGoal(playerComp) < DuelManager.Instance.KeeperGoalDistance)
         {
             isKeeper = true;
             validPossession = true;

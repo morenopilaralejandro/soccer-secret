@@ -253,7 +253,7 @@ public class PlayerAi : MonoBehaviour
         switch (player.Position)
         {
             case Position.Gk:
-                closeDistance = 0.3f;
+                closeDistance = 0.5f;
                 break;
             case Position.Df:
                 closeDistance = 3f;

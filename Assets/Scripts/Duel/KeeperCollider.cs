@@ -92,6 +92,11 @@ public class KeeperCollider : MonoBehaviour
             return;
         }
 
+        if (GameManager.Instance.GetDistanceToAllyGoal(_cachedPlayer) > DuelManager.Instance.KeeperGoalDistance) 
+        {
+            return;
+        }
+
         // Only allow by authority/master client
         if (!GameManager.Instance.IsMultiplayer
 #if PHOTON_UNITY_NETWORKING

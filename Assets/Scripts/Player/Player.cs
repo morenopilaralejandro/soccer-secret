@@ -257,6 +257,7 @@ public class Player : MonoBehaviour
         learnedSecret = GetLearnedSecretByLv();
         currentSecret.AddRange(learnedSecret);
         playerNameTag.SetPlayer(this);
+        UpdateKeeperColliderState();
     }
 
     private async void SetName()
