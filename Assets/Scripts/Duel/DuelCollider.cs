@@ -33,11 +33,18 @@ public class DuelCollider : MonoBehaviour
     {
         _cachedPlayer = GetComponentInParent<Player>();
         if (_cachedPlayer == null)
-            Debug.LogError("[DuelCollider] Could not find attached Player component in parent.");
+            GameLogger.Error("[DuelCollider] Could not find attached Player component in parent.", this);
     }
 
-    private void OnTriggerEnter(Collider other)   { TryStartDuel(other); }
-    private void OnTriggerStay(Collider other)    { TryStartDuel(other); }
+    private void OnTriggerEnter(Collider other)
+    {
+        TryStartDuel(other);
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        TryStartDuel(other);
+    }
 
     #endregion
 
@@ -56,13 +63,14 @@ public class DuelCollider : MonoBehaviour
             _cachedPlayer.TeamIndex != otherPlayer.TeamIndex &&
             DuelManager.Instance.IsDuelResolved())
         {
+            GameLogger.DebugLog($"Starting duel between {_cachedPlayer.name} (Team {_cachedPlayer.TeamIndex}) and {otherPlayer.name} (Team {otherPlayer.TeamIndex})", this);
 
             DuelManager.Instance.StartDuel(DuelMode.Field);
+
             // For UI status updates
             OnSetStatusPlayer?.Invoke(_cachedPlayer);
             OnSetStatusPlayer?.Invoke(otherPlayer);
 
-            // Set duel cooldown immediately
             SetDuelCooldown();
 
             // Assign duel roles — customize as needed!
@@ -70,11 +78,12 @@ public class DuelCollider : MonoBehaviour
             Player playerB = otherPlayer;
             Category categoryA = Category.Dribble; // Offense role
             Category categoryB = Category.Block;   // Defense role
+
             if (GameManager.Instance.IsMultiplayer)
             {
+#if PHOTON_UNITY_NETWORKING
                 if (PhotonNetwork.IsMasterClient)
                 {
-                    // Stage both participants in the same order on all clients via RPC
                     int[] teamIndices = { playerA.TeamIndex, playerB.TeamIndex };
                     int[] categories = { (int)categoryA, (int)categoryB };
                     int[] participantIndices = { 0, 1 };
@@ -87,10 +96,11 @@ public class DuelCollider : MonoBehaviour
                         teamIndices, categories, participantIndices, playerViewIDs
                     );
                 }
+#endif
             }
             else // Singleplayer/offline
             {
-                // Important: Register both participants BEFORE selections!
+                // Register both participants BEFORE selections.
                 DuelManager.Instance.RegisterTrigger(playerA.gameObject, false);
                 DuelManager.Instance.RegisterTrigger(playerB.gameObject, false);
 
@@ -103,10 +113,9 @@ public class DuelCollider : MonoBehaviour
 
     private bool CanStartDuel()
     {
-        bool isReady = Time.time >= _nextDuelAllowedTime
-                       && !GameManager.Instance.IsMovementFrozen
-                       && DuelManager.Instance.IsDuelResolved();
-        return isReady;
+        return Time.time >= _nextDuelAllowedTime
+               && !GameManager.Instance.IsMovementFrozen
+               && DuelManager.Instance.IsDuelResolved();
     }
 
     private void SetDuelCooldown()

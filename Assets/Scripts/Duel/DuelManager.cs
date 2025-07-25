@@ -21,7 +21,7 @@ public class DuelManager : MonoBehaviour
     public static event Action<Player> OnSetStatusPlayer;
     public static event Action<DuelParticipant, float> OnSetStatusPlayerAndCommand;
 
-    public float KeeperGoalDistance = 1.5f;
+    public float KeeperGoalDistance = 0.7f;
 
     private List<DuelParticipantData> stagedParticipants = new List<DuelParticipantData>();
     private Duel currentDuel = new Duel();
@@ -38,7 +38,7 @@ public class DuelManager : MonoBehaviour
 
     private void Awake()
     {
-        // Standard Unity Singleton pattern:
+        // Standard Unity Singleton pattern
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -69,59 +69,20 @@ public class DuelManager : MonoBehaviour
     #endregion
 
     #region Duel Flow
-/*
-    public void ResolveDuelAndBroadcast()
+
+    public bool IsDuelResolved() => currentDuel.IsResolved;
+    public DuelMode GetDuelMode() => currentDuel.Mode;
+    public List<DuelParticipant> GetDuelParticipants() => currentDuel.Participants;
+    public DuelParticipant GetLastOffense() => currentDuel.LastOffense;
+    public DuelParticipant GetLastDefense() => currentDuel.LastDefense;
+
+    public DuelAction GetActionByCategory(Category category)
     {
-        if (!currentDuel.IsResolved && currentDuel.Participants.Count == 2)
-        {
-            // Put your duel outcome logic here.
-            DuelParticipant winner;
-            DuelAction winnerAction;
-            // ------- Your win/lose logic here -------
-            // Assume you already have EndDuel_Internal/who wins, etc.
-            if (currentDuel.LastDefense != null && currentDuel.LastDefense.Damage >= currentDuel.AttackPressure)
-            {
-                winner = currentDuel.LastDefense;
-                winnerAction = DuelAction.Defense;
-            }
-            else
-            {
-                winner = currentDuel.LastOffense;
-                winnerAction = DuelAction.Offense;
-            }
-            // Mark duel as resolved so we don't do it again
-            currentDuel.IsResolved = true;
-
-            // Prepare data for UI (pass only IDs, not objects)
-            string winnerPlayerId = winner.Player.PlayerId;
-            int winnerTeamIndex = winner.Player.TeamIndex;
-            int winnerActionInt = (int)winnerAction;
-
-            #if PHOTON_UNITY_NETWORKING
-            // Master broadcasts outcome
-PhotonView.Get(UIManager.Instance).RPC(
-    "RpcDuelOutcome",
-    RpcTarget.All,
-    winnerPlayerId, winnerTeamIndex, winnerActionInt
-);
-            #else
-            // Singleplayer -- just call RPC locally
-            UIManager.Instance.RpcDuelOutcome(winnerPlayerId, winnerTeamIndex, winnerActionInt);
-            #endif
-        }
+        return (category == Category.Block || category == Category.Catch)
+            ? DuelAction.Defense
+            : DuelAction.Offense;
     }
 
-    // Optionally, you call this from RegisterBothSelections (ONLY on master, field duel)
-    public void TryResolveFromSelections()
-    {
-        #if PHOTON_UNITY_NETWORKING
-        if (GameManager.Instance.IsMultiplayer && !PhotonNetwork.IsMasterClient)
-            return;
-        #endif
-        ResolveDuelAndBroadcast();
-    }
-
-*/
     public void StartDuel(DuelMode mode)
     {
         // Only authority may start duel, everyone else only updates by RPC!
@@ -143,11 +104,13 @@ PhotonView.Get(UIManager.Instance).RPC(
 
     private void StartDuel_Internal(DuelMode mode)
     {
-        Debug.Log("Duel started");
+        GameLogger.Info("Duel started", this);
+
         StopAndCleanupUnlockStatus();
         UIManager.Instance.LockStatus();
         ResetDuel();
         currentDuel.Mode = mode;
+
         switch (mode)
         {
             case DuelMode.Shoot:
@@ -186,26 +149,12 @@ PhotonView.Get(UIManager.Instance).RPC(
 
     private void CancelDuel_Internal()
     {
-        Debug.Log("CancelDuel_Internal");
+        GameLogger.Warning("Duel cancelled", this);
+
         currentDuel.IsResolved = true;
         ShootTriangle.Instance.SetTriangleVisible(false);
         BallTrail.Instance.SetTrailVisible(false);
         unlockStatusCoroutine = StartCoroutine(UnlockStatusRoutine());
-    }
-
-    public bool IsDuelResolved() => currentDuel.IsResolved;
-    public DuelMode GetDuelMode() => currentDuel.Mode;
-    public List<DuelParticipant> GetDuelParticipants() => currentDuel.Participants;
-    public DuelParticipant GetLastOffense() => currentDuel.LastOffense;
-    public DuelParticipant GetLastDefense() => currentDuel.LastDefense;
-
-    public DuelAction GetActionByCategory(Category category)
-    {
-        if (category == Category.Block || category == Category.Catch) {
-            return DuelAction.Defense;
-        } else {
-            return DuelAction.Offense;
-        }
     }
 
     #endregion
@@ -253,6 +202,7 @@ PhotonView.Get(UIManager.Instance).RPC(
 
         currentDuel.Participants.Add(participant);
 
+        // Handle secret moves and SFX
         if (participant.Secret != null)
         {
             Vector3 playerPos = participant.Player.transform.position;
@@ -283,7 +233,7 @@ PhotonView.Get(UIManager.Instance).RPC(
                 currentDuel.AttackPressure += directBonus;
             currentDuel.LastOffense = participant;
             OnSetStatusPlayerAndCommand?.Invoke(participant, currentDuel.AttackPressure);
-            Debug.Log($"Offense action increases attack pressure +{participant.Damage}");
+            GameLogger.DebugLog($"Offense action increases attack pressure +{participant.Damage}", this);
         }
         else
         {
@@ -295,17 +245,18 @@ PhotonView.Get(UIManager.Instance).RPC(
     {
         if (currentDuel.LastOffense == null)
         {
-            Debug.LogWarning("No offense present before defense.");
+            GameLogger.Warning("No offense present before defense.", this);
             return;
         }
 
         currentDuel.LastDefense = defender;
 
         ApplyElementalEffectiveness(currentDuel.LastOffense, defender);
+
         if (defender.Category == Category.Block && defender.Player.IsKeeper && GameManager.Instance.GetDistanceToAllyGoal(defender.Player) < KeeperGoalDistance)
         {
             defender.Damage *= keeperBonus;
-            Debug.Log("Keeper gets a block bonus!");
+            GameLogger.Info("Keeper gets a block bonus!", this);
         }
 
         if (defender.Damage >= currentDuel.AttackPressure)
@@ -314,14 +265,16 @@ PhotonView.Get(UIManager.Instance).RPC(
                 AudioManager.Instance.PlaySfx("SfxCatch");
 
             OnSetStatusPlayerAndCommand?.Invoke(defender, 0f);
-            Debug.Log($"{defender.Player.name} stopped the attack! (-{defender.Damage})");
+            GameLogger.Info($"{defender.Player.name} stopped the attack! (-{defender.Damage})", this);
+
             EndDuel(winningParticipant: defender, winnerAction: DuelAction.Defense);
         }
         else
         {
             currentDuel.AttackPressure -= defender.Damage;
             OnSetStatusPlayerAndCommand?.Invoke(defender, 0f);
-            Debug.Log($"Partial block. Attack pressure now {currentDuel.AttackPressure}");
+
+            GameLogger.Info($"Partial block. Attack pressure now {currentDuel.AttackPressure}", this);
 
             defender.Player.Stun();
 
@@ -330,7 +283,8 @@ PhotonView.Get(UIManager.Instance).RPC(
                 if (defender.Category == Category.Catch)
                     AudioManager.Instance.PlaySfx("SfxKeeperScream");
 
-                Debug.Log("Partial block ends the duel.");
+                GameLogger.Info("Partial block ends the duel.", this);
+
                 EndDuel(winningParticipant: currentDuel.LastOffense, winnerAction: DuelAction.Offense);
             }
             // Else: duel continues for next defense
@@ -344,7 +298,7 @@ PhotonView.Get(UIManager.Instance).RPC(
         if (elements.IsEffective(defense.CurrentElement, offense.CurrentElement))
         {
             defense.Damage *= 2f;
-            Debug.Log("Defense element is effective!");
+            GameLogger.Info("Defense element is effective!", this);
         }
         else if (elements.IsEffective(offense.CurrentElement, defense.CurrentElement))
         {
@@ -352,7 +306,7 @@ PhotonView.Get(UIManager.Instance).RPC(
             offense.Damage *= 2;
             currentDuel.AttackPressure += offense.Damage;
             OnSetStatusPlayerAndCommand?.Invoke(offense, currentDuel.AttackPressure);
-            Debug.Log("Offense element is effective!");
+            GameLogger.Info("Offense element is effective!", this);
         }
     }
 
@@ -409,7 +363,8 @@ PhotonView.Get(UIManager.Instance).RPC(
 
         BallTrail.Instance.SetTrailVisible(false);
         unlockStatusCoroutine = StartCoroutine(UnlockStatusRoutine());
-        Debug.Log("Duel ended");
+
+        GameLogger.Info("Duel ended", this);
     }
 
     #endregion
@@ -462,10 +417,12 @@ PhotonView.Get(UIManager.Instance).RPC(
 
     public void RegisterSelection(int index, Category category, DuelCommand command, Secret secret)
     {
-        Debug.Log($"[DuelManager] RegisterSelection participantIndex={index}, category={category}, command={command}, secret={(secret != null ? secret.name : "None")}, stagedCount={stagedParticipants.Count}");
+        GameLogger.Info(
+            $"[DuelManager] RegisterSelection participantIndex={index}, category={category}, command={command}, secret={(secret != null ? secret.name : "None")}, stagedCount={stagedParticipants.Count}",
+            this);
         if (index < 0 || index >= stagedParticipants.Count)
         {
-            Debug.LogError("Invalid participant index");
+            GameLogger.Error("Invalid participant index", this);
             return;
         }
         var pd = stagedParticipants[index];
@@ -489,24 +446,23 @@ PhotonView.Get(UIManager.Instance).RPC(
             pd.IsDirect
         );
 
-        Debug.Log($"Created participant: {participant.Player.name}");
-        AddParticipantToDuel(participant);  // Will use authority pattern now
+        GameLogger.DebugLog($"Created participant: {participant.Player.name}", this);
+        AddParticipantToDuel(participant);
     }
 
-public void ResolveDuelIfReady()
-{
-    if(currentDuel.Participants.Count >= 2)
+    public void ResolveDuelIfReady()
     {
-        var offense = currentDuel.Participants.First(p => p.Action == DuelAction.Offense);
-        var defense = currentDuel.Participants.First(p => p.Action == DuelAction.Defense);
-        ResolveDefense(defense); // Your own logic
+        if (currentDuel.Participants.Count >= 2)
+        {
+            var offense = currentDuel.Participants.First(p => p.Action == DuelAction.Offense);
+            var defense = currentDuel.Participants.First(p => p.Action == DuelAction.Defense);
+            ResolveDefense(defense); // Your own logic
+        }
     }
-}
 
     #endregion
 
 #if PHOTON_UNITY_NETWORKING
-    // You could implement OnPhotonSerializeView if you want to sync fields (rarely needed with this RPC approach)
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         // (No extra sync needed for logic; all state is managed by explicit RPCs)

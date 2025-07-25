@@ -3,20 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DuelParticipant
+public static class DamageCalculator
 {
-    public GameObject GameObj;
-    public Player Player;
-    public Category Category;
-    public DuelAction Action;
-    public DuelCommand Command;
-    public Element CurrentElement;
-    public Secret Secret;
-    public bool IsDirect;
-    public float Damage;
-
-    public Dictionary<(Category, DuelCommand), Func<Player, Secret, float>> damageFormulas =
-        new Dictionary<(Category, DuelCommand), Func<Player, Secret, float>>()
+    public static Dictionary<(Category, DuelCommand), Func<Player, Secret, float>> damageFormulas = 
+    new Dictionary<(Category, DuelCommand), Func<Player, Secret, float>>()
     {
         //Dribble
         {(Category.Dribble, DuelCommand.Phys), (player, secret) =>
@@ -131,24 +121,12 @@ public class DuelParticipant
         }
     };
 
-    public DuelParticipant(
-        GameObject gameObj,
-        Category category,
-        DuelAction action,
-        DuelCommand command,
-        Secret secret,
-        bool isDirect)
-    {
-        GameObj = gameObj;
-        Category = category;
-        Action = action;
-        Command = command;
-        Secret = secret;
-        IsDirect = isDirect;
 
-        Player = gameObj.GetComponent<Player>();
-        CurrentElement = Secret == null ? Player.Element : Secret.Element;
-        Damage = DamageCalculator.GetDamage(Category, Command, Player, Secret);
-        
+    public static float GetDamage(Category cat, DuelCommand cmd, Player p, Secret s)
+    {
+        if (damageFormulas.TryGetValue((cat, cmd), out var formula))
+            return formula(p, s);
+        else
+            return 0f;
     }
 }

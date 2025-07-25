@@ -131,13 +131,20 @@ void Start()
         scores = new int[] {0, 0};
         timeRemaining = timeDefault;
         AssignGoals();
+        if(IsMultiplayer) 
+        {
+
+
 #if PHOTON_UNITY_NETWORKING
             // Only master sets phase in online games!
             if (PhotonNetwork.IsMasterClient)
             {
-        ResetDefaultPositions();
+                ResetDefaultPositions();
             }
 #endif
+        } else {
+            ResetDefaultPositions();
+        }
         UpdateScoreDisplay();
         UpdateTimerDisplay(timeDefault);
     }
@@ -276,6 +283,10 @@ private void OfflineSpawn() {
                 Player player = team.players[j];
                 PlayerData playerData = team.PlayerDataList[j];
                 player.Initialize(playerData);
+                if (j == 0) 
+                {
+                    player.IsKeeper = true;
+                }
                 player.UpdateKeeperColliderState();
                 player.Lv = team.Lv;
                 player.TeamIndex = i;

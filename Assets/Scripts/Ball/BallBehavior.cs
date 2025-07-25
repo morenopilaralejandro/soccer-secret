@@ -64,6 +64,7 @@ public class BallBehavior : MonoBehaviour
 
         if (InputManager.Instance != null)
             InputManager.Instance.TapDetector.OnTap += HandleTap;
+            InputManager.Instance.SwipeDetector.OnSwipe += HandleSwipe;
     }
     private void OnDisable()
     {
@@ -75,6 +76,7 @@ public class BallBehavior : MonoBehaviour
 
         if (InputManager.Instance != null)
             InputManager.Instance.TapDetector.OnTap -= HandleTap;
+            InputManager.Instance.SwipeDetector.OnSwipe -= HandleSwipe;
     }
 
     private void Update()
@@ -109,7 +111,7 @@ public class BallBehavior : MonoBehaviour
         {
             Vector2 kickTarget;
             pendingKickHandler.TryConsumePendingKick(out kickTarget);
-            bool triggeredDuel = GoalDuelInitiator.Instance.TryStartGoalDuelIfValidTarget(kickTarget, false);
+            bool triggeredDuel = GoalDuelInitiator.Instance.TryStartGoalDuelIfValidTarget(PossessionManager.Instance.PossessionPlayer, kickTarget, false);
             if (!triggeredDuel)
             {
                 KickBallToNetworkAware(kickTarget);
@@ -168,7 +170,7 @@ public class BallBehavior : MonoBehaviour
         // 4. If ally is in possession and tap: handle kick or queue pending kick
         if (PossessionManager.Instance.PossessionPlayer && PossessionManager.Instance.PossessionPlayer.ControlType == ControlType.LocalHuman)
         {
-            if (GoalDuelInitiator.Instance.TryStartGoalDuelIfValidTarget(screenPosition, false))
+            if (GoalDuelInitiator.Instance.TryStartGoalDuelIfValidTarget(PossessionManager.Instance.PossessionPlayer, screenPosition, false))
                 return;
 
             CrosshairManager.Instance.ShowCrosshair(screenPosition);
@@ -210,6 +212,16 @@ public class BallBehavior : MonoBehaviour
             CrosshairManager.Instance.ShowCrosshair(screenPosition);
             pendingKickHandler.QueuePendingKick(screenPosition);
             return;
+        }
+    }
+
+    private void HandleSwipe(SwipeDetector.SwipeDirection direction)
+    {
+        Debug.Log("Swipe Detected!");
+        if (direction == SwipeDetector.SwipeDirection.Up)
+        {
+            Debug.Log("Swipe Up Detected!");
+            GoalDuelInitiator.Instance.TryStartGoalDuelIfValidSwipe(PossessionManager.Instance.PossessionPlayer, false);
         }
     }
 
@@ -305,7 +317,7 @@ public class BallBehavior : MonoBehaviour
         {
             Vector2 targetPosition;
             pendingKickHandler.TryConsumePendingKick(out targetPosition);
-            if (!GoalDuelInitiator.Instance.TryStartGoalDuelIfValidTarget(targetPosition, true))
+            if (!GoalDuelInitiator.Instance.TryStartGoalDuelIfValidTarget(PossessionManager.Instance.PossessionPlayer, targetPosition, true))
             {
                 Debug.Log("Detected pending ally kick. Kicking to target: " + targetPosition);
                 KickBallToNetworkAware(targetPosition);

@@ -15,8 +15,7 @@ public struct DuelTeamSelection
 }
 
 public class UIManager : MonoBehaviourPun
-{ // MonoBehaviourPun is Photon’s MonoBehaviour+PhotonView
-
+{
     #region Singleton
     public static UIManager Instance { get; private set; }
     public bool IsStatusLocked { get; private set; } = false;
@@ -39,25 +38,18 @@ public class UIManager : MonoBehaviourPun
     #endregion
 
     #region Fields
-
-private bool _duelContextReady = false;
-// Store picks received before context is ready
-private List<(int teamIndex, int commandInt, string secretIdOrNull)> _pendingPicks = new();
-
+    private bool _duelContextReady = false;
+    private List<(int teamIndex, int commandInt, string secretIdOrNull)> _pendingPicks = new();
     private DuelTeamSelection[] _duelSelections = new DuelTeamSelection[2];
     private bool[] _isTeamReady = new bool[2];
     private bool _selectionsRegistered = false;
     private DuelCommand[] _commands = new DuelCommand[2];
     private Secret[] _secrets = new Secret[2];
-
     private int shootTeamIndex;
-
     private float _selectionTimer = 10f;
     private bool _waitingForMultiplayerDuel = false;
 
-private struct RemotePick { public int team, command; public string secret; }
-
-
+    private struct RemotePick { public int team, command; public string secret; }
     #endregion
 
     #region Unity Lifecycle
@@ -67,11 +59,11 @@ private struct RemotePick { public int team, command; public string secret; }
         if (Instance == null)
         {
             Instance = this;
-            Debug.Log("[UIManager] Instance created.");
+            GameLogger.Info("[UIManager] Instance created.", this);
         }
         else
         {
-            Debug.LogWarning("[UIManager] Duplicate instance detected, destroying object.");
+            GameLogger.Warning("[UIManager] Duplicate instance detected, destroying object.", this);
             Destroy(gameObject);
             return;
         }
@@ -287,7 +279,6 @@ private struct RemotePick { public int team, command; public string secret; }
     {
         return teamIndex == GameManager.Instance.GetLocalTeamIndex();
     }
-
     #endregion
 
     #region Duel Selection Phase Logic
@@ -295,33 +286,30 @@ private struct RemotePick { public int team, command; public string secret; }
 #if PHOTON_UNITY_NETWORKING
     [PunRPC]
 #endif
-public void RpcSetupFieldDuel(int[] teamIndices, int[] categories, int[] participantIndices, int[] playerViewIDs)
-{
-    // 1. Reconstruct player refs from PhotonViews
-    for (int i = 0; i < 2; i++)
+    public void RpcSetupFieldDuel(int[] teamIndices, int[] categories, int[] participantIndices, int[] playerViewIDs)
     {
-        var playerGO = PhotonView.Find(playerViewIDs[i]).gameObject;
-        // This will "stage" them, so both clients have exact same stagedParticipants order!
-        DuelManager.Instance.RegisterTrigger(playerGO, false); // isDirect should match what master did
-        SetDuelSelection(teamIndices[i], (Category)categories[i], i, playerGO.GetComponent<Player>()); // i is always [0] then [1]
+        // 1. Reconstruct player refs from PhotonViews
+        for (int i = 0; i < 2; i++)
+        {
+            var playerGO = PhotonView.Find(playerViewIDs[i]).gameObject;
+            // This will "stage" them, so both clients have exact same stagedParticipants order!
+            DuelManager.Instance.RegisterTrigger(playerGO, false);
+            SetDuelSelection(teamIndices[i], (Category)categories[i], i, playerGO.GetComponent<Player>());
+        }
+        _duelContextReady = true;
+        foreach (var pick in _pendingPicks)
+            ProcessDuelPick(pick.teamIndex, pick.commandInt, pick.secretIdOrNull);
+        _pendingPicks.Clear();
+        BeginDuelSelectionPhase();
     }
-    _duelContextReady = true;
-    foreach (var pick in _pendingPicks)
-        ProcessDuelPick(pick.teamIndex, pick.commandInt, pick.secretIdOrNull);
-    _pendingPicks.Clear();
-    BeginDuelSelectionPhase();
-}
 
     public void BeginDuelSelectionPhase()
     {
-
         _selectionsRegistered = false;
-
-        // Reset selection states so AI/Human can pick fresh!
         for (int i = 0; i < 2; i++)
         {
             _isTeamReady[i] = false;
-            _commands[i] = DuelCommand.Phys; // or whatever default you want
+            _commands[i] = DuelCommand.Phys;
             _secrets[i] = null;
         }
 
@@ -360,39 +348,28 @@ public void RpcSetupFieldDuel(int[] teamIndices, int[] categories, int[] partici
         {
             if (duelMode == DuelMode.Field)
             {
-        for (int i = 0; i < 2; i++)
-    {
-
-                        ShowDuelUIForLocal();   
-
-        var sel = _duelSelections[i];
-        if (sel.Player != null && sel.Player.ControlType == ControlType.Ai && !_isTeamReady[i])
-        {
-            var ai = sel.Player.GetComponent<PlayerAi>();
-            if (ai != null)
-            {
-                ai.RegisterAiSelections(i, sel.Category);
-            }
-            else
-            {
-                // fallback: pick default
-                _commands[i] = DuelCommand.Phys;
-                _secrets[i] = null;
-                _isTeamReady[i] = true;
-            }
-        }
-
-     
-            
-        }
-
+                for (int i = 0; i < 2; i++)
+                {
+                    ShowDuelUIForLocal();
+                    var sel = _duelSelections[i];
+                    if (sel.Player != null && sel.Player.ControlType == ControlType.Ai && !_isTeamReady[i])
+                    {
+                        var ai = sel.Player.GetComponent<PlayerAi>();
+                        if (ai != null)
+                        {
+                            ai.RegisterAiSelections(i, sel.Category);
+                        }
+                        else
+                        {
+                            _commands[i] = DuelCommand.Phys;
+                            _secrets[i] = null;
+                            _isTeamReady[i] = true;
+                        }
+                    }
+                }
             }
             else if (duelMode == DuelMode.Shoot)
             {
-                /*
-                var sel = _duelSelections[i];
-                if (sel.Player != null && sel.Player.ControlType == ControlType.Ai)
-                */
                 if (shootTeamIndex == GameManager.Instance.GetLocalTeamIndex())
                 {
                     ShowDuelUIForLocal();
@@ -400,7 +377,6 @@ public void RpcSetupFieldDuel(int[] teamIndices, int[] categories, int[] partici
                 else
                 {
                     HideDuelUi();
-
                     var sel = _duelSelections[shootTeamIndex];
                     if (sel.Player != null && sel.Player.ControlType == ControlType.Ai && !_isTeamReady[shootTeamIndex])
                     {
@@ -445,9 +421,9 @@ public void RpcSetupFieldDuel(int[] teamIndices, int[] categories, int[] partici
                 if (sel.Player != null && sel.Player.ControlType == ControlType.Ai)
                 {
                     bool isMaster = !GameManager.Instance.IsMultiplayer
-#if PHOTON_UNITY_NETWORKING
+    #if PHOTON_UNITY_NETWORKING
                         || PhotonNetwork.IsMasterClient
-#endif
+    #endif
                         ;
                     if (isMaster)
                     {
@@ -505,78 +481,59 @@ public void RpcSetupFieldDuel(int[] teamIndices, int[] categories, int[] partici
         RegisterShootSelectionAndClose(shooterTeamIndex);
     }
 
-private void RegisterShootSelectionAndClose(int teamIndex)
-{
-    var sel = _duelSelections[teamIndex];
-    DuelManager.Instance.RegisterSelection(sel.ParticipantIndex, sel.Category, _commands[teamIndex], _secrets[teamIndex]);
-
-    if (_selectionsRegistered) return;
-    _selectionsRegistered = true;
-    _waitingForMultiplayerDuel = false;
-    StopAllCoroutines();
-
-
-    /*
-    // Only master resolves!
-#if PHOTON_UNITY_NETWORKING
-    if (GameManager.Instance.IsMultiplayer)
+    private void RegisterShootSelectionAndClose(int teamIndex)
     {
-        if (PhotonNetwork.IsMasterClient)
-        {
-            DuelManager.Instance.TryResolveFromSelections();
-        }
-    }
-    else
-#endif
-    {
-        DuelManager.Instance.TryResolveFromSelections();
-    }
-    */
+        var sel = _duelSelections[teamIndex];
+        DuelManager.Instance.RegisterSelection(sel.ParticipantIndex, sel.Category, _commands[teamIndex], _secrets[teamIndex]);
 
-    HideDuelUi();
-    GameManager.Instance.UnfreezeGame();
-    GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Battle);
-}
+        if (_selectionsRegistered) return;
+        _selectionsRegistered = true;
+        _waitingForMultiplayerDuel = false;
+        StopAllCoroutines();
+
+        HideDuelUi();
+        GameManager.Instance.UnfreezeGame();
+        GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Battle);
+    }
 
 #if PHOTON_UNITY_NETWORKING
     [PunRPC]
 #endif
-public void NetworkDuelSelectionReceived(int teamIndex, int commandInt, string secretIdOrNull)
-{
-    if (!_duelContextReady)
+    public void NetworkDuelSelectionReceived(int teamIndex, int commandInt, string secretIdOrNull)
     {
-        Debug.LogWarning("NetworkDuelSelectionReceived called BEFORE duel context. Queuing pick!");
-        _pendingPicks.Add((teamIndex, commandInt, secretIdOrNull));
-        return;
+        if (!_duelContextReady)
+        {
+            GameLogger.Warning("NetworkDuelSelectionReceived called BEFORE duel context. Queuing pick!", this);
+            _pendingPicks.Add((teamIndex, commandInt, secretIdOrNull));
+            return;
+        }
+        ProcessDuelPick(teamIndex, commandInt, secretIdOrNull);
     }
-    ProcessDuelPick(teamIndex, commandInt, secretIdOrNull);
-}
 
-private void ProcessDuelPick(int teamIndex, int commandInt, string secretIdOrNull)
-{
-    _isTeamReady[teamIndex] = true;
-    _commands[teamIndex] = (DuelCommand)commandInt;
-    _secrets[teamIndex] = string.IsNullOrEmpty(secretIdOrNull) ? null : SecretManager.Instance.GetSecretById(secretIdOrNull);
+    private void ProcessDuelPick(int teamIndex, int commandInt, string secretIdOrNull)
+    {
+        _isTeamReady[teamIndex] = true;
+        _commands[teamIndex] = (DuelCommand)commandInt;
+        _secrets[teamIndex] = string.IsNullOrEmpty(secretIdOrNull) ? null : SecretManager.Instance.GetSecretById(secretIdOrNull);
 
-    // Defensive log!
-    Debug.Log($"ProcessDuelPick: team={teamIndex} participant={_duelSelections[teamIndex].ParticipantIndex} obj={_duelSelections[teamIndex].Player?.name}");
+        // Defensive log!
+        GameLogger.Info($"ProcessDuelPick: team={teamIndex} participant={_duelSelections[teamIndex].ParticipantIndex} obj={_duelSelections[teamIndex].Player?.name}", this);
 
-    // Only register BOTH when ready
-    if (_isTeamReady[0] && _isTeamReady[1])
-        RegisterBothSelections();
-}
+        // Only register BOTH when ready
+        if (_isTeamReady[0] && _isTeamReady[1])
+            RegisterBothSelections();
+    }
     private void SendSelectionToRemote(int teamIndex, DuelCommand command, Secret secret)
     {
-#if PHOTON_UNITY_NETWORKING
+    #if PHOTON_UNITY_NETWORKING
         string secretIdOrNull = (secret == null) ? null : secret.SecretId;
         PhotonView.Get(this).RPC(
             "NetworkDuelSelectionReceived",
             Photon.Pun.RpcTarget.Others,
             teamIndex, (int)command, secretIdOrNull
         );
-#endif
+    #endif
     }
-
 
 #if PHOTON_UNITY_NETWORKING
     [PunRPC]
@@ -585,7 +542,6 @@ private void ProcessDuelPick(int teamIndex, int commandInt, string secretIdOrNul
     {
         // Find the winner's Player object using the ID
         Player winnerPlayer = null;
-        // Search for player. You might have a manager, here's a basic version:
         foreach (var sel in _duelSelections)
         {
             if (sel.Player != null && sel.Player.PlayerId == winnerPlayerId && sel.Player.TeamIndex == winnerTeamIndex)
@@ -594,60 +550,34 @@ private void ProcessDuelPick(int teamIndex, int commandInt, string secretIdOrNul
                 break;
             }
         }
-
-        // Show duel result using your existing UI code
-        //ShowTextDuelResult(winnerPlayer);
         HideDuelUi();
         GameManager.Instance.UnfreezeGame();
         GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Battle);
-
-        // Optionally, play sounds, effects etc depending on win/loss
     }
 
-// At the end of RegisterBothSelections:
-private void RegisterBothSelections()
-{
-    if (_selectionsRegistered) return;
-    _selectionsRegistered = true;
-    _waitingForMultiplayerDuel = false;
-    StopAllCoroutines();
-
-    // sort _duelSelections/commands/secrets so that offense goes before defense
-    var list = new List<(DuelTeamSelection sel, DuelCommand cmd, Secret secret)>();
-    for (int i = 0; i < 2; i++)
+    private void RegisterBothSelections()
     {
-        list.Add((_duelSelections[i], _commands[i], _secrets[i]));
-    }
-    // Make offense first (assuming you have Category and can map it)
-    list.Sort((a, b) => a.sel.Category == Category.Dribble ? -1 : 1);
+        if (_selectionsRegistered) return;
+        _selectionsRegistered = true;
+        _waitingForMultiplayerDuel = false;
+        StopAllCoroutines();
 
-    foreach (var entry in list)
-    {
-        DuelManager.Instance.RegisterSelection(entry.sel.ParticipantIndex, entry.sel.Category, entry.cmd, entry.secret);
-    }
-
-/*
-    // ... the rest should be as normal
-#if PHOTON_UNITY_NETWORKING
-    if (GameManager.Instance.IsMultiplayer)
-    {
-        if (PhotonNetwork.IsMasterClient)
+        var list = new List<(DuelTeamSelection sel, DuelCommand cmd, Secret secret)>();
+        for (int i = 0; i < 2; i++)
         {
-            DuelManager.Instance.TryResolveFromSelections();
-        } else {
-            DuelManager.Instance.TryResolveFromSelections();
+            list.Add((_duelSelections[i], _commands[i], _secrets[i]));
         }
+        list.Sort((a, b) => a.sel.Category == Category.Dribble ? -1 : 1);
+
+        foreach (var entry in list)
+        {
+            DuelManager.Instance.RegisterSelection(entry.sel.ParticipantIndex, entry.sel.Category, entry.cmd, entry.secret);
+        }
+
+        HideDuelUi();
+        GameManager.Instance.UnfreezeGame();
+        GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Battle);
     }
-    else
-#endif
-    {
-        DuelManager.Instance.TryResolveFromSelections();
-    }
-*/
-    HideDuelUi();
-    GameManager.Instance.UnfreezeGame();
-    GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Battle);
-}
 
     void ShowWaitingForOpponentUI() => SetActiveSafe(panelWaitingForOpponent, true);
     void HideWaitingForOpponentUI() => SetActiveSafe(panelWaitingForOpponent, false);
@@ -667,8 +597,8 @@ private void RegisterBothSelections()
         DuelMode mode = DuelManager.Instance.GetDuelMode();
         if (mode == DuelMode.Field)
         {
-                if (_isTeamReady[0] && _isTeamReady[1])
-                    RegisterBothSelections();
+            if (_isTeamReady[0] && _isTeamReady[1])
+                RegisterBothSelections();
         }
         else if (mode == DuelMode.Shoot)
         {
