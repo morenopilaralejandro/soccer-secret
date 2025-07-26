@@ -29,6 +29,7 @@ public class BallBehavior : MonoBehaviour
 
     [Header("Other")]
     private PendingKickHandler pendingKickHandler = new PendingKickHandler();
+    private PendingSwipeHandler pendingSwipeHandler = new PendingSwipeHandler();
 
     private bool isPossessed = false;
     private bool wasMovementFrozen = false;
@@ -107,6 +108,8 @@ public class BallBehavior : MonoBehaviour
         if (isPossessed) HandlePossession();
 
         bool nowFrozen = GameManager.Instance.IsMovementFrozen;
+    var player = PossessionManager.Instance.PossessionPlayer;
+
         if (wasMovementFrozen && !nowFrozen && pendingKickHandler.HasPendingKick && PossessionManager.Instance.PossessionPlayer && PossessionManager.Instance.PossessionPlayer.ControlType == ControlType.LocalHuman && !PossessionManager.Instance.PossessionPlayer.IsStunned)
         {
             Vector2 kickTarget;
@@ -118,6 +121,17 @@ public class BallBehavior : MonoBehaviour
                 CrosshairManager.Instance.HideCrosshairImmediately();
             }
         }
+
+ if (pendingSwipeHandler.HasPendingSwipeUp &&
+        player && player.ControlType == ControlType.LocalHuman && !GameManager.Instance.IsMovementFrozen && !player.IsStunned && DuelManager.Instance.IsDuelResolved())
+    {
+        if (pendingSwipeHandler.TryConsumePendingSwipeUp())
+        {
+            GoalDuelInitiator.Instance.TryStartGoalDuelIfValidSwipe(player, false);
+        }
+    }
+
+
         wasMovementFrozen = nowFrozen;
     }
 
@@ -218,10 +232,22 @@ public class BallBehavior : MonoBehaviour
     private void HandleSwipe(SwipeDetector.SwipeDirection direction)
     {
         Debug.Log("Swipe Detected!");
+        if (InputManager.Instance.IsDragging)
+            return;
         if (direction == SwipeDetector.SwipeDirection.Up)
         {
             Debug.Log("Swipe Up Detected!");
-            GoalDuelInitiator.Instance.TryStartGoalDuelIfValidSwipe(PossessionManager.Instance.PossessionPlayer, false);
+            var player = PossessionManager.Instance.PossessionPlayer;
+            // Check ALL your conditions before acting:
+            if (player && player.ControlType == ControlType.LocalHuman && DuelManager.Instance.IsDuelResolved() && !GameManager.Instance.IsMovementFrozen && !player.IsStunned)
+            {
+                GoalDuelInitiator.Instance.TryStartGoalDuelIfValidSwipe(player, false);
+            }
+            else
+            {
+                // Can't process the swipe up yet, so queue it for later!
+                pendingSwipeHandler.QueuePendingSwipeUp();
+            }
         }
     }
 
@@ -311,26 +337,41 @@ public class BallBehavior : MonoBehaviour
         PossessionManager.Instance.ReleasePossession();
     }
 
-    private void HandleAllyPendingKickOrControl(Player player)
+private void HandleAllyPendingKickOrControl(Player player)
+{
+    // 1. Try to consume pending swipe up FIRST
+    if (pendingSwipeHandler.HasPendingSwipeUp && player.ControlType == ControlType.LocalHuman && !player.IsStunned && DuelManager.Instance.IsDuelResolved() && !GameManager.Instance.IsMovementFrozen)
     {
-        if (pendingKickHandler.HasPendingKick && player.ControlType == ControlType.LocalHuman && !player.IsStunned)
+        if (pendingSwipeHandler.TryConsumePendingSwipeUp())
         {
-            Vector2 targetPosition;
-            pendingKickHandler.TryConsumePendingKick(out targetPosition);
-            if (!GoalDuelInitiator.Instance.TryStartGoalDuelIfValidTarget(PossessionManager.Instance.PossessionPlayer, targetPosition, true))
-            {
-                Debug.Log("Detected pending ally kick. Kicking to target: " + targetPosition);
-                KickBallToNetworkAware(targetPosition);
-                CrosshairManager.Instance.HideCrosshairImmediately();
-            }
-        }
-        else
-        {
-            pendingKickHandler.Clear();
+            player.ShowBubbleVoley();
+            GoalDuelInitiator.Instance.TryStartGoalDuelIfValidSwipe(player, true); // assuming "true" is correct for isAlly
             CrosshairManager.Instance.HideCrosshairImmediately();
-            PossessionManager.Instance.PossessionPlayer.Control();
+            return; // Early return!
         }
     }
+
+    // 2. Then, try to consume pending kick
+    if (pendingKickHandler.HasPendingKick && player.ControlType == ControlType.LocalHuman && !player.IsStunned && DuelManager.Instance.IsDuelResolved() && !GameManager.Instance.IsMovementFrozen)
+    {
+        Vector2 targetPosition;
+        pendingKickHandler.TryConsumePendingKick(out targetPosition);
+        player.ShowBubbleVoley();
+        if (!GoalDuelInitiator.Instance.TryStartGoalDuelIfValidTarget(PossessionManager.Instance.PossessionPlayer, targetPosition, true))
+        {
+            Debug.Log("Detected pending ally kick. Kicking to target: " + targetPosition);
+            KickBallToNetworkAware(targetPosition);
+            CrosshairManager.Instance.HideCrosshairImmediately();
+        }
+        return;
+    }
+
+    // 3. Nothing pending: normal control
+    pendingKickHandler.Clear();
+    pendingSwipeHandler.Clear();
+    CrosshairManager.Instance.HideCrosshairImmediately();
+    PossessionManager.Instance.PossessionPlayer.Control();
+}
 
     #endregion
 

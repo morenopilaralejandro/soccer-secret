@@ -89,6 +89,7 @@ public class PlayerLineRenderer : MonoBehaviour
         if (IsTouchingCharacter(pointerPosition))
         {
             isDragging = true;
+            InputManager.Instance.IsDragging = true;
             awaitingFirstSegment = true;
             linePoints.Clear();
             lineRenderer.positionCount = 0;
@@ -137,6 +138,7 @@ public class PlayerLineRenderer : MonoBehaviour
         if (isDragging)
         {
             isDragging = false;
+            InputManager.Instance.IsDragging = false;
             awaitingFirstSegment = false;
             if (linePoints.Count > 0)
             {

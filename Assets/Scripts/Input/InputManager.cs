@@ -4,7 +4,7 @@ public class InputManager : MonoBehaviour
 {
     public static InputManager Instance { get; private set; }
 
-
+    public bool IsDragging { get; set; }
     public DragDetector DragDetector => dragDetector;
     public TapDetector TapDetector => tapDetector;
     public SwipeDetector SwipeDetector => swipeDetector;

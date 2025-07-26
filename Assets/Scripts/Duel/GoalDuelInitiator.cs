@@ -93,6 +93,7 @@ public class GoalDuelInitiator : MonoBehaviour
 
     public void StartDuel(bool isDirect)
     {
+        Debug.Log("GoalDuelInitiator isDirect: " + isDirect);
         DuelManager.Instance.StartDuel(DuelMode.Shoot);
         ShootTriangle.Instance.SetTriangleVisible(true);
         DuelManager.Instance.RegisterTrigger(_cachedPlayer.gameObject, isDirect);

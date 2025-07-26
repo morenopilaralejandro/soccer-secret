@@ -11,7 +11,7 @@ public class SwipeDetector : MonoBehaviour
     private Vector2 startPos, endPos;
     private float startTime;
     private bool isSwiping = false;
-    private float minSwipeDistance = 100f; // pixels
+    private float minSwipeDistance = 50f; // pixels
     private float maxSwipeTime = 0.5f; // seconds
 
     void Awake()

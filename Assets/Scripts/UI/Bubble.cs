@@ -11,7 +11,7 @@ public enum BubbleType
 public class Bubble : MonoBehaviour
 {
     [Header("Assign these in the inspector")]
-    [SerializeField] private Image panelVolley;
+    [SerializeField] private GameObject panelVolley;
     [SerializeField] private TextMeshProUGUI textComment;
     [SerializeField] private float duration = 1f;
 
@@ -30,7 +30,7 @@ public class Bubble : MonoBehaviour
         switch (bubbleType)
         {
             case BubbleType.Volley:
-                panelVolley.enabled = true;
+                panelVolley.SetActive(true);
 
                 // Stop any previous coroutine
                 if (hideCoroutine != null)
@@ -45,6 +45,7 @@ public class Bubble : MonoBehaviour
     private IEnumerator HideAfterSeconds(float seconds)
     {
         yield return new WaitForSeconds(seconds);
+        panelVolley.SetActive(false);
         gameObject.SetActive(false);
         hideCoroutine = null;
     }

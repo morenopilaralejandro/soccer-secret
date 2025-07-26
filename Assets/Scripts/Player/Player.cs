@@ -40,6 +40,7 @@ public class Player : MonoBehaviour
     public Sprite SpritePlayerPortrait => spritePlayerPortrait;
     public Sprite SpriteWearPortrait => spriteWearPortrait;
 
+    [SerializeField] private Bubble bubble;
     [SerializeField] private PlayerNameTag playerNameTag;
     [SerializeField] private SpriteRenderer spriteRendererPigment;
     [SerializeField] private SpriteRenderer spriteRendererHair;
@@ -638,5 +639,11 @@ public void UpdateKeeperColliderState()
 {
     if (keeperCollider != null)
         keeperCollider.enabled = IsKeeper;
+}
+
+public void ShowBubbleVoley() 
+{
+    if (bubble != null)
+        bubble.ShowBubble(BubbleType.Volley);
 }
 }
