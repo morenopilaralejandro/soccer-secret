@@ -28,22 +28,25 @@ public class GoalDuelInitiator : MonoBehaviour
         Instance = this;
     }
 
-    private void Start() 
+    private void Start()
     {
+        // Intentionally left blank
+    }
 
-    }    
-
-    public bool TryStartGoalDuelIfValidSwipe(Player player, bool isDirect) {
+    public bool TryStartGoalDuelIfValidSwipe(Player player, bool isDirect)
+    {
         _cachedPlayer = player;
         oppGoal = GameManager.Instance.GetOppGoal(_cachedPlayer);
         float distanceToGoal = GameManager.Instance.GetDistanceToOppGoal(_cachedPlayer);
-        if (distanceToGoal < shootGoalDistance) 
+        if (distanceToGoal < shootGoalDistance)
         {
             ShootTriangle.Instance.SetTriangleFromPlayer(_cachedPlayer, oppGoal.transform.position);
             TryStartGoalNetworkSafe(isDirect);
             return true;
-        } else {
-            Debug.Log("bad");
+        }
+        else
+        {
+            GameLogger.Info("[GoalDuelInitiator] Player not close enough to shoot goal.", this);
         }
         return false;
     }
@@ -54,19 +57,20 @@ public class GoalDuelInitiator : MonoBehaviour
         Debug.DrawRay(ray.origin, ray.direction * Mathf.Infinity, Color.red, 2f);
 
         int goalLayerMask = LayerMask.GetMask("GoalTouchArea");
-        Debug.Log($"Attempting to raycast to Goal layer. Mask={goalLayerMask}, TapPos={screenPos}");
+        GameLogger.DebugLog($"[GoalDuelInitiator] Attempting to raycast to Goal layer. Mask={goalLayerMask}, TapPos={screenPos}", this);
+
         if (Physics.Raycast(ray, out RaycastHit hitGoal, Mathf.Infinity, goalLayerMask))
         {
             _cachedPlayer = player;
             oppGoal = GameManager.Instance.GetOppGoal(_cachedPlayer);
-            Debug.Log($"Raycast hit: {hitGoal.collider.name} on layer {LayerMask.LayerToName(hitGoal.collider.gameObject.layer)} Tag={hitGoal.collider.tag}");
-            if (
-                GameManager.Instance.GetDistanceToOppGoal(_cachedPlayer) < shootGoalDistance
+            GameLogger.DebugLog($"[GoalDuelInitiator] Raycast hit: {hitGoal.collider.name} on layer {LayerMask.LayerToName(hitGoal.collider.gameObject.layer)} Tag={hitGoal.collider.tag}", this);
+
+            if (GameManager.Instance.GetDistanceToOppGoal(_cachedPlayer) < shootGoalDistance
                 && hitGoal.collider.CompareTag("Opp")
                 && DuelManager.Instance.IsDuelResolved()
                 && !GameManager.Instance.IsMovementFrozen)
             {
-                Debug.Log("Tap on OPP GOAL detected. Initiating Duel.");
+                GameLogger.DebugLog("[GoalDuelInitiator] Tap on OPP GOAL detected. Initiating Duel.", this);
                 ShootTriangle.Instance.SetTriangleFromTap(_cachedPlayer, screenPos);
                 TryStartGoalNetworkSafe(isDirect);
                 return true;
@@ -74,7 +78,7 @@ public class GoalDuelInitiator : MonoBehaviour
         }
         else
         {
-            Debug.Log("Raycast did NOT hit anything on 'Goal' layer.");
+            GameLogger.Info("[GoalDuelInitiator] Raycast did NOT hit anything on 'Goal' layer.", this);
         }
         return false;
     }
@@ -93,12 +97,12 @@ public class GoalDuelInitiator : MonoBehaviour
 
     public void StartDuel(bool isDirect)
     {
-        Debug.Log("GoalDuelInitiator isDirect: " + isDirect);
+        GameLogger.Info($"[GoalDuelInitiator] StartDuel isDirect: {isDirect}", this);
         DuelManager.Instance.StartDuel(DuelMode.Shoot);
         ShootTriangle.Instance.SetTriangleVisible(true);
         DuelManager.Instance.RegisterTrigger(_cachedPlayer.gameObject, isDirect);
         UIManager.Instance.SetDuelSelection(_cachedPlayer.TeamIndex, Category.Shoot, 0, _cachedPlayer);
-        UIManager.Instance.SetShootTeamIndex(_cachedPlayer.TeamIndex);        
+        UIManager.Instance.SetShootTeamIndex(_cachedPlayer.TeamIndex);
         UIManager.Instance.BeginDuelSelectionPhase();
     }
 }

@@ -92,7 +92,7 @@ public class PlayerAi : MonoBehaviour
 
     private bool IsOpponentPossessingBall()
     {
-        var possessor = PossessionManager.Instance.PossessionPlayer;
+        var possessor = PossessionManager.Instance.CurrentPlayer;
         return possessor != null && possessor.ControlType != ControlType.Ai;
     }
 
@@ -142,7 +142,7 @@ public class PlayerAi : MonoBehaviour
 
     private void ActDefend()
     {
-        var opponent = PossessionManager.Instance.PossessionPlayer;
+        var opponent = PossessionManager.Instance.CurrentPlayer;
         if (opponent == null) return;
 
         Vector3 target = player.DefaultPosition;

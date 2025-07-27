@@ -14,7 +14,7 @@ public class PlayerLineRenderer : MonoBehaviour
     [SerializeField] private Collider touchArea;
     [SerializeField] private Camera mainCamera;
     [SerializeField] private float moveTolerance = 0.1f;
-    [SerializeField] private float minSegmentDistance = 0.2f;
+    [SerializeField] private float minSegmentDistance = 0.1f;
     [SerializeField] private float maxLineLength = 6f;
     [SerializeField] private LayerMask touchAreaLayer;
 

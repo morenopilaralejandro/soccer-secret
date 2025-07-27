@@ -27,7 +27,7 @@ public class KeeperCollider : MonoBehaviour
         if (_cachedPlayer == null)
             GameLogger.Error("[KeeperCollider] Could not find Player in parent.", this);
         else
-            GameLogger.Info($"[KeeperCollider] Player found: {_cachedPlayer.name}", this);
+            GameLogger.Info($"[KeeperCollider] Player found: {_cachedPlayer.PlayerName}", this);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -84,7 +84,7 @@ public class KeeperCollider : MonoBehaviour
         )
         {
             int participantIndex = DuelManager.Instance.GetDuelParticipants().Count;
-            GameLogger.Info($"[KeeperCollider] Registering trigger for {_cachedPlayer.name} as participant {participantIndex}.", this);
+            GameLogger.Info($"[KeeperCollider] Registering trigger for {_cachedPlayer.PlayerName} as participant {participantIndex}.", this);
             OnSetStatusPlayer?.Invoke(_cachedPlayer);
 
             if (GameManager.Instance.IsMultiplayer)

@@ -62,8 +62,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private BoxCollider boundRight;
     [SerializeField] private float topOffset = 0.3f;
     [SerializeField] private float bottomOffset = 0.5f;
-    [SerializeField] private float leftOffset = 0.4f;
-    [SerializeField] private float rightOffset = 0.4f;
+    [SerializeField] private float leftOffset = 0.25f;
+    [SerializeField] private float rightOffset = 0.25f;
 
     private bool isActiveScene = true;
 
@@ -343,7 +343,7 @@ private void OfflineSpawn() {
         {
             Player kickOffPlayer = kickOffPlayers[kickOffTeam.Formation.KickOff];
             kickOffPlayer.transform.position = centerKickOffPosition;
-            PossessionManager.Instance.GainPossession(kickOffPlayer);
+            PossessionManager.Instance.Gain(kickOffPlayer);
         }
     }
 

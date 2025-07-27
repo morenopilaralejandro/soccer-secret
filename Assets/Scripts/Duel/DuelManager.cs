@@ -104,7 +104,7 @@ public class DuelManager : MonoBehaviour
 
     private void StartDuel_Internal(DuelMode mode)
     {
-        GameLogger.Info("Duel started", this);
+        GameLogger.Info("[DuelManager] Duel started", this);
 
         StopAndCleanupUnlockStatus();
         UIManager.Instance.LockStatus();
@@ -115,7 +115,7 @@ public class DuelManager : MonoBehaviour
         {
             case DuelMode.Shoot:
                 AudioManager.Instance.PlaySfx("SfxDuelShoot");
-                OnSetStatusPlayer?.Invoke(GameManager.Instance.GetOppKeeper(PossessionManager.Instance.PossessionPlayer));
+                OnSetStatusPlayer?.Invoke(GameManager.Instance.GetOppKeeper(PossessionManager.Instance.CurrentPlayer));
                 break;
             default:
                 AudioManager.Instance.PlaySfx("SfxDuelField");
@@ -149,7 +149,7 @@ public class DuelManager : MonoBehaviour
 
     private void CancelDuel_Internal()
     {
-        GameLogger.Warning("Duel cancelled", this);
+        GameLogger.Warning("[DuelManager] Duel cancelled", this);
 
         currentDuel.IsResolved = true;
         ShootTriangle.Instance.SetTriangleVisible(false);
@@ -195,7 +195,7 @@ public class DuelManager : MonoBehaviour
         {
             if (!currentDuel.Participants.Any())
             {
-                PossessionManager.Instance.ReleasePossession();
+                PossessionManager.Instance.Release();
                 BallTravelController.Instance.StartTravel(ShootTriangle.Instance.GetRandomPoint());
             }
         }
@@ -233,7 +233,7 @@ public class DuelManager : MonoBehaviour
                 currentDuel.AttackPressure += directBonus;
             currentDuel.LastOffense = participant;
             OnSetStatusPlayerAndCommand?.Invoke(participant, currentDuel.AttackPressure);
-            GameLogger.DebugLog($"Offense action increases attack pressure +{participant.Damage}", this);
+            GameLogger.DebugLog($"[DuelManager] Offense action increases attack pressure +{participant.Damage}", this);
         }
         else
         {
@@ -245,7 +245,7 @@ public class DuelManager : MonoBehaviour
     {
         if (currentDuel.LastOffense == null)
         {
-            GameLogger.Warning("No offense present before defense.", this);
+            GameLogger.Warning("[DuelManager] No offense present before defense.", this);
             return;
         }
 
@@ -256,7 +256,7 @@ public class DuelManager : MonoBehaviour
         if (defender.Category == Category.Block && defender.Player.IsKeeper && GameManager.Instance.GetDistanceToAllyGoal(defender.Player) < KeeperGoalDistance)
         {
             defender.Damage *= keeperBonus;
-            GameLogger.Info("Keeper gets a block bonus!", this);
+            GameLogger.Info("[DuelManager] Keeper gets a block bonus!", this);
         }
 
         if (defender.Damage >= currentDuel.AttackPressure)
@@ -265,7 +265,7 @@ public class DuelManager : MonoBehaviour
                 AudioManager.Instance.PlaySfx("SfxCatch");
 
             OnSetStatusPlayerAndCommand?.Invoke(defender, 0f);
-            GameLogger.Info($"{defender.Player.name} stopped the attack! (-{defender.Damage})", this);
+            GameLogger.Info($"[DuelManager] {defender.Player.PlayerName} stopped the attack! (-{defender.Damage})", this);
 
             EndDuel(winningParticipant: defender, winnerAction: DuelAction.Defense);
         }
@@ -274,7 +274,7 @@ public class DuelManager : MonoBehaviour
             currentDuel.AttackPressure -= defender.Damage;
             OnSetStatusPlayerAndCommand?.Invoke(defender, 0f);
 
-            GameLogger.Info($"Partial block. Attack pressure now {currentDuel.AttackPressure}", this);
+            GameLogger.Info($"[DuelManager] Partial block. Attack pressure now {currentDuel.AttackPressure}", this);
 
             defender.Player.Stun();
 
@@ -283,7 +283,7 @@ public class DuelManager : MonoBehaviour
                 if (defender.Category == Category.Catch)
                     AudioManager.Instance.PlaySfx("SfxKeeperScream");
 
-                GameLogger.Info("Partial block ends the duel.", this);
+                GameLogger.Info("[DuelManager] Partial block ends the duel.", this);
 
                 EndDuel(winningParticipant: currentDuel.LastOffense, winnerAction: DuelAction.Offense);
             }
@@ -298,7 +298,7 @@ public class DuelManager : MonoBehaviour
         if (elements.IsEffective(defense.CurrentElement, offense.CurrentElement))
         {
             defense.Damage *= 2f;
-            GameLogger.Info("Defense element is effective!", this);
+            GameLogger.Info("[DuelManager] Defense element is effective!", this);
         }
         else if (elements.IsEffective(offense.CurrentElement, defense.CurrentElement))
         {
@@ -306,7 +306,7 @@ public class DuelManager : MonoBehaviour
             offense.Damage *= 2;
             currentDuel.AttackPressure += offense.Damage;
             OnSetStatusPlayerAndCommand?.Invoke(offense, currentDuel.AttackPressure);
-            GameLogger.Info("Offense element is effective!", this);
+            GameLogger.Info("[DuelManager] Offense element is effective!", this);
         }
     }
 
@@ -340,6 +340,11 @@ public class DuelManager : MonoBehaviour
 
     private void EndDuel_Internal(DuelParticipant winningParticipant, DuelAction winnerAction)
     {
+        string outcomeDesc = $"[DuelManager] Duel Outcome: WINNER={winningParticipant.Player?.PlayerName ?? "null"} (Team {winningParticipant.Player?.TeamIndex}), " +
+                             $"Action={(winnerAction == DuelAction.Defense ? "Defense" : "Offense")}, " +
+                             $"Category={winningParticipant.Category}";
+        GameLogger.Info(outcomeDesc, this);
+
         if (winningParticipant.Player.ControlType == ControlType.LocalHuman)
         {
             AudioManager.Instance.PlaySfx("SfxDuelWin");
@@ -357,14 +362,14 @@ public class DuelManager : MonoBehaviour
         if (winnerAction == DuelAction.Defense)
         {
             BallTravelController.Instance.CancelTravel();
-            PossessionManager.Instance.GainPossession(winningParticipant.Player);
+            PossessionManager.Instance.Gain(winningParticipant.Player);
             currentDuel.LastOffense.Player.Stun();
         }
 
         BallTrail.Instance.SetTrailVisible(false);
         unlockStatusCoroutine = StartCoroutine(UnlockStatusRoutine());
 
-        GameLogger.Info("Duel ended", this);
+        GameLogger.Info("[DuelManager] Duel ended", this);
     }
 
     #endregion
@@ -389,8 +394,8 @@ public class DuelManager : MonoBehaviour
         if (currentDuel.IsResolved)
         {
             UIManager.Instance.HideStatus();
-            if (PossessionManager.Instance.PossessionPlayer != null)
-                UIManager.Instance.SetStatusPlayer(PossessionManager.Instance.PossessionPlayer);
+            if (PossessionManager.Instance.CurrentPlayer != null)
+                UIManager.Instance.SetStatusPlayer(PossessionManager.Instance.CurrentPlayer);
         }
     }
 
@@ -418,11 +423,11 @@ public class DuelManager : MonoBehaviour
     public void RegisterSelection(int index, Category category, DuelCommand command, Secret secret)
     {
         GameLogger.Info(
-            $"[DuelManager] RegisterSelection participantIndex={index}, category={category}, command={command}, secret={(secret != null ? secret.name : "None")}, stagedCount={stagedParticipants.Count}",
+            $"[DuelManager] RegisterSelection participantIndex={index}, category={category}, command={command}, secret={(secret != null ? secret.SecretName : "None")}, stagedCount={stagedParticipants.Count}",
             this);
         if (index < 0 || index >= stagedParticipants.Count)
         {
-            GameLogger.Error("Invalid participant index", this);
+            GameLogger.Error("[DuelManager] Invalid participant index", this);
             return;
         }
         var pd = stagedParticipants[index];
@@ -446,7 +451,7 @@ public class DuelManager : MonoBehaviour
             pd.IsDirect
         );
 
-        GameLogger.DebugLog($"Created participant: {participant.Player.name}", this);
+        GameLogger.DebugLog($"[DuelManager] Created participant: {participant.Player.PlayerName}", this);
         AddParticipantToDuel(participant);
     }
 

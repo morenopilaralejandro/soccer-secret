@@ -44,6 +44,15 @@ public partial class @Controls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ActionKey"",
+                    ""type"": ""Button"",
+                    ""id"": ""467a94af-0263-4d7f-b9e5-87894b4e7854"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -68,6 +77,17 @@ public partial class @Controls: IInputActionCollection2, IDisposable
                     ""action"": ""PointerPress"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""964c696e-164a-4c54-88f5-162dc2dff971"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ActionKey"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -78,6 +98,7 @@ public partial class @Controls: IInputActionCollection2, IDisposable
         m_PlayerInput = asset.FindActionMap("PlayerInput", throwIfNotFound: true);
         m_PlayerInput_PointerPosition = m_PlayerInput.FindAction("PointerPosition", throwIfNotFound: true);
         m_PlayerInput_PointerPress = m_PlayerInput.FindAction("PointerPress", throwIfNotFound: true);
+        m_PlayerInput_ActionKey = m_PlayerInput.FindAction("ActionKey", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -141,12 +162,14 @@ public partial class @Controls: IInputActionCollection2, IDisposable
     private List<IPlayerInputActions> m_PlayerInputActionsCallbackInterfaces = new List<IPlayerInputActions>();
     private readonly InputAction m_PlayerInput_PointerPosition;
     private readonly InputAction m_PlayerInput_PointerPress;
+    private readonly InputAction m_PlayerInput_ActionKey;
     public struct PlayerInputActions
     {
         private @Controls m_Wrapper;
         public PlayerInputActions(@Controls wrapper) { m_Wrapper = wrapper; }
         public InputAction @PointerPosition => m_Wrapper.m_PlayerInput_PointerPosition;
         public InputAction @PointerPress => m_Wrapper.m_PlayerInput_PointerPress;
+        public InputAction @ActionKey => m_Wrapper.m_PlayerInput_ActionKey;
         public InputActionMap Get() { return m_Wrapper.m_PlayerInput; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -162,6 +185,9 @@ public partial class @Controls: IInputActionCollection2, IDisposable
             @PointerPress.started += instance.OnPointerPress;
             @PointerPress.performed += instance.OnPointerPress;
             @PointerPress.canceled += instance.OnPointerPress;
+            @ActionKey.started += instance.OnActionKey;
+            @ActionKey.performed += instance.OnActionKey;
+            @ActionKey.canceled += instance.OnActionKey;
         }
 
         private void UnregisterCallbacks(IPlayerInputActions instance)
@@ -172,6 +198,9 @@ public partial class @Controls: IInputActionCollection2, IDisposable
             @PointerPress.started -= instance.OnPointerPress;
             @PointerPress.performed -= instance.OnPointerPress;
             @PointerPress.canceled -= instance.OnPointerPress;
+            @ActionKey.started -= instance.OnActionKey;
+            @ActionKey.performed -= instance.OnActionKey;
+            @ActionKey.canceled -= instance.OnActionKey;
         }
 
         public void RemoveCallbacks(IPlayerInputActions instance)
@@ -193,5 +222,6 @@ public partial class @Controls: IInputActionCollection2, IDisposable
     {
         void OnPointerPosition(InputAction.CallbackContext context);
         void OnPointerPress(InputAction.CallbackContext context);
+        void OnActionKey(InputAction.CallbackContext context);
     }
 }

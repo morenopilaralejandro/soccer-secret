@@ -242,10 +242,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.25
+  m_Radius: 0.2
   m_Height: 0.1
   m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: -0.03, z: 0}
 --- !u!1 &3415293957682218921
 GameObject:
   m_ObjectHideFlags: 0
@@ -820,7 +820,7 @@ MonoBehaviour:
   touchArea: {fileID: 725982291212298075}
   mainCamera: {fileID: 0}
   moveTolerance: 0.1
-  minSegmentDistance: 0.2
+  minSegmentDistance: 0.1
   maxLineLength: 6
   touchAreaLayer:
     serializedVersion: 2
@@ -1039,7 +1039,7 @@ Transform:
   m_GameObject: {fileID: 7595277959914605761}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.05, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1065,9 +1065,9 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.2
-  m_Height: 0.5
+  m_Height: 0.45
   m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: -0.07, z: 0}
 --- !u!1001 &6558078107428148359
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1186,6 +1186,26 @@ PrefabInstance:
         type: 3}
       propertyPath: m_text
       value: "\u30DC\u30EC\u30FC"
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039185838159117152, guid: e33a4ad9bda5d25188bf5a485007506d,
+        type: 3}
+      propertyPath: m_fontColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039185838159117152, guid: e33a4ad9bda5d25188bf5a485007506d,
+        type: 3}
+      propertyPath: m_fontColor.g
+      value: 0.5321101
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039185838159117152, guid: e33a4ad9bda5d25188bf5a485007506d,
+        type: 3}
+      propertyPath: m_fontColor.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039185838159117152, guid: e33a4ad9bda5d25188bf5a485007506d,
+        type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4278225151
       objectReference: {fileID: 0}
     - target: {fileID: 7936421811300323924, guid: e33a4ad9bda5d25188bf5a485007506d,
         type: 3}

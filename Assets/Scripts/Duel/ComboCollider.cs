@@ -27,7 +27,7 @@ public class ComboCollider : MonoBehaviour
         if (_cachedPlayer == null)
             GameLogger.Error("[ComboCollider] Could not find Player in parent.", this);
         else
-            GameLogger.Info($"[ComboCollider] Found Player: {_cachedPlayer.name}", this);
+            GameLogger.Info($"[ComboCollider] Found Player: {_cachedPlayer.PlayerName}", this);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -89,7 +89,7 @@ public class ComboCollider : MonoBehaviour
         {
             int participantIndex = DuelManager.Instance.GetDuelParticipants().Count;
 
-            GameLogger.Info($"[ComboCollider] Registering trigger for {_cachedPlayer.name} as participant {participantIndex}.", this);
+            GameLogger.Info($"[ComboCollider] Registering trigger for {_cachedPlayer.PlayerName} as participant {participantIndex}.", this);
             OnSetStatusPlayer?.Invoke(_cachedPlayer);
 
             Category selectedCategory = isSameTeam ? Category.Shoot : Category.Block;

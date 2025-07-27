@@ -16,7 +16,7 @@ public class BallCollider : MonoBehaviour
         bool isKeeper = false;
 
         if (playerComp)
-            Debug.Log("BallBehavior OnTriggerEnter: " + playerComp.PlayerId);
+            GameLogger.DebugLog("[BallCollider] OnTriggerEnter: " + playerComp.PlayerId, this);
 
         // Standard player touch
         if (collider.CompareTag("Player"))
@@ -27,8 +27,8 @@ public class BallCollider : MonoBehaviour
         else if (
             collider.CompareTag("PlayerKeeperCollider") &&
             playerComp != null &&
-            PossessionManager.Instance.LastPossessionPlayer &&
-            PossessionManager.Instance.LastPossessionPlayer.TeamIndex != playerComp.TeamIndex && //keeper won't stop a pass from a player in its same team
+            PossessionManager.Instance.LastPlayer &&
+            PossessionManager.Instance.LastPlayer.TeamIndex != playerComp.TeamIndex && //keeper won't stop a pass from a player in its same team
             GameManager.Instance.GetDistanceToAllyGoal(playerComp) < DuelManager.Instance.KeeperGoalDistance)
         {
             isKeeper = true;
@@ -37,11 +37,11 @@ public class BallCollider : MonoBehaviour
 
         // Shared cooldown and possession logic
         if (
-            PossessionManager.Instance.PossessionPlayer == null &&
+            PossessionManager.Instance.CurrentPlayer == null &&
             validPossession &&
             playerComp != null)
         {
-            if (!PossessionManager.Instance.IsCooldownActive(playerComp))
+            if (!PossessionManager.Instance.IsOnCooldown(playerComp))
             {
                 // Only allow the master (multiplayer) or anyone (offline) to claim possession:
                 if (!GameManager.Instance.IsMultiplayer ||
@@ -52,7 +52,7 @@ public class BallCollider : MonoBehaviour
 #endif
                 )
                 {
-                    PossessionManager.Instance.GainPossession(playerComp);
+                    PossessionManager.Instance.Gain(playerComp);
                     if (isKeeper)
                         AudioManager.Instance.PlaySfx("SfxCatch");
                 }
@@ -63,7 +63,7 @@ public class BallCollider : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         GameObject hitObj = collision.collider.gameObject;
-        Debug.Log("BallBehavior OnCollisionEnter: " + hitObj.name + " (Tag: " + hitObj.tag + ")");
+        GameLogger.DebugLog("[BallCollider] OnCollisionEnter: " + hitObj.name + " (Tag: " + hitObj.tag + ")", this);
 
         if (BallTravelController.Instance.IsTraveling && hitObj.CompareTag("Bound"))
         {

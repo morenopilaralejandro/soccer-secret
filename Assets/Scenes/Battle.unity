@@ -3331,8 +3331,8 @@ MonoBehaviour:
   boundRight: {fileID: 233756772}
   topOffset: 0.3
   bottomOffset: 0.5
-  leftOffset: 0.4
-  rightOffset: 0.4
+  leftOffset: 0.25
+  rightOffset: 0.25
 --- !u!4 &986222093
 Transform:
   m_ObjectHideFlags: 0
@@ -9198,6 +9198,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 1412624558}
   shootGoalDistance: 2.2
+  oppGoal: {fileID: 0}
 --- !u!4 &2087281548
 Transform:
   m_ObjectHideFlags: 0
@@ -10011,6 +10012,26 @@ PrefabInstance:
       propertyPath: mainCamera
       value: 
       objectReference: {fileID: 1412624558}
+    - target: {fileID: 4255924808772099531, guid: cbee568be09ab63f8b56a77ac04c33e9,
+        type: 3}
+      propertyPath: maxKickForce
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 4255924808772099531, guid: cbee568be09ab63f8b56a77ac04c33e9,
+        type: 3}
+      propertyPath: maxMagnitude
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4255924808772099531, guid: cbee568be09ab63f8b56a77ac04c33e9,
+        type: 3}
+      propertyPath: minKickForce
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4255924808772099531, guid: cbee568be09ab63f8b56a77ac04c33e9,
+        type: 3}
+      propertyPath: minMagnitude
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4255924808772099531, guid: cbee568be09ab63f8b56a77ac04c33e9,
         type: 3}
       propertyPath: crosshairImage

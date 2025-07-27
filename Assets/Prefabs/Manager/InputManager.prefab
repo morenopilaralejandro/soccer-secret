@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3329525234180815318}
   - component: {fileID: 9106340897832353908}
   - component: {fileID: 1916434503951451339}
+  - component: {fileID: 2290564803374377725}
   m_Layer: 0
   m_Name: InputManager
   m_TagString: Untagged
@@ -50,6 +51,7 @@ MonoBehaviour:
   dragDetector: {fileID: 3329525234180815318}
   tapDetector: {fileID: 9106340897832353908}
   swipeDetector: {fileID: 1916434503951451339}
+  keyboardDetector: {fileID: 2290564803374377725}
 --- !u!114 &3329525234180815318
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62,6 +64,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f53d3c0e40c699d69b2d402560bd2a06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  minDragDistance: 0.3
 --- !u!114 &9106340897832353908
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -74,6 +77,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb35ab4a5f0666b188727479c3661644, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxTapDuration: 0.2
+  maxTapMovement: 20
 --- !u!114 &1916434503951451339
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -84,5 +89,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5baae52a68ffc3b53a1acb1f7aba1995, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2290564803374377725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3488328751313097848}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c185c72ed97288bc3aef87a336db4c7c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

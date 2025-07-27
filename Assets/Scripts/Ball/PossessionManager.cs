@@ -11,147 +11,138 @@ public class PossessionManager : MonoBehaviour
 {
     public static PossessionManager Instance { get; private set; }
 
-    public Player PossessionPlayer { get; private set; }
-    public Player LastPossessionPlayer { get; private set; }
-    public float LastPossessionPlayerKickTime { get; private set; }
+    public Player CurrentPlayer { get; private set; }
+    public Player LastPlayer { get; private set; }
+    public float LastKickTime { get; private set; } = -Mathf.Infinity;
 
-    [SerializeField] private float possessionCooldown = 0.2f;
+    [SerializeField, Tooltip("Cooldown in seconds before the same player can regain possession")] 
+    private float cooldown = 0.2f;
 
-    // Events
-    public event Action<Player> OnPossessionGained;
-    public event Action<Player> OnPossessionLost;
+    public event Action<Player> OnGained;
+    public event Action<Player> OnLost;
 
 #if PHOTON_UNITY_NETWORKING
-    private PhotonView photonView => PhotonView.Get(this);
+    private PhotonView view => PhotonView.Get(this);
 #endif
 
     private void Awake()
     {
-        if (Instance != null && Instance != this) {
-            Destroy(gameObject); return;
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
     }
 
-    /// <summary>
-    /// Returns true if this player can't gain possession due to cooldown.
-    /// </summary>
-    public bool IsCooldownActive(Player player)
+    public void Subscribe(Action<Player> onGained, Action<Player> onLost)
     {
-        return (LastPossessionPlayer == player && Time.time <= LastPossessionPlayerKickTime + possessionCooldown);
+        OnGained += onGained;
+        OnLost   += onLost;
     }
 
-    /// <summary>
-    /// Gives player the ball, firing events if changed. (Network-safe)
-    /// </summary>
-    public void GainPossession(Player player)
+    public void Unsubscribe(Action<Player> onGained, Action<Player> onLost)
     {
-        if (PossessionPlayer == player)
-            return;
-
-        if (GameManager.Instance.IsMultiplayer)
-        {
-#if PHOTON_UNITY_NETWORKING
-            // Only master client controls true ball ownership!
-            if (PhotonNetwork.IsMasterClient)
-            {
-                photonView.RPC(nameof(RPC_GainPossession), RpcTarget.All, player.PlayerId, player.TeamIndex);
-            }
-#endif
-            return;
-        }
-        GainPossessionInternal(player);
+        OnGained -= onGained;
+        OnLost   -= onLost;
     }
 
-    /// <summary>
-    /// Releases the current possession, firing event (network-safe)
-    /// </summary>
-    public void ReleasePossession()
+    public bool IsOnCooldown(Player player)
     {
-        if (PossessionPlayer == null)
+        return player == LastPlayer && (Time.time - LastKickTime) <= cooldown;
+    }
+
+    public void Gain(Player player)
+    {
+        if (player == null || player == CurrentPlayer || IsOnCooldown(player))
             return;
 
-        if (GameManager.Instance.IsMultiplayer)
-        {
 #if PHOTON_UNITY_NETWORKING
-            if (PhotonNetwork.IsMasterClient && PossessionPlayer != null)
-            {
-                photonView.RPC(nameof(RPC_ReleasePossession), RpcTarget.All, PossessionPlayer.PlayerId, PossessionPlayer.TeamIndex);
-            }
-#endif
+        if (GameManager.Instance.IsMultiplayer && PhotonNetwork.IsMasterClient)
+        {
+            view.RPC(nameof(RpcGain), RpcTarget.All, player.PlayerId, player.TeamIndex);
             return;
         }
-        ReleasePossessionInternal();
+#endif
+        ApplyGain(player);
+    }
+
+    public void Release()
+    {
+        if (CurrentPlayer == null)
+            return;
+
+#if PHOTON_UNITY_NETWORKING
+        if (GameManager.Instance.IsMultiplayer && PhotonNetwork.IsMasterClient)
+        {
+            view.RPC(nameof(RpcRelease), RpcTarget.All, CurrentPlayer.PlayerId, CurrentPlayer.TeamIndex);
+            return;
+        }
+#endif
+        ApplyRelease();
     }
 
 #if PHOTON_UNITY_NETWORKING
     [PunRPC]
-    private void RPC_GainPossession(string playerId, int teamIndex)
+    private void RpcGain(string playerId, int team)
     {
-        Player p = FindPlayerById(playerId, teamIndex);
-        GainPossessionInternal(p);
+        var player = FindPlayer(playerId, team);
+        ApplyGain(player);
     }
 
     [PunRPC]
-    private void RPC_ReleasePossession(string playerId, int teamIndex)
+    private void RpcRelease(string playerId, int team)
     {
-        Player p = FindPlayerById(playerId, teamIndex);
-        if (p == PossessionPlayer)
-            ReleasePossessionInternal();
+        var player = FindPlayer(playerId, team);
+        if (player == CurrentPlayer)
+            ApplyRelease();
     }
 
-    private Player FindPlayerById(string playerId, int teamIndex)
+    private Player FindPlayer(string id, int team)
     {
-        var players = GameManager.Instance.Teams[teamIndex].players;
+        var players = GameManager.Instance.Teams[team].players;
         foreach (var p in players)
-            if (p.PlayerId == playerId)
+            if (p.PlayerId == id)
                 return p;
 
-        Debug.LogError($"PossessionManager: Could not find player with ID {playerId} (teamIndex={teamIndex})");
+        GameLogger.Error($"[PossessionManager] Player not found: {id} (team {team})", this);
         return null;
     }
 #endif
 
-    private void GainPossessionInternal(Player player)
+    private void ApplyGain(Player player)
     {
-        if (PossessionPlayer == player)
-            return;
+        Release();
 
-        ReleasePossessionInternal(); // Release old if any
-
-        PossessionPlayer = player;
-        if (PossessionPlayer != null)
-            PossessionPlayer.IsPossession = true;
-        Debug.Log("GainPossession: " + (player != null ? player.PlayerId : "null"));
-        OnPossessionGained?.Invoke(PossessionPlayer);
+        CurrentPlayer = player;
+        player.IsPossession = true;
+        GameLogger.Info($"[PossessionManager] Possession gained by {player.PlayerName}", this);
+        OnGained?.Invoke(player);
     }
 
-    private void ReleasePossessionInternal()
+    private void ApplyRelease()
     {
-        if (PossessionPlayer != null)
-        {
-            LastPossessionPlayer = PossessionPlayer;
-            Debug.Log("ReleasePossession: " + LastPossessionPlayer.PlayerId);
-            LastPossessionPlayerKickTime = Time.time;
-            PossessionPlayer.IsPossession = false;
-            OnPossessionLost?.Invoke(PossessionPlayer);
-            PossessionPlayer = null;
-        }
+        LastPlayer = CurrentPlayer;
+        LastKickTime = Time.time;
+
+        CurrentPlayer.IsPossession = false;
+        GameLogger.Info($"[PossessionManager] Possession released by {LastPlayer.PlayerName}", this);
+        OnLost?.Invoke(CurrentPlayer);
+        CurrentPlayer = null;
     }
 
-    public void ResetPossessionState()
+    public void ResetState()
     {
-        PossessionPlayer = null;
-        LastPossessionPlayer = null;
-        LastPossessionPlayerKickTime = -Mathf.Infinity;
+        CurrentPlayer = null;
+        LastPlayer = null;
+        LastKickTime = -Mathf.Infinity;
     }
 
 #if PHOTON_UNITY_NETWORKING
-    // Optional: sync PossessionPlayer state over the network if you want extra robustness:
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        // Unused for now—events are enough for possession
+        // Intentionally left blank; events handle state sync.
     }
 #endif
 }

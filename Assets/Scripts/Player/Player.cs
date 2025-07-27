@@ -229,7 +229,7 @@ public class Player : MonoBehaviour
             else
             {
                 spriteRendererAccessory.enabled = false;
-                if (playerData.accessoryStyle != "none") {
+                if (playerData.accessoryStyle == "none") {
                     Debug.Log($"Accessory sprite not found: {pathAccessoryStyle}{playerData.accessoryStyle} for player {playerData.playerId}");
                 } else {
                     Debug.LogWarning($"Accessory sprite not found: {pathAccessoryStyle}{playerData.accessoryStyle} for player {playerData.playerId}");

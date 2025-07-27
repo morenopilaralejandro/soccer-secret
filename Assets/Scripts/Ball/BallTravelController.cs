@@ -35,14 +35,15 @@ public class BallTravelController : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
+            GameLogger.Warning("[BallTravelController] Duplicate instance found, destroying.", this);
             Destroy(this.gameObject);
             return;
         }
         Instance = this;
 
         rb = GetComponent<Rigidbody>();
+        GameLogger.Info("[BallTravelController] Instance initialized.", this);
     }
-
 
     private void Update()
     {
@@ -52,9 +53,13 @@ public class BallTravelController : MonoBehaviour
             float step = travelSpeed * Time.deltaTime;
             transform.position = Vector3.MoveTowards(transform.position, currentTarget, step);
             travelVelocity = (transform.position - prevPos) / Time.deltaTime;
-
+            /*
+            GameLogger.DebugLog($"[BallTravelController] Moving towards {currentTarget}. " +
+                                $"Current: {transform.position}, Step: {step}, Velocity: {travelVelocity.magnitude}", this);
+            */
             if (Vector3.Distance(transform.position, currentTarget) < endThreshold)
             {
+                GameLogger.Info("[BallTravelController] Arrived at target; ending travel.", this);
                 EndTravel();
             }
         }
@@ -62,12 +67,17 @@ public class BallTravelController : MonoBehaviour
 
     public void StartTravel(Vector3 target)
     {
-        if (isTraveling) return;
+        if (isTraveling)
+        {
+            GameLogger.Warning("[BallTravelController] Already traveling, cannot start new travel.", this);
+            return;
+        }
 
         isTraveling = true;
         isPaused = false;
         currentTarget = target;
         if (rb) rb.isKinematic = true;
+        GameLogger.Info($"[BallTravelController] Travel started to {target}.", this);
         OnTravelStart?.Invoke(target);
     }
 
@@ -76,7 +86,12 @@ public class BallTravelController : MonoBehaviour
         if (isTraveling && !isPaused)
         {
             isPaused = true;
+            GameLogger.Info("[BallTravelController] Travel paused.", this);
             OnTravelPause?.Invoke();
+        }
+        else
+        {
+            GameLogger.DebugLog("[BallTravelController] Cannot pause: either not traveling or already paused.", this);
         }
     }
 
@@ -85,16 +100,26 @@ public class BallTravelController : MonoBehaviour
         if (isTraveling && isPaused)
         {
             isPaused = false;
+            GameLogger.Info("[BallTravelController] Travel resumed.", this);
             OnTravelResume?.Invoke();
+        }
+        else
+        {
+            GameLogger.DebugLog("[BallTravelController] Cannot resume: either not traveling or not paused.", this);
         }
     }
 
     public void CancelTravel()
     {
-        if (!isTraveling) return;
+        if (!isTraveling)
+        {
+            GameLogger.DebugLog("[BallTravelController] CancelTravel called but not traveling.", this);
+            return;
+        }
         isTraveling = false;
         isPaused = false;
         if (rb) rb.isKinematic = false;
+        GameLogger.Info($"[BallTravelController] Travel cancelled at position {transform.position}.", this);
         OnTravelCancel?.Invoke();
     }
 
@@ -104,10 +129,14 @@ public class BallTravelController : MonoBehaviour
         if (rb)
         {
             if (travelVelocity.magnitude > maxVelocity)
+            {
                 travelVelocity = travelVelocity.normalized * maxVelocity;
+                GameLogger.DebugLog("[BallTravelController] Travel velocity clamped to max.", this);
+            }
             rb.isKinematic = false;
             rb.velocity = travelVelocity;
         }
+        GameLogger.Info($"[BallTravelController] Travel ended at {currentTarget} with velocity {travelVelocity}.", this);
         OnTravelEnd?.Invoke(currentTarget);
     }
 }

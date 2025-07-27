@@ -63,7 +63,7 @@ public class DuelCollider : MonoBehaviour
             _cachedPlayer.TeamIndex != otherPlayer.TeamIndex &&
             DuelManager.Instance.IsDuelResolved())
         {
-            GameLogger.DebugLog($"Starting duel between {_cachedPlayer.name} (Team {_cachedPlayer.TeamIndex}) and {otherPlayer.name} (Team {otherPlayer.TeamIndex})", this);
+            GameLogger.DebugLog($"Starting duel between {_cachedPlayer.PlayerName} (Team {_cachedPlayer.TeamIndex}) and {otherPlayer.PlayerName} (Team {otherPlayer.TeamIndex})", this);
 
             DuelManager.Instance.StartDuel(DuelMode.Field);
 

@@ -1,5 +1,5 @@
 {
-    "name": "TouchControls",
+    "name": "Controls",
     "maps": [
         {
             "name": "PlayerInput",
@@ -18,6 +18,15 @@
                     "name": "PointerPress",
                     "type": "Button",
                     "id": "2ca6542c-8706-4993-a6e3-3f79d0564227",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ActionKey",
+                    "type": "Button",
+                    "id": "467a94af-0263-4d7f-b9e5-87894b4e7854",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -44,6 +53,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "PointerPress",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "964c696e-164a-4c54-88f5-162dc2dff971",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ActionKey",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
