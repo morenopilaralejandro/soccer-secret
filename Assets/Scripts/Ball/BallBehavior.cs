@@ -22,7 +22,8 @@ public class BallBehavior : MonoBehaviour
     [Header("Gameplay Settings")]
     [SerializeField] private float spinAmount = 5f;
     [SerializeField] private float dribbleSpeed = 10f;
-    [SerializeField] private float dribbleOffset = 0.5f;
+    [SerializeField] private float dribbleOffsetForward = 0.5f;
+    [SerializeField] private float dribbleOffsetZ = 0.2f;
     [SerializeField] private float minKickForce = 3f;
     [SerializeField] private float maxKickForce = 6f;
     [SerializeField] private float minMagnitude = 1f;
@@ -155,10 +156,21 @@ public class BallBehavior : MonoBehaviour
     private void HandleSwipe(SwipeDetector.SwipeDirection dir)
     {
         if (InputManager.Instance.IsDragging) return;
-        if (dir == SwipeDetector.SwipeDirection.Up) TryShootOrQueue();
+        if (GameManager.Instance.CurrentPhase != GamePhase.Battle) return; 
+
+        if (dir == SwipeDetector.SwipeDirection.Up) 
+        {
+            InputManager.Instance.SwipeDetector.Consume();
+            TryShootOrQueue();
+        }
     }
 
-    private void HandleActionKey() => TryShootOrQueue();
+    private void HandleActionKey() 
+    {
+        if (GameManager.Instance.CurrentPhase != GamePhase.Battle) return; 
+        InputManager.Instance.KeyboardDetector.ConsumeActionKey();
+        TryShootOrQueue();
+    }
 
     private void TryShootOrQueue()
     {
@@ -222,11 +234,12 @@ public class BallBehavior : MonoBehaviour
     #region Helpers
 
     private bool IsKickOffWaiting() => GameManager.Instance.CurrentPhase == GamePhase.KickOff && !GameManager.Instance.IsKickOffReady;
-    private void ResetPendingInputs()
+    public void ResetPendingInputs()
     {
         //GameLogger.DebugLog("[BallBehavior] Resetting pending inputs.", this);
         CrosshairManager.Instance.HideCrosshairImmediately();
-        _pendingKick.Clear(); _pendingSwipe.Clear();
+        _pendingKick.Clear(); 
+        _pendingSwipe.Clear();
     }
     private bool IsShootDuel() => DuelManager.Instance.GetDuelMode() == DuelMode.Shoot && DuelManager.Instance.GetLastOffense() == null;
     private void CancelKick()
@@ -305,9 +318,11 @@ public class BallBehavior : MonoBehaviour
     private void DribbleTowardsPlayer(Player player)
     {
         if (player == null) return;
-        Vector3 forwardOffset = player.transform.forward * dribbleOffset;
-        Vector3 target = player.transform.position + forwardOffset;
+
+        Vector3 target = player.transform.position + player.transform.forward * dribbleOffsetForward;
         target.y = transform.position.y;
+        target.z -= dribbleOffsetZ;
+
         transform.position = Vector3.Lerp(transform.position, target, dribbleSpeed * Time.deltaTime);
         // GameLogger.DebugLog($"[BallBehavior] Dribbling towards {target}", this); // Uncomment if you want dribble logs
     }
@@ -353,8 +368,8 @@ public class BallBehavior : MonoBehaviour
     {
         if (CanProcessSwipe(player) && _pendingSwipe.TryConsumePendingSwipeUp())
         {
-            player.ShowBubbleVoley();
-            GoalDuelInitiator.Instance.TryStartGoalDuelIfValidSwipe(player, true);
+            if (GoalDuelInitiator.Instance.TryStartGoalDuelIfValidSwipe(player, true))
+                player.ShowBubbleVoley();
             CrosshairManager.Instance.HideCrosshairImmediately();
             GameLogger.DebugLog("[BallBehavior] Consumed pending swipe upon possession.", this);
             return;

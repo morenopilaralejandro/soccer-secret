@@ -49,6 +49,8 @@ public class UIManager : MonoBehaviourPun
     private float _selectionTimer = 10f;
     private bool _waitingForMultiplayerDuel = false;
 
+    private bool duelUiVisibleForLocal = false;
+
     private struct RemotePick { public int team, command; public string secret; }
     #endregion
 
@@ -84,6 +86,8 @@ public class UIManager : MonoBehaviourPun
             ComboCollider.OnSetStatusPlayer += SetStatusPlayer;
             KeeperCollider.OnSetStatusPlayer += SetStatusPlayer;
             DuelManager.OnSetStatusPlayerAndCommand += SetStatusPlayerAndCommand;
+
+            InputManager.Instance?.Subscribe(null, HandleSwipe, HandleActionKey);
         }
         else
         {
@@ -93,6 +97,8 @@ public class UIManager : MonoBehaviourPun
             ComboCollider.OnSetStatusPlayer -= SetStatusPlayer;
             KeeperCollider.OnSetStatusPlayer -= SetStatusPlayer;
             DuelManager.OnSetStatusPlayerAndCommand -= SetStatusPlayerAndCommand;
+
+            InputManager.Instance?.Unsubscribe(null, HandleSwipe, HandleActionKey);
         }
     }
     #endregion
@@ -127,6 +133,7 @@ public class UIManager : MonoBehaviourPun
     }
     public void HideDuelUi()
     {
+        duelUiVisibleForLocal = false;
         SetPanelSecretVisible(false);
         SetPanelCommandVisible(false);
         SetButtonDuelToggleVisible(false);
@@ -139,15 +146,46 @@ public class UIManager : MonoBehaviourPun
 
     public void OnButtonDuelToggleTapped()
     {
-        AudioManager.Instance.PlaySfx("SfxMenuTap");
-        if (!IsPanelActive(panelSecret) && !IsPanelActive(panelCommand))
-            SetPanelCommandVisible(true);
-        else
-        {
-            SetPanelCommandVisible(false);
-            SetPanelSecretVisible(false);
-        }
+        ToggleDuelMenu();
     }
+
+    private bool CanOpenDuelMenu()
+    {
+        return GameManager.Instance?.CurrentPhase == GamePhase.Duel
+               && duelUiVisibleForLocal && !IsPanelActive(panelSecret) && !IsPanelActive(panelCommand);
+    }
+
+    private bool CanCloseDuelMenu()
+    {
+        return GameManager.Instance?.CurrentPhase == GamePhase.Duel 
+               && duelUiVisibleForLocal && IsPanelActive(panelSecret) || IsPanelActive(panelCommand);
+    }
+
+    private void ToggleDuelMenu()
+    {
+        if (CanOpenDuelMenu())
+            ShowDuelMenu();
+        else
+            HideDuelMenu();
+    }
+
+    private void ShowDuelMenu()
+    {
+        if (!CanOpenDuelMenu())
+            return;
+        AudioManager.Instance.PlaySfx("SfxMenuTap");
+        SetPanelCommandVisible(true);
+    }
+
+    private void HideDuelMenu()
+    {
+        if (!CanCloseDuelMenu())
+            return;
+        AudioManager.Instance.PlaySfx("SfxMenuTap");
+        SetPanelCommandVisible(false);
+        SetPanelSecretVisible(false);
+    }
+
 
     public void OnButtonBackTapped()
     {
@@ -196,6 +234,36 @@ public class UIManager : MonoBehaviourPun
         AudioManager.Instance.PlaySfx("SfxSecretSelect");
         DuelSelectionMade(GameManager.Instance.GetLocalTeamIndex(), DuelCommand.Secret, secretCommandSlot.Secret);
     }
+
+    private void HandleSwipe(SwipeDetector.SwipeDirection dir) 
+    {
+        if (InputManager.Instance.IsDragging) return;
+        if (InputManager.Instance.SwipeDetector.WasConsumedThisFrame()) return;
+        switch (dir) 
+        {
+            case SwipeDetector.SwipeDirection.Up:
+                    ShowDuelMenu();
+                break;
+            case SwipeDetector.SwipeDirection.Down:
+                HideDuelMenu();
+                break;
+            case SwipeDetector.SwipeDirection.Left: 
+                break;
+            case SwipeDetector.SwipeDirection.Right: 
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void HandleActionKey() 
+    {
+        if (InputManager.Instance.KeyboardDetector.WasActionKeyConsumedThisFrame()) return;
+        OnButtonDuelToggleTapped();
+    }
+
+    
+
     #endregion
 
     #region Duel Selection Registration
@@ -399,7 +467,13 @@ public class UIManager : MonoBehaviourPun
 
     private void ShowDuelUIForLocal()
     {
+        duelUiVisibleForLocal = true;
         SetButtonDuelToggleVisible(true);
+        if (DuelManager.Instance.IsKeeperDuel && GetLocalCategory() == Category.Dribble) {
+            SetActiveSafe(buttonSwap, false);
+        } else {
+            SetActiveSafe(buttonSwap, true);
+        }
     }
 
     private IEnumerator MultiplayerFieldDuelSelectionTimerRoutine()
@@ -503,7 +577,7 @@ public class UIManager : MonoBehaviourPun
     {
         if (!_duelContextReady)
         {
-            GameLogger.Warning("NetworkDuelSelectionReceived called BEFORE duel context. Queuing pick!", this);
+            GameLogger.Warning("[UIManager] NetworkDuelSelectionReceived called BEFORE duel context. Queuing pick!", this);
             _pendingPicks.Add((teamIndex, commandInt, secretIdOrNull));
             return;
         }
@@ -517,7 +591,7 @@ public class UIManager : MonoBehaviourPun
         _secrets[teamIndex] = string.IsNullOrEmpty(secretIdOrNull) ? null : SecretManager.Instance.GetSecretById(secretIdOrNull);
 
         // Defensive log!
-        GameLogger.Info($"ProcessDuelPick: team={teamIndex} participant={_duelSelections[teamIndex].ParticipantIndex} obj={_duelSelections[teamIndex].Player?.name}", this);
+        GameLogger.Info($"[UIManager] ProcessDuelPick: team={teamIndex} participant={_duelSelections[teamIndex].ParticipantIndex} obj={_duelSelections[teamIndex].Player?.name}", this);
 
         // Only register BOTH when ready
         if (_isTeamReady[0] && _isTeamReady[1])

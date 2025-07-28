@@ -80,6 +80,7 @@ public class Player : MonoBehaviour
 
     private Collider[] colliders;
     private Collider keeperCollider;
+    private Collider touchArea;
     private Coroutine stunRoutine;
     private Coroutine blinkRoutine;
 
@@ -282,6 +283,7 @@ public class Player : MonoBehaviour
         // Cache all colliders on self and children
         colliders = GetComponentsInChildren<Collider>(true);
         keeperCollider = Array.Find(colliders, c => c.name == "KeeperCollider");
+        touchArea = Array.Find(colliders, c => c.name == "TouchArea");
         // You may want to cache your PhotonView here if used frequently!
     }
     //stun
@@ -356,7 +358,11 @@ private void SetAllCollidersEnabled(bool enabled)
         }
         else
         {
-            col.enabled = enabled;
+            if (touchArea && col == touchArea) {
+                col.enabled = true;
+            } else {
+                col.enabled = enabled;
+            }
         }
     }
 }

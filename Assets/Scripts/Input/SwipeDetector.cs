@@ -11,8 +11,12 @@ public class SwipeDetector : MonoBehaviour
     private Vector2 startPos, endPos;
     private float startTime;
     private bool isSwiping = false;
-    private float minSwipeDistance = 50f; // pixels
+    private float minSwipeDistance = 25f; // pixels
     private float maxSwipeTime = 0.5f; // seconds
+
+    private bool consumed = false;
+
+    public bool WasConsumedThisFrame() => consumed;
 
     void Awake()
     {
@@ -63,6 +67,12 @@ public class SwipeDetector : MonoBehaviour
             dir = (swipe.y > 0) ? SwipeDirection.Up : SwipeDirection.Down;
         }
 
+        consumed = false;
         OnSwipe?.Invoke(dir);
+    }
+
+    public void Consume()
+    {
+        consumed = true;
     }
 }

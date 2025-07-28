@@ -63,9 +63,12 @@ public class DuelCollider : MonoBehaviour
             _cachedPlayer.TeamIndex != otherPlayer.TeamIndex &&
             DuelManager.Instance.IsDuelResolved())
         {
-            GameLogger.DebugLog($"Starting duel between {_cachedPlayer.PlayerName} (Team {_cachedPlayer.TeamIndex}) and {otherPlayer.PlayerName} (Team {otherPlayer.TeamIndex})", this);
+            GameLogger.DebugLog($"[DuelCollider]  Starting duel between {_cachedPlayer.PlayerName} (Team {_cachedPlayer.TeamIndex}) and {otherPlayer.PlayerName} (Team {otherPlayer.TeamIndex})", this);
 
+            bool isKeeperDuel = otherPlayer.IsKeeper && GameManager.Instance.GetDistanceToAllyGoal(otherPlayer) < DuelManager.Instance.KeeperGoalDistance; 
+           
             DuelManager.Instance.StartDuel(DuelMode.Field);
+            DuelManager.Instance.SetIsKeeperDuel(isKeeperDuel);
 
             // For UI status updates
             OnSetStatusPlayer?.Invoke(_cachedPlayer);

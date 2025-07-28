@@ -22,13 +22,14 @@ public class DuelManager : MonoBehaviour
     public static event Action<DuelParticipant, float> OnSetStatusPlayerAndCommand;
 
     public float KeeperGoalDistance = 0.7f;
+    public bool IsKeeperDuel = false;
 
     private List<DuelParticipantData> stagedParticipants = new List<DuelParticipantData>();
     private Duel currentDuel = new Duel();
     private Coroutine unlockStatusCoroutine;
     private float hpMultiplier = 0.1f;
     private float directBonus = 20f;
-    private float keeperBonus = 50f;
+    private float keeperBonus = 10f;
 
 #if PHOTON_UNITY_NETWORKING
     private PhotonView photonView => PhotonView.Get(this);
@@ -75,6 +76,11 @@ public class DuelManager : MonoBehaviour
     public List<DuelParticipant> GetDuelParticipants() => currentDuel.Participants;
     public DuelParticipant GetLastOffense() => currentDuel.LastOffense;
     public DuelParticipant GetLastDefense() => currentDuel.LastDefense;
+
+    public void SetIsKeeperDuel(bool isKeeperDuel) 
+    {
+        IsKeeperDuel = isKeeperDuel;
+    }
 
     public DuelAction GetActionByCategory(Category category)
     {
@@ -352,6 +358,7 @@ public class DuelManager : MonoBehaviour
         else
         {
             AudioManager.Instance.PlaySfx("SfxDuelLose");
+            BallBehavior.Instance.ResetPendingInputs();
         }
 
         winningParticipant.Player.ReduceHp(Mathf.RoundToInt(winningParticipant.Player.Lv * hpMultiplier));

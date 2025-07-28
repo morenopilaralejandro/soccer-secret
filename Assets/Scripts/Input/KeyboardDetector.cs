@@ -9,6 +9,9 @@ public class KeyboardDetector : MonoBehaviour
 
     private Controls controls;
 
+    private bool actionKeyconsumed = false;
+    public bool WasActionKeyConsumedThisFrame() => actionKeyconsumed;
+
     void Awake()
     {
         controls = new Controls();
@@ -28,6 +31,12 @@ public class KeyboardDetector : MonoBehaviour
 
     void HandleActionKey(InputAction.CallbackContext ctx)
     {
+        actionKeyconsumed = false;
         OnActionKey?.Invoke();
+    }
+
+    public void ConsumeActionKey()
+    {
+        actionKeyconsumed = true;
     }
 }
