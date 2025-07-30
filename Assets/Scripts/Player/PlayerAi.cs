@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum AiDifficulty { Easy, Hard }
+public enum AiDifficulty { Easy, Normal, Hard }
 public enum AiState { Idle, KickOff, ChaseBall, Attack, Defend, Pass, Shoot }
 
 public class PlayerAi : MonoBehaviour
@@ -10,6 +10,7 @@ public class PlayerAi : MonoBehaviour
 
     [SerializeField] private Player player;
     [SerializeField] private List<Player> teammates;
+    [SerializeField] private List<Player> opponents;
     [SerializeField] private Player bestTeammate;
 
     [SerializeField] private Transform ballTransform;
@@ -18,7 +19,7 @@ public class PlayerAi : MonoBehaviour
     [SerializeField] private AiDifficulty aiDifficulty = AiDifficulty.Hard;
     [SerializeField] private AiState currentState = AiState.Idle;
     [SerializeField] private float closeDistance;
-    [SerializeField] private float shootGoalDistance = 1.5f;
+    [SerializeField] private float shootGoalDistance = 2f;
     //[SerializeField] private float goodPassDistance = 2f;
 
     private void Start()

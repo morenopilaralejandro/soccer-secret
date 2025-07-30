@@ -25,10 +25,6 @@ public class ShootTriangle : MonoBehaviour
 
     [Header("Triangle Settings")]
     [SerializeField] private float coordY = 0.02f;
-    [SerializeField] private float baseOffsetMin = 0.5f;
-    [SerializeField] private float controlFactor = 0.05f;
-    [SerializeField] private float rangeMin = 1f;
-    [SerializeField] private float rangeMax = 2.5f;
 
     [Header("Base Length/Range Settings")]
     [SerializeField] private float medianMin = 0.1f;
@@ -140,12 +136,8 @@ public class ShootTriangle : MonoBehaviour
         Vector3 dirToTarget = (worldCoord - vertex0).normalized;
         Vector3 perpendicular = Vector3.Cross(dirToTarget, Vector3.up).normalized;
 
-        float playerControlValue = player.GetStat(PlayerStats.Control) * controlFactor;
-        float randomOffset1 = Mathf.Max(baseOffsetMin, Random.Range(rangeMin, rangeMax) - playerControlValue);
-        float randomOffset2 = Mathf.Max(baseOffsetMin, Random.Range(rangeMin, rangeMax) - playerControlValue);
-
-        vertex1 = worldCoord + perpendicular * randomOffset1;
-        vertex2 = worldCoord - perpendicular * randomOffset2;
+        vertex1 = worldCoord + perpendicular;
+        vertex2 = worldCoord - perpendicular;
 
         float borderZ = (worldCoord.z >= 0f) ? boundTop.bounds.min.z : boundBottom.bounds.max.z;
         vertex1.z = borderZ;

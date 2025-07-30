@@ -3329,8 +3329,8 @@ MonoBehaviour:
   boundBottom: {fileID: 1210914613}
   boundLeft: {fileID: 433088756}
   boundRight: {fileID: 233756772}
-  topOffset: 0.3
-  bottomOffset: 0.5
+  topOffset: 0.15
+  bottomOffset: 0.45
   leftOffset: 0.25
   rightOffset: 0.25
 --- !u!4 &986222093
@@ -9530,10 +9530,15 @@ MonoBehaviour:
   vertex1: {x: -1, y: 0, z: 2}
   vertex2: {x: 1, y: 1, z: 2}
   coordY: 0.02
-  baseOffsetMin: 0.5
-  controlFactor: 0.05
-  rangeMin: 1
-  rangeMax: 2.5
+  medianMin: 0.1
+  medianMax: 2
+  baseLengthAtDefault: 1.2
+  widenFactorDefault: 1
+  widenFactorMax: 2
+  controlMin: 0
+  controlMax: 130
+  narrowFactorMin: 1
+  narrowFactorMax: 0.3
 --- !u!23 &2143598376
 MeshRenderer:
   m_ObjectHideFlags: 0

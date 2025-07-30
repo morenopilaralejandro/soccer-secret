@@ -60,8 +60,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private BoxCollider boundBottom;
     [SerializeField] private BoxCollider boundLeft;
     [SerializeField] private BoxCollider boundRight;
-    [SerializeField] private float topOffset = 0.3f;
-    [SerializeField] private float bottomOffset = 0.5f;
+    [SerializeField] private float topOffset = 0.15f;
+    [SerializeField] private float bottomOffset = 0.45f;
     [SerializeField] private float leftOffset = 0.25f;
     [SerializeField] private float rightOffset = 0.25f;
 

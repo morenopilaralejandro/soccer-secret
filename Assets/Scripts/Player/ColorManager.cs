@@ -53,6 +53,12 @@ public static class ColorManager
         {"lose",    new Color(0.61f, 0.61f, 1.00f)},
     };
 
+    
+    static Dictionary<string, Color> debuffColors = new Dictionary<string, Color>()
+    {
+        {"speed",   new Color(0.45f, 0.45f, 0.51f)}
+    };
+
     public static Color GetPigmentColor(string pigment)
     {
         if(pigmentColors.TryGetValue(pigment.ToLower(), out var color))
@@ -86,5 +92,12 @@ public static class ColorManager
         if(duelOutcomeColors.TryGetValue(duelOutcomeColor.ToLower(), out var color))
             return color;
         return duelOutcomeColors["win"];
+    }
+
+    public static Color GetDebuffColor(string debuffColor)
+    {
+        if(debuffColors.TryGetValue(debuffColor.ToLower(), out var color))
+            return color;
+        return debuffColors["speed"];
     }
 }

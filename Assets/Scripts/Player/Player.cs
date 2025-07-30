@@ -40,6 +40,8 @@ public class Player : MonoBehaviour
     public Sprite SpritePlayerPortrait => spritePlayerPortrait;
     public Sprite SpriteWearPortrait => spriteWearPortrait;
 
+    [SerializeField] private GameObject stunIcon;
+    [SerializeField] private DebuffIcon debuffIcon;
     [SerializeField] private Bubble bubble;
     [SerializeField] private PlayerNameTag playerNameTag;
     [SerializeField] private SpriteRenderer spriteRendererPigment;
@@ -87,14 +89,12 @@ public class Player : MonoBehaviour
     [Header("Movement Parameters")]
     [SerializeField] private float speedBase = 0.2f;
     [SerializeField] private float speedMultiplierUser = 0.01f;
-    [SerializeField] private float speedMultiplierAi = 0.005f;
-    [SerializeField] private float speedDebuffDefault = 1f;
-    [SerializeField] private float speedDebuffLow = 0.5f;
-    [SerializeField] private float speedDebuffHigh = 0.2f;
-    [SerializeField] private int hpThresholdLow = 10;
-    [SerializeField] private int hpThresholdHigh = 30;
+    [SerializeField] private float speedMultiplierAi = 0.003f;
 
-    // Remember the last calculated speedDebuff for reuse
+    [SerializeField] private int hpDebuffThreshold = 20;    // Debuff triggers below this HP
+    [SerializeField] private float speedDebuff = 0.5f;     // Example: 50% speed
+    [SerializeField] private float speedNormal = 1.0f;     // Normal speed
+
     private float _lastSpeedDebuff = 1f;
     private int _lastHpChecked = int.MinValue;
 
@@ -323,6 +323,8 @@ public class Player : MonoBehaviour
         if (isStunned)
             yield break;
         isStunned = true;
+        debuffIcon.HideDebuff();
+        stunIcon.SetActive(true);
         SetAllCollidersEnabled(false);
         // Start and remember the blink coroutine
         blinkRoutine = StartCoroutine(BlinkEffect(duration));
@@ -341,6 +343,9 @@ public class Player : MonoBehaviour
             StopCoroutine(blinkRoutine);
             blinkRoutine = null;
         }
+        stunIcon.SetActive(false);
+        if (_lastSpeedDebuff == speedDebuff)
+            debuffIcon.ShowSpeedDebuff();
         SetAllCollidersEnabled(true);
         isStunned = false;
         SetYPosition(DefaultPosition.y);
@@ -367,31 +372,50 @@ private void SetAllCollidersEnabled(bool enabled)
     }
 }
 
-    private IEnumerator BlinkEffect(float duration)
+private IEnumerator BlinkEffect(float duration)
+{
+    float elapsed = 0f;
+    float blinkInterval = 0.2f;
+    bool visible = true;
+    float blinkElapsed = 0f;
+
+    // Helper to set renderers enabled/disabled
+    void SetSpriteRenderersVisible(bool isVisible)
     {
-        float elapsed = 0f;
-        float blinkInterval = 0.2f;
-        bool visible = true;
-        float blinkElapsed = 0f;
-        while (elapsed < duration)
-        {
-            if (!GameManager.Instance.IsTimeFrozen)
-            {
-                elapsed += Time.deltaTime;
-                blinkElapsed += Time.deltaTime;
-                if (blinkElapsed >= blinkInterval)
-                {
-                    SetYPosition(visible ? DefaultPosition.y : -1f);
-                    visible = !visible;
-                    blinkElapsed = 0f;
-                }
-            } else {
-                SetYPosition(DefaultPosition.y);
-            }
-            yield return null;
-        }
-        SetYPosition(DefaultPosition.y);
+        if (spriteRendererPigment != null)
+            spriteRendererPigment.enabled = isVisible;
+        if (spriteRendererHair != null)
+            spriteRendererHair.enabled = isVisible;
+        if (spriteRendererAccessory != null)
+            spriteRendererAccessory.enabled = isVisible;
+        if (spriteRendererWear != null)
+            spriteRendererWear.enabled = isVisible;
     }
+
+    while (elapsed < duration)
+    {
+        if (!GameManager.Instance.IsTimeFrozen)
+        {
+            elapsed += Time.deltaTime;
+            blinkElapsed += Time.deltaTime;
+
+            if (blinkElapsed >= blinkInterval)
+            {
+                SetSpriteRenderersVisible(visible);
+                visible = !visible;
+                blinkElapsed = 0f;
+            }
+        }
+        else
+        {
+            // Always visible if paused
+            SetSpriteRenderersVisible(true);
+        }
+        yield return null;
+    }
+    // Always end with visible renderers
+    SetSpriteRenderersVisible(true);
+}
 
     public void Kick()
     {
@@ -502,7 +526,27 @@ private void SetAllCollidersEnabled(bool enabled)
 
     public void ReduceHp(int amount)
     {
-        currStats[(int)PlayerStats.Hp] -= amount;
+        // Magic numbers as named constants
+        const float LvReductionPerLevel = 0.01f;
+        const float MaxLvReduction = 0.7f;
+        const float StaminaDivisor = 130f;
+        const float MaxStaminaReduction = 0.3f;
+        const float MinDamageTaken = 0f;
+
+        int lv = Lv;
+        float stamina = currStats[(int)PlayerStats.Stamina];
+
+        // Calculate reduction factors
+        float lvFactor = 1f - Mathf.Min(lv * LvReductionPerLevel, MaxLvReduction);
+        float staminaFactor = 1f - Mathf.Min(stamina / StaminaDivisor, MaxStaminaReduction);
+
+        // Combine both (multiplicative, so boosts "stack" in reducing damage)
+        float totalFactor = lvFactor * staminaFactor;
+
+        // Ensure damage never goes below a minimum (e.g., at least 1)
+        float damageTaken = Mathf.Max(MinDamageTaken, amount * totalFactor);
+
+        currStats[(int)PlayerStats.Hp] -= (int)damageTaken;
         currStats[(int)PlayerStats.Hp] = Mathf.Clamp(currStats[(int)PlayerStats.Hp], 0, maxHp);
     }
 
@@ -562,12 +606,12 @@ private void SetAllCollidersEnabled(bool enabled)
         if (playerHp == _lastHpChecked) return; // avoid unnecessary recalculation
 
         _lastHpChecked = playerHp;
-        if (playerHp <= hpThresholdLow)
-            _lastSpeedDebuff = speedDebuffLow;
-        else if (playerHp <= hpThresholdHigh)
-            _lastSpeedDebuff = speedDebuffHigh;
-        else
-            _lastSpeedDebuff = speedDebuffDefault;
+        _lastSpeedDebuff = (playerHp < hpDebuffThreshold) ? speedDebuff : speedNormal;
+        if (_lastSpeedDebuff == speedDebuff) {
+            debuffIcon.ShowSpeedDebuff();
+        } else {
+            debuffIcon.HideDebuff();
+        }
     }
 
     // Calculate final speed this frame (already includes deltaTime for direct use with MoveTowards)

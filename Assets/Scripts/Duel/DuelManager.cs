@@ -27,7 +27,7 @@ public class DuelManager : MonoBehaviour
     private List<DuelParticipantData> stagedParticipants = new List<DuelParticipantData>();
     private Duel currentDuel = new Duel();
     private Coroutine unlockStatusCoroutine;
-    private float hpMultiplier = 0.1f;
+    private int hpAmount = 10;
     private float directBonus = 20f;
     private float keeperBonus = 10f;
 
@@ -230,7 +230,7 @@ public class DuelManager : MonoBehaviour
             }
         }
 
-        participant.Player.ReduceHp(Mathf.RoundToInt(participant.Player.Lv * hpMultiplier));
+        participant.Player.ReduceHp(hpAmount);
 
         if (participant.Action == DuelAction.Offense)
         {
@@ -361,7 +361,7 @@ public class DuelManager : MonoBehaviour
             BallBehavior.Instance.ResetPendingInputs();
         }
 
-        winningParticipant.Player.ReduceHp(Mathf.RoundToInt(winningParticipant.Player.Lv * hpMultiplier));
+        winningParticipant.Player.ReduceHp(hpAmount);
         currentDuel.IsResolved = true;
         UIManager.Instance.ShowTextDuelResult(winningParticipant);
         ShootTriangle.Instance.SetTriangleVisible(false);
