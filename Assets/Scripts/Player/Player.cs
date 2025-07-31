@@ -27,6 +27,7 @@ public class Player : MonoBehaviour
     public Element Element => element;
     public Position Position => position;
     public int TeamIndex;  
+    public Coord Coord;
     public Vector3 DefaultPosition;
     public ControlType ControlType;
     public bool IsPossession;
@@ -313,6 +314,7 @@ public class Player : MonoBehaviour
         }
 
         isStunned = false;
+        stunIcon.SetActive(false);
         SetAllCollidersEnabled(true);
         SetYPosition(DefaultPosition.y);
     }

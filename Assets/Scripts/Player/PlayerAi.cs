@@ -2,290 +2,339 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum AiDifficulty { Easy, Normal, Hard }
-public enum AiState { Idle, KickOff, ChaseBall, Attack, Defend, Pass, Shoot }
+public enum AiState { Idle, KickOff, ChaseBall, Attack, Defend, Keeper, Pass, Shoot }
 
 public class PlayerAi : MonoBehaviour
 {
-    public AiDifficulty Difficulty => aiDifficulty;
+    #region Editor References
 
+    [Header("Player / Field References")]
     [SerializeField] private Player player;
-    [SerializeField] private List<Player> teammates;
-    [SerializeField] private List<Player> opponents;
-    [SerializeField] private Player bestTeammate;
-
     [SerializeField] private Transform ballTransform;
     [SerializeField] private Transform allyGoalTransform;
     [SerializeField] private Transform oppGoalTransform;
-    [SerializeField] private AiDifficulty aiDifficulty = AiDifficulty.Hard;
+
+    [Header("Team")]
+    [SerializeField] private List<Player> teammates = new List<Player>();
+    [SerializeField] private List<Player> opponents = new List<Player>();
+
+    #endregion
+
+    #region AI Tuning
+
+    [Header("AI Settings")]
+    [SerializeField] private AiDifficulty aiDifficulty;
     [SerializeField] private AiState currentState = AiState.Idle;
-    [SerializeField] private float closeDistance;
     [SerializeField] private float shootGoalDistance = 2f;
-    //[SerializeField] private float goodPassDistance = 2f;
+    [SerializeField] private float attackDistance = 1f;
+    [SerializeField] private float defendDistance = 1.2f;
+
+    private float closeDistanceOpponent;
+    private float closeDistanceBall;
+    //private float closeDistanceOppGoal = 1.5f;
+    //private float closeDistanceAllyGoal = 0.8f;
+
+    #endregion
+
+    #region Passing Logic
+
+    private Player lastPassReceiver;
+    private float lastPassTime = -100f;
+    private const float minPassReturnDistance = 1.5f;
+    private const float passLoopCooldown = 2f;
+
+    #endregion
+
+    #region Unity Lifecycle
+
+    private void Awake()
+    {
+
+    }
 
     private void Start()
     {
-        InitializeCloseDistance();
-
-    if (player == null)
-        player = GetComponent<Player>();
-
-    // Example: Get all Player objects in team, assign based on something in your GameManager
-    teammates = GameManager.Instance.Teams[player.TeamIndex].players;
-
-    // Assign Transform references by finding them (if tag or name set)
-    if (ballTransform == null)
-        ballTransform = GameObject.FindGameObjectWithTag("Ball").transform;
-
-    if (allyGoalTransform == null)
-        allyGoalTransform = GameObject.Find("GoalTop").transform;
-
-    if (oppGoalTransform == null)
-        oppGoalTransform = GameObject.Find("GoalBottom").transform;
+        if (!player) player = GetComponent<Player>();
+        AssignGameReferences();
+        InitializeDistances();
     }
 
     private void Update()
     {
-        UpdateState();
-        ActInCurrentState();
+        UpdateCurrentAiState();
+        ExecuteCurrentAiState();
+    }
+    #endregion
+
+    #region Initialization
+
+    private void AssignGameReferences()
+    {
+        var gm = GameManager.Instance;
+
+        if (!ballTransform)
+            ballTransform = GameObject.FindGameObjectWithTag("Ball")?.transform;
+
+        if (!allyGoalTransform && player)
+            allyGoalTransform = gm.GetAllyGoal(player)?.transform;
+
+        if (!oppGoalTransform && player)
+            oppGoalTransform = gm.GetOppGoal(player)?.transform;
+
+        if (player)
+        {
+            teammates = gm.Teams[player.TeamIndex].players;
+            int opponentTeamIndex = gm.GetLocalTeamIndex();
+            opponents = gm.Teams[opponentTeamIndex].players;
+
+            aiDifficulty = AiDifficulty.Hard;
+        }
     }
 
-    #region State Management
-
-    private void UpdateState()
+    private void InitializeDistances()
     {
-        if (GameManager.Instance.CurrentPhase == GamePhase.KickOff) 
+        switch (player.Coord.Position)
         {
-            currentState = AiState.KickOff;
-            return;
+            case Position.Gk:
+                closeDistanceOpponent = 0.5f;
+                closeDistanceBall = 0.5f;
+                break;
+            case Position.Df:
+                closeDistanceOpponent = 2f;
+                closeDistanceBall = 2f;
+                break;
+            default:
+                closeDistanceOpponent = 10f;
+                closeDistanceBall = 10f;
+                break;
         }
+    }
 
-        if (ShouldBeIdle())
-        {
-            currentState = AiState.Idle;
-            return;
-        }
+    #endregion
+
+    #region AI State & Decision Logic
+
+    private void UpdateCurrentAiState()
+    {
+        var gm = GameManager.Instance;
+        if (gm.CurrentPhase == GamePhase.KickOff) { currentState = AiState.KickOff; return; }
+        if (IsFrozenOrLockedOut()) { currentState = AiState.Idle; return; }
+        if (IsInUnresolvedDuel()) { currentState = AiState.Idle; return; }
 
         if (player.IsPossession)
         {
-            currentState = HasBetterTeammate() ? AiState.Pass :
-                            IsInShootingPosition() ? AiState.Shoot : AiState.Attack;
+            if (HasValidPassTarget()) currentState = AiState.Pass;
+            else if (IsInShootingRange()) currentState = AiState.Shoot;
+            else currentState = AiState.Attack;
         }
-        else if (IsOpponentPossessingBall())
+        else if (player.Coord.Position == Position.Gk)
+        {
+            currentState = AiState.Keeper;
+        }
+        else if (OpponentHasBall() && IsOpponentInRange())
         {
             currentState = AiState.Defend;
         }
-        else if (IsInDuelIdle())
-        {
-            currentState = AiState.Idle;
-        }
-        else
+        else if (IsBallFree() && IsBallInRange())
         {
             currentState = AiState.ChaseBall;
         }
+        else
+        {
+            currentState = (player.Coord.Position == Position.Df) ? AiState.Defend : AiState.Attack;
+        }
     }
 
-    private bool ShouldBeIdle()
+    private bool IsFrozenOrLockedOut()
     {
         var gm = GameManager.Instance;
         return gm.IsMovementFrozen || gm.IsTimeFrozen ||
                player.IsStunned || player.IsKicking || player.IsControlling;
     }
 
-    private bool IsOpponentPossessingBall()
-    {
-        var possessor = PossessionManager.Instance.CurrentPlayer;
-        return possessor != null && possessor.ControlType != ControlType.Ai;
-    }
-
-    private bool IsInDuelIdle()
+    private bool IsInUnresolvedDuel()
     {
         var duel = DuelManager.Instance;
-        return !duel.IsDuelResolved() && duel.GetLastOffense() != null && duel.GetLastOffense().Player == player;
+        return duel && !duel.IsDuelResolved() && duel.GetLastOffense()?.Player == player;
+    }
+
+    private bool OpponentHasBall()
+    {
+        var possessor = PossessionManager.Instance.CurrentPlayer;
+        return possessor && possessor.ControlType != ControlType.Ai;
+    }
+
+    private bool IsOpponentInRange()
+    {
+        var op = PossessionManager.Instance.CurrentPlayer;
+        return op && Vector3.Distance(player.transform.position, op.transform.position) < closeDistanceOpponent;
+    }
+
+    private bool IsBallFree()
+    {
+        return PossessionManager.Instance.CurrentPlayer == null;
+    }
+
+    private bool IsBallInRange()
+    {
+        return ballTransform && Vector3.Distance(player.transform.position, ballTransform.position) < closeDistanceBall;
+    }
+
+    private bool HasValidPassTarget()
+    {
+        return player.Coord.Position != Position.Fw && GetBestPassTeammate() != null;
+    }
+
+    private bool IsInShootingRange()
+    {
+        return GameManager.Instance.GetDistanceToOppGoal(player) < shootGoalDistance;
     }
 
     #endregion
 
     #region AI Actions
 
-    private void ActInCurrentState()
+    private void ExecuteCurrentAiState()
     {
         switch (currentState)
         {
-            case AiState.Idle:
-                // Do nothing
-                break;
-            case AiState.KickOff:
-                ActKickOff();
-                break;
-            case AiState.ChaseBall:
-                ActChaseBall();
-                break;
-            case AiState.Attack:
-                MoveTowards(oppGoalTransform.position);
-                break;
-            case AiState.Pass:
-                PassToBestTeammate();
-                break;
-            case AiState.Shoot:
-                ShootAi();
-                break;
-            case AiState.Defend:
-                ActDefend();
-                break;
+            case AiState.Idle:      break;
+            case AiState.KickOff:   ActKickOff(); break;
+            case AiState.ChaseBall: MoveTowards(ballTransform?.position ?? player.transform.position); break;
+            case AiState.Attack:    ActAttack(); break;
+            case AiState.Pass:      PerformPass(); break;
+            case AiState.Shoot:     ShootAtGoal(); break;
+            case AiState.Defend:    ActDefend(); break;
+            case AiState.Keeper:    ActKeeper(); break;
         }
     }
 
-    private void ActChaseBall()
+    private void ActKickOff()
     {
-        bool isAttacker = player.Position == Position.Fw || player.Position == Position.Mf;
-        MoveTowards(isAttacker ? ballTransform.position : player.DefaultPosition);
+        if (!IsKickOffPlayer() || !GameManager.Instance.IsKickOffReady)
+            return;
+        var target = GetKickOffPassTarget();
+        GameManager.Instance.SetGamePhase(GamePhase.Battle);
+        GameManager.Instance.UnfreezeGame();
+        if (target) BallBehavior.Instance.KickBall(target.transform.position);
+    }
+
+    private bool IsKickOffPlayer() => player.IsPossession;
+
+    private Player GetKickOffPassTarget()
+    {
+        Player best = null; float minDist = float.MaxValue;
+        foreach (var mate in teammates)
+        {
+            if (mate == player || mate.IsKeeper || mate.IsStunned) continue;
+            float dist = Vector3.Distance(player.transform.position, mate.transform.position);
+            if (dist < minDist) { minDist = dist; best = mate; }
+        }
+        return best;
+    }
+
+    private void ActKeeper()
+    {
+        var basePos = allyGoalTransform ? allyGoalTransform.position : player.DefaultPosition;
+        MoveTowards(basePos);
+        // Additional keeper logic can be added here (intercept, block, patrol, etc)
+    }
+
+    private void ActAttack()
+    {
+        // Move toward opp goal; separate if crowded
+        Vector3 baseTarget = oppGoalTransform ? oppGoalTransform.position : player.DefaultPosition;
+        Vector3 separation = Vector3.zero;
+        int closeTeammates = 0;
+
+        foreach (var mate in teammates)
+        {
+            if (mate == player || mate.IsStunned) continue;
+            float dist = Vector3.Distance(player.transform.position, mate.transform.position);
+            if (dist < attackDistance)
+            {
+                separation += (player.transform.position - mate.transform.position) / dist;
+                closeTeammates++;
+            }
+        }
+
+        if (closeTeammates > 0)
+            separation /= closeTeammates;
+
+        MoveTowards(baseTarget + separation);
     }
 
     private void ActDefend()
     {
-        var opponent = PossessionManager.Instance.CurrentPlayer;
-        if (opponent == null) return;
+        var target = player.DefaultPosition;
 
-        Vector3 target = player.DefaultPosition;
-
-        if (Vector3.Distance(player.transform.position, opponent.transform.position) <= closeDistance) {
-            Vector3 baseTarget = opponent.transform.position;
-
-            // Calculate separation
-            Vector3 separation = Vector3.zero;
-            int neighborCount = 0;
-            foreach (var teammate in teammates)
+        var op = PossessionManager.Instance.CurrentPlayer;
+        if (op && Vector3.Distance(player.transform.position, op.transform.position) <= closeDistanceOpponent)
+        {
+            Vector3 separation = Vector3.zero; int count = 0;
+            foreach (var mate in teammates)
             {
-                if (teammate == player || teammate.IsStunned) continue;
-                float dist = Vector3.Distance(player.transform.position, teammate.transform.position);
-                if (dist < 1.0f) // 1 unit is very close—tune this value!
+                if (mate == player || mate.IsStunned) continue;
+                float dist = Vector3.Distance(player.transform.position, mate.transform.position);
+                if (dist < defendDistance)
                 {
-                    separation += (player.transform.position - teammate.transform.position) / dist;
-                    neighborCount++;
+                    separation += (player.transform.position - mate.transform.position) / dist;
+                    count++;
                 }
             }
-            if (neighborCount > 0)
-                separation /= neighborCount;
-
-            target = baseTarget + separation;
+            if (count > 0) separation /= count;
+            target = op.transform.position + separation;
         }
 
         MoveTowards(target);
     }
 
-    private void MoveTowards(Vector3 targetPosition)
+    private void MoveTowards(Vector3 target)
     {
-        float moveSpeed = player.GetMoveSpeed();
-        targetPosition.y = player.DefaultPosition.y;
-        Vector3 nextPos = Vector3.MoveTowards(player.transform.position, targetPosition, moveSpeed);
-        nextPos = BoundsClamp.Clamp(nextPos);
-        player.transform.position = nextPos;
+        float speed = player.GetMoveSpeed();
+        target.y = player.DefaultPosition.y;
+        var next = Vector3.MoveTowards(player.transform.position, target, speed);
+        player.transform.position = BoundsClamp.Clamp(next);
     }
 
-    private void PassToBestTeammate()
+    private void PerformPass()
     {
-        bestTeammate = GetBestTeammate();
-        if (bestTeammate == null) return;
-
-        BallBehavior.Instance.KickBall(bestTeammate.transform.position);
+        var mate = GetBestPassTeammate();
+        if (!mate) return;
+        BallBehavior.Instance.KickBall(mate.transform.position);
+        lastPassReceiver = mate;
+        lastPassTime = Time.time;
     }
 
-    private void ShootAi()
+    private Player GetBestPassTeammate()
     {
-        Debug.Log("ShootAi.");
+        float myDist = GameManager.Instance.GetDistanceToOppGoal(player);
+        Player best = null; float bestDist = myDist;
+
+        foreach (var mate in teammates)
+        {
+            if (mate == player || mate.IsKeeper || mate.IsStunned) continue;
+            if (mate == lastPassReceiver && Time.time - lastPassTime < passLoopCooldown) continue;
+            if (Vector3.Distance(player.transform.position, mate.transform.position) < minPassReturnDistance) continue;
+
+            float mateDist = GameManager.Instance.GetDistanceToOppGoal(mate);
+            if (mateDist < bestDist)
+            {
+                bestDist = mateDist;
+                best = mate;
+            }
+        }
+        return best;
+    }
+
+    private void ShootAtGoal()
+    {
         GoalDuelInitiator.Instance.TryStartGoalDuelIfValidSwipe(player, false);
     }
 
-    private void ActKickOff()
-    {
-        // Only the kickoff player attempts to pass; others stand still.
-        if (IsKickOffPlayer() && GameManager.Instance.IsKickOffReady)
-        {
-            Player target = GetKickOffPassTarget();
-            GameManager.Instance.SetGamePhase(GamePhase.Battle);
-            GameManager.Instance.UnfreezeGame();
-            BallBehavior.Instance.KickBall(target.transform.position);
-        }
-    }
-
-    private bool IsKickOffPlayer()
-    {
-        return player.IsPossession;
-    }
-
-    private Player GetKickOffPassTarget()
-    {
-        // Choose a nearby teammate, or a predefined kickoff partner.
-        // Example: pick closest eligible teammate (not self, not stunned/keeper)
-        float minDist = float.MaxValue;
-        Player best = null;
-        foreach (var teammate in teammates)
-        {
-            if (teammate == player || teammate.IsKeeper) continue;
-            float dist = Vector3.Distance(player.transform.position, teammate.transform.position);
-            if (dist < minDist)
-            {
-                minDist = dist;
-                best = teammate;
-            }
-        }
-        return best;
-    }
-
     #endregion
 
-    #region Decision Making
-
-    private void InitializeCloseDistance()
-    {
-        switch (player.Position)
-        {
-            case Position.Gk:
-                closeDistance = 0.5f;
-                break;
-            case Position.Df:
-                closeDistance = 3f;
-                break;
-            default:
-                closeDistance = 10f;
-                break;
-        }
-    }
-
-    private bool IsInShootingPosition()
-    {
-        return GameManager.Instance.GetDistanceToOppGoal(player) < shootGoalDistance;
-    }
-
-    private bool HasBetterTeammate()
-    {
-        return player.Position == Position.Fw ? false : GetBestTeammate() != null;
-    }
-
-    private Player GetBestTeammate()
-    {
-        float myDistance = GameManager.Instance.GetDistanceToOppGoal(player);
-        Player best = null;
-        float bestDist = myDistance;
-
-        foreach (var teammate in teammates)
-        {
-            if (teammate == player || teammate.IsKeeper || teammate.IsStunned)
-                continue;
-
-            float dist = GameManager.Instance.GetDistanceToOppGoal(teammate);
-            if (dist < bestDist)
-            {
-                bestDist = dist;
-                best = teammate;
-            }
-        }
-        return best;
-    }
-
-    #endregion
-
-    #region Duel Commands & Secrets
+    #region Duel AI (Public API)
 
     public void SetAiDifficulty(AiDifficulty diff) => aiDifficulty = diff;
 
@@ -295,62 +344,64 @@ public class PlayerAi : MonoBehaviour
         {
             case AiDifficulty.Easy:
                 return GetBasicCommand();
+            case AiDifficulty.Normal:
+                if (Random.value < 0.4f && HasAffordableSecret(category))
+                    return DuelCommand.Secret;
+                return GetBasicCommand();
             case AiDifficulty.Hard:
                 return HasAffordableSecret(category) ? DuelCommand.Secret : GetBasicCommand();
-            default:
-                return DuelCommand.Phys;
+            default: return DuelCommand.Phys;
         }
     }
 
     private DuelCommand GetBasicCommand()
+        => (player.GetStat(PlayerStats.Body) > player.GetStat(PlayerStats.Control)) ? DuelCommand.Phys : DuelCommand.Skill;
+
+    public Secret GetSecretByCommandAndCategory(DuelCommand cmd, Category cat)
     {
-        return player.GetStat(PlayerStats.Body) > player.GetStat(PlayerStats.Control)
-            ? DuelCommand.Phys
-            : DuelCommand.Skill;
+        if (cmd != DuelCommand.Secret) return null;
+        return (aiDifficulty == AiDifficulty.Normal) ?
+            GetRandomAffordableSecret(cat) :
+            GetBestAffordableSecret(cat);
     }
 
-    public Secret GetSecretByCommandAndCategory(DuelCommand command, Category category)
+    private bool HasAffordableSecret(Category cat)
     {
-        return command == DuelCommand.Secret ? GetBestAffordableSecret(category) : null;
-    }
-
-    private Secret GetBestAffordableSecret(Category category)
-    {
-        int currentSp = player.GetStat(PlayerStats.Sp);
-        Secret bestSecret = null;
-        int highestPower = int.MinValue;
-
-        foreach (var secret in player.CurrentSecret)
-        {
-            if (secret != null && secret.Category == category && secret.Cost <= currentSp && secret.Power >= highestPower)
-            {
-                highestPower = secret.Power;
-                bestSecret = secret;
-            }
-        }
-        return bestSecret;
-    }
-
-    private bool HasAffordableSecret(Category category)
-    {
-        int currentSp = player.GetStat(PlayerStats.Sp);
-        foreach (var secret in player.CurrentSecret)
-        {
-            if (secret != null && secret.Category == category && secret.Cost <= currentSp)
-                return true;
-        }
+        int sp = player.GetStat(PlayerStats.Sp);
+        foreach (var s in player.CurrentSecret)
+            if (s && s.Category == cat && s.Cost <= sp) return true;
         return false;
     }
 
-    public void RegisterAiSelections(int teamIndex, Category category)
+    private Secret GetRandomAffordableSecret(Category cat)
     {
-        DuelManager duel = DuelManager.Instance;
-        if (duel == null) return;
+        int sp = player.GetStat(PlayerStats.Sp);
+        var candidates = new List<Secret>();
+        foreach (var s in player.CurrentSecret)
+            if (s && s.Category == cat && s.Cost <= sp)
+                candidates.Add(s);
+        if (candidates.Count == 0) return null;
+        return candidates[Random.Range(0, candidates.Count)];
+    }
 
-        DuelCommand command = GetCommandByCategory(category);
-        Secret secret = GetSecretByCommandAndCategory(command, category);
+    private Secret GetBestAffordableSecret(Category cat)
+    {
+        int sp = player.GetStat(PlayerStats.Sp);
+        Secret best = null; int bestPower = int.MinValue;
+        foreach (var s in player.CurrentSecret)
+            if (s && s.Category == cat && s.Cost <= sp && s.Power > bestPower)
+            {
+                best = s; bestPower = s.Power;
+            }
+        return best;
+    }
 
-        UIManager.Instance.DuelSelectionMade(teamIndex, command, secret);
+    public void RegisterAiSelections(int teamIdx, Category cat)
+    {
+        var dm = DuelManager.Instance; if (!dm) return;
+        DuelCommand cmd = GetCommandByCategory(cat);
+        Secret s = cmd == DuelCommand.Secret ? GetSecretByCommandAndCategory(cmd, cat) : null;
+        UIManager.Instance.DuelSelectionMade(teamIdx, cmd, s);
     }
 
     #endregion

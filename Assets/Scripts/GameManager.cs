@@ -222,7 +222,7 @@ private void OfflineSpawn() {
 
         for (int i = 0; i < myTeam.PlayerDataList.Count; i++)
         {
-            Vector3 spawnPos = myTeam.Formation.Coords[i];
+            Vector3 spawnPos = myTeam.Formation.Coords[i].DefaultPosition;
             // Only this client spawns its own team's players
             InstantiatePlayer_Multiplayer(spawnPos, Quaternion.identity, myTeamIndex, ControlType.LocalHuman, myTeam.TeamId, myTeam.PlayerDataList[i].playerId);
         }
@@ -235,8 +235,10 @@ private void OfflineSpawn() {
             Team team = teams[teamIndex];
             for (int i = 0; i < team.PlayerDataList.Count; i++)
             {
-                Vector3 spawnPos = team.Formation.Coords[i];
-                Player player = InstantiatePlayer_Singleplayer(spawnPos, Quaternion.identity, teamIndex, ControlType.LocalHuman, prefabPlayer);
+                Coord coord = team.Formation.Coords[i];
+                Vector3 spawnPos = coord.DefaultPosition;
+
+                Player player = InstantiatePlayer_Singleplayer(spawnPos, Quaternion.identity, teamIndex, ControlType.LocalHuman, coord, prefabPlayer);
                 team.players.Add(player);
             }   
     }
@@ -247,18 +249,24 @@ private void OfflineSpawn() {
             Team team = teams[teamIndex];
             for (int i = 0; i < team.PlayerDataList.Count; i++)
             {
-                Vector3 spawnPos = team.Formation.Coords[i];
-                Player player = InstantiatePlayer_Singleplayer(spawnPos, Quaternion.identity, teamIndex, ControlType.Ai, prefabPlayerOpp);
+                Coord coord = team.Formation.Coords[i];
+                Vector3 spawnPos = coord.DefaultPosition;
+
+                spawnPos.z = spawnPos.z * -1;
+
+                Player player = InstantiatePlayer_Singleplayer(spawnPos, Quaternion.identity, teamIndex, ControlType.Ai, coord, prefabPlayerOpp);
                 team.players.Add(player);
             }   
     }
 
-    private Player InstantiatePlayer_Singleplayer(Vector3 pos, Quaternion rot, int teamIndex, ControlType controlType, GameObject prefab)
+    private Player InstantiatePlayer_Singleplayer(Vector3 pos, Quaternion rot, int teamIndex, ControlType controlType, Coord coord, GameObject prefab)
     {
         GameObject go = Instantiate(prefab, pos, rot, fieldRoot);
         Player playerComponent = go.GetComponent<Player>();
         playerComponent.TeamIndex = teamIndex;
         playerComponent.ControlType = controlType;
+        playerComponent.Coord = coord;
+        playerComponent.DefaultPosition = pos;
         go.transform.Rotate(90f, 0f, 0f);
         return playerComponent;
     }
@@ -293,8 +301,6 @@ private void OfflineSpawn() {
                 player.SetWear(team.WearId, WearManager.Instance.IsHome(teams, player.TeamIndex));
             }
         }                
-
-
     }
 
     public void ResetDefaultPositions()
@@ -311,18 +317,13 @@ private void OfflineSpawn() {
             {
                 Player player = t.players[i];
                 player.Unstun();
-                player.transform.position = t.Formation.Coords[i];
-                if (player.TeamIndex != 0)
-                {
-                    Vector3 pos = player.transform.position;
-                    pos.z = pos.z * -1;
-                    player.transform.position = pos;
-                }
+
+                player.transform.position = player.DefaultPosition;
+
                 if (player.ControlType != ControlType.Ai)
                 {
                     player.transform.GetComponent<PlayerLineRenderer>().ResetLine();
                 }
-                player.DefaultPosition = player.transform.position;
             }
         }
     }

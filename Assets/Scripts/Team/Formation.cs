@@ -10,12 +10,12 @@ public class Formation
 {
     public string FormationId => formationId;
     public string FormationName => formationName;
-    public List<Vector3> Coords => coords;
+    public List<Coord> Coords => coords;
     public int KickOff => kickOff;
 
     [SerializeField] private string formationId;
     [SerializeField] private string formationName;
-    [SerializeField] private List<Vector3> coords = new List<Vector3>(4);
+    [SerializeField] private List<Coord> coords = new List<Coord>(4);
     [SerializeField] private int kickOff;
     [SerializeField] private string tableCollectionName = "FormationNames";
 
@@ -46,7 +46,14 @@ public class Formation
         for (int i = 0; i < formationData.coordIds.Length; i++) 
         {
             CoordData coordData  = TeamManager.Instance.GetCoordDataById(formationData.coordIds[i]);
-            coords.Add(new Vector3 (coordData.x, coordData.y, coordData.z)); 
+
+            String auxString = coordData.position;
+            Position auxPosition;
+            bool isValid = Enum.TryParse(auxString, true, out auxPosition); // case-insensitive parse
+            if (!isValid)
+                auxPosition = Position.Fw;
+
+            coords.Add(new Coord (coordData.coordId, auxPosition, new Vector3 (coordData.x, coordData.y, coordData.z))); 
         }
 
         kickOff = formationData.kickOff;
