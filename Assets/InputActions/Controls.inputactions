@@ -31,6 +31,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "PauseKey",
+                    "type": "Button",
+                    "id": "6f8df57d-5085-4920-a88f-a6935cd75526",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "DuelLogKey",
+                    "type": "Button",
+                    "id": "19f58e75-b2e1-43b8-ae06-fd19fbe3950b",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -64,6 +82,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "ActionKey",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7b4f68de-ea8d-4a35-91d1-c6b0c8d6c6e3",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PauseKey",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a0933528-56cf-46d3-9363-0c36ca81ea98",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "DuelLogKey",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

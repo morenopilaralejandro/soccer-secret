@@ -73,7 +73,7 @@ public class BallBehavior : MonoBehaviour
 #endif
         ) return;
 
-        if (IsKickOffWaiting()) ResetPendingInputs();
+        if (IsKickoffWaiting()) ResetPendingInputs();
         HandlePossessionAndInputs();
     }
 
@@ -120,9 +120,9 @@ public class BallBehavior : MonoBehaviour
         }
 
         // Kick-off readiness
-        if (gm.CurrentPhase == GamePhase.KickOff && !gm.IsKickOffReady)
+        if (gm.CurrentPhase == GamePhase.Kickoff && !KickoffManager.Instance.IsKickoffReady)
         {
-            gm.SetIsKickOffReady(true);
+            KickoffManager.Instance.SetTeamReady(GameManager.Instance.GetLocalTeamIndex());
             if (player == null || player.ControlType != ControlType.LocalHuman) return;
         }
 
@@ -132,7 +132,7 @@ public class BallBehavior : MonoBehaviour
             GameLogger.DebugLog("[BallBehavior] Ball is possessed by local human, processing tap.", this);
             if (TryGoalDuel(player, screenPos)) return;
             ShowCrosshair(screenPos);
-            if (ReadyToKickOff(gm)) StartMatch();
+            if (ReadyToKickoff(gm)) StartMatch();
             if (!gm.IsMovementFrozen) KickOrQueueImmediate(screenPos);
             else QueueKickDuringFreeze(screenPos);
             return;
@@ -156,6 +156,7 @@ public class BallBehavior : MonoBehaviour
     private void HandleSwipe(SwipeDetector.SwipeDirection dir)
     {
         if (InputManager.Instance.IsDragging) return;
+        if (PauseManager.Instance.IsPaused) return; 
         if (GameManager.Instance.CurrentPhase != GamePhase.Battle) return; 
 
         if (dir == SwipeDetector.SwipeDirection.Up) 
@@ -233,7 +234,7 @@ public class BallBehavior : MonoBehaviour
 
     #region Helpers
 
-    private bool IsKickOffWaiting() => GameManager.Instance.CurrentPhase == GamePhase.KickOff && !GameManager.Instance.IsKickOffReady;
+    private bool IsKickoffWaiting() => GameManager.Instance.CurrentPhase == GamePhase.Kickoff && !KickoffManager.Instance.IsKickoffReady;
     public void ResetPendingInputs()
     {
         //GameLogger.DebugLog("[BallBehavior] Resetting pending inputs.", this);
@@ -266,12 +267,12 @@ public class BallBehavior : MonoBehaviour
         CrosshairManager.Instance.ShowCrosshair(pos);
         GameLogger.DebugLog($"[BallBehavior] Showed crosshair at {pos}", this);
     }
-    private bool ReadyToKickOff(GameManager gm) => gm.CurrentPhase == GamePhase.KickOff && gm.IsKickOffReady;
+    private bool ReadyToKickoff(GameManager gm) => gm.CurrentPhase == GamePhase.Kickoff && KickoffManager.Instance.IsKickoffReady;
     private void StartMatch()
     {
         GameManager.Instance.SetGamePhase(GamePhase.Battle);
         GameManager.Instance.UnfreezeGame();
-        GameLogger.Info("[BallBehavior] Match started after KickOff.", this);
+        GameLogger.Info("[BallBehavior] Match started after Kickoff.", this);
     }
     private void KickOrQueueImmediate(Vector2 pos)
     {

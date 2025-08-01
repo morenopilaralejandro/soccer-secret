@@ -198,6 +198,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 19489772}
   m_CullTransparentMesh: 1
+--- !u!1 &21105620
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 21105622}
+  - component: {fileID: 21105621}
+  m_Layer: 0
+  m_Name: KickoffManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &21105621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 21105620}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc4033fdd37619435bd4ba3109087880, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &21105622
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 21105620}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &25457290
 GameObject:
   m_ObjectHideFlags: 0
@@ -1635,6 +1679,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 446939345}
   m_CullTransparentMesh: 1
+--- !u!1 &459335728
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 459335730}
+  - component: {fileID: 459335729}
+  m_Layer: 0
+  m_Name: PauseManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &459335729
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 459335728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a4d3df982f642568aef25d5a8b28a7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &459335730
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 459335728}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &465114884
 GameObject:
   m_ObjectHideFlags: 0
@@ -3303,14 +3391,13 @@ MonoBehaviour:
   TouchAreaOffset: 0.1
   ball: {fileID: 1819152895}
   initialBallPosition: {x: 0, y: 0, z: 0}
-  centerKickOffPosition: {x: 0, y: 0, z: 0}
+  centerKickoffPosition: {x: 0, y: 0, z: 0}
   timeDefault: 180
   timeRemaining: 180
   timerText: {fileID: 1305269842}
   panelTimeMessage: {fileID: 800951741}
   panelGoalMessage: {fileID: 19489772}
   textGoalMessage: {fileID: 1979888048}
-  textKickOff: {fileID: 1463356995}
   goals:
   - {fileID: 1881547110}
   - {fileID: 29030932836306408}
@@ -10159,6 +10246,8 @@ SceneRoots:
   - {fileID: 1000660695}
   - {fileID: 209314032}
   - {fileID: 986222093}
+  - {fileID: 21105622}
+  - {fileID: 459335730}
   - {fileID: 2141147932}
   - {fileID: 2360793203448776537}
   - {fileID: 2294384151428355311}

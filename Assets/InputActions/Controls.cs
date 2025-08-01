@@ -53,6 +53,24 @@ public partial class @Controls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""PauseKey"",
+                    ""type"": ""Button"",
+                    ""id"": ""6f8df57d-5085-4920-a88f-a6935cd75526"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DuelLogKey"",
+                    ""type"": ""Button"",
+                    ""id"": ""19f58e75-b2e1-43b8-ae06-fd19fbe3950b"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -88,6 +106,28 @@ public partial class @Controls: IInputActionCollection2, IDisposable
                     ""action"": ""ActionKey"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7b4f68de-ea8d-4a35-91d1-c6b0c8d6c6e3"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PauseKey"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a0933528-56cf-46d3-9363-0c36ca81ea98"",
+                    ""path"": ""<Keyboard>/tab"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DuelLogKey"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -99,6 +139,8 @@ public partial class @Controls: IInputActionCollection2, IDisposable
         m_PlayerInput_PointerPosition = m_PlayerInput.FindAction("PointerPosition", throwIfNotFound: true);
         m_PlayerInput_PointerPress = m_PlayerInput.FindAction("PointerPress", throwIfNotFound: true);
         m_PlayerInput_ActionKey = m_PlayerInput.FindAction("ActionKey", throwIfNotFound: true);
+        m_PlayerInput_PauseKey = m_PlayerInput.FindAction("PauseKey", throwIfNotFound: true);
+        m_PlayerInput_DuelLogKey = m_PlayerInput.FindAction("DuelLogKey", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -163,6 +205,8 @@ public partial class @Controls: IInputActionCollection2, IDisposable
     private readonly InputAction m_PlayerInput_PointerPosition;
     private readonly InputAction m_PlayerInput_PointerPress;
     private readonly InputAction m_PlayerInput_ActionKey;
+    private readonly InputAction m_PlayerInput_PauseKey;
+    private readonly InputAction m_PlayerInput_DuelLogKey;
     public struct PlayerInputActions
     {
         private @Controls m_Wrapper;
@@ -170,6 +214,8 @@ public partial class @Controls: IInputActionCollection2, IDisposable
         public InputAction @PointerPosition => m_Wrapper.m_PlayerInput_PointerPosition;
         public InputAction @PointerPress => m_Wrapper.m_PlayerInput_PointerPress;
         public InputAction @ActionKey => m_Wrapper.m_PlayerInput_ActionKey;
+        public InputAction @PauseKey => m_Wrapper.m_PlayerInput_PauseKey;
+        public InputAction @DuelLogKey => m_Wrapper.m_PlayerInput_DuelLogKey;
         public InputActionMap Get() { return m_Wrapper.m_PlayerInput; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -188,6 +234,12 @@ public partial class @Controls: IInputActionCollection2, IDisposable
             @ActionKey.started += instance.OnActionKey;
             @ActionKey.performed += instance.OnActionKey;
             @ActionKey.canceled += instance.OnActionKey;
+            @PauseKey.started += instance.OnPauseKey;
+            @PauseKey.performed += instance.OnPauseKey;
+            @PauseKey.canceled += instance.OnPauseKey;
+            @DuelLogKey.started += instance.OnDuelLogKey;
+            @DuelLogKey.performed += instance.OnDuelLogKey;
+            @DuelLogKey.canceled += instance.OnDuelLogKey;
         }
 
         private void UnregisterCallbacks(IPlayerInputActions instance)
@@ -201,6 +253,12 @@ public partial class @Controls: IInputActionCollection2, IDisposable
             @ActionKey.started -= instance.OnActionKey;
             @ActionKey.performed -= instance.OnActionKey;
             @ActionKey.canceled -= instance.OnActionKey;
+            @PauseKey.started -= instance.OnPauseKey;
+            @PauseKey.performed -= instance.OnPauseKey;
+            @PauseKey.canceled -= instance.OnPauseKey;
+            @DuelLogKey.started -= instance.OnDuelLogKey;
+            @DuelLogKey.performed -= instance.OnDuelLogKey;
+            @DuelLogKey.canceled -= instance.OnDuelLogKey;
         }
 
         public void RemoveCallbacks(IPlayerInputActions instance)
@@ -223,5 +281,7 @@ public partial class @Controls: IInputActionCollection2, IDisposable
         void OnPointerPosition(InputAction.CallbackContext context);
         void OnPointerPress(InputAction.CallbackContext context);
         void OnActionKey(InputAction.CallbackContext context);
+        void OnPauseKey(InputAction.CallbackContext context);
+        void OnDuelLogKey(InputAction.CallbackContext context);
     }
 }

@@ -6,6 +6,8 @@ using UnityEngine.EventSystems;
 public class KeyboardDetector : MonoBehaviour
 {
     public event Action OnActionKey;
+    public event Action OnPauseKey;
+    public event Action OnDuelLogKey;
 
     private Controls controls;
 
@@ -21,11 +23,15 @@ public class KeyboardDetector : MonoBehaviour
     {
         controls.PlayerInput.Enable();
         controls.PlayerInput.ActionKey.performed += HandleActionKey;
+        controls.PlayerInput.PauseKey.performed += HandlePauseKey;
+        controls.PlayerInput.DuelLogKey.performed += HandleDuelLogKey;
     }
 
     void OnDisable()
     {
         controls.PlayerInput.ActionKey.performed -= HandleActionKey;
+        controls.PlayerInput.PauseKey.performed -= HandlePauseKey;
+        controls.PlayerInput.DuelLogKey.performed -= HandleDuelLogKey;
         controls.PlayerInput.Disable();
     }
 
@@ -38,5 +44,15 @@ public class KeyboardDetector : MonoBehaviour
     public void ConsumeActionKey()
     {
         actionKeyconsumed = true;
+    }
+
+    void HandlePauseKey(InputAction.CallbackContext ctx)
+    {
+        OnPauseKey?.Invoke();
+    }
+
+    void HandleDuelLogKey(InputAction.CallbackContext ctx)
+    {
+        OnDuelLogKey?.Invoke();
     }
 }

@@ -11,7 +11,7 @@ using Photon.Pun;
 
 public enum GamePhase
 {
-    KickOff,
+    Kickoff,
     Battle,
     Duel,
     Pause,
@@ -22,13 +22,12 @@ public enum GamePhase
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-    public GamePhase CurrentPhase { get; private set; } = GamePhase.KickOff;
-    public GamePhase PreviousPhase { get; private set; } = GamePhase.KickOff;
+    public GamePhase CurrentPhase { get; private set; } = GamePhase.Kickoff;
+    public GamePhase PreviousPhase { get; private set; } = GamePhase.Kickoff;
     public event Action<GamePhase, GamePhase> OnPhaseChanged;
 
     public bool IsMovementFrozen { get; private set; } = false;
     public bool IsTimeFrozen { get; private set; } = false;
-    public bool IsKickOffReady { get; private set; } = false;
 
     public List<Team> Teams => teams;
     public Transform FieldRoot => fieldRoot;
@@ -38,14 +37,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<Team> teams;
     [SerializeField] private Transform ball;
     [SerializeField] private Vector3 initialBallPosition;
-    [SerializeField] private Vector3 centerKickOffPosition = Vector3.zero;
+    [SerializeField] private Vector3 centerKickoffPosition = Vector3.zero;
     [SerializeField] private float timeDefault = 180f;
     [SerializeField] private float timeRemaining = 180f;
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private GameObject panelTimeMessage;
     [SerializeField] private GameObject panelGoalMessage;
     [SerializeField] private Animator textGoalMessage;
-    [SerializeField] private GameObject textKickOff;
     [SerializeField] private List<GoalTrigger> goals;
     [SerializeField] private List<TextMeshProUGUI> textScores;
     [SerializeField] private int winScore = 3;
@@ -172,13 +170,6 @@ void Start()
         }
     }
 
-    public void SetIsKickOffReady(bool ready)
-    {
-        IsKickOffReady = ready;
-        if (ready)
-            textKickOff.SetActive(false);
-    }
-
     void UpdateTimerDisplay(float seconds)
     {
         int minutes = Mathf.FloorToInt(seconds / 60f);
@@ -199,7 +190,7 @@ void Start()
     {
         // (Optionally, network this StartBattle in multiplayer!)
         Reset();
-        StartKickOff(teams[0]);
+        StartKickoff(teams[0]);
     }
 
 
@@ -329,22 +320,18 @@ private void OfflineSpawn() {
     }
 
     // ==== Network-Safe version! ====
-    public void StartKickOff(Team kickOffTeam)
+    public void StartKickoff(Team kickoffTeam)
     {
         CheckEndGame();
         AudioManager.Instance.PlayBgm("BgmBattle");
-        FreezeGame();
-        textKickOff.SetActive(true);
-        SetGamePhaseNetworkSafe(GamePhase.KickOff);
-        IsKickOffReady = false;
+        KickoffManager.Instance.ResetReady();
         ResetDefaultPositions();
-
-        List<Player> kickOffPlayers = kickOffTeam.players;
-        if (kickOffPlayers.Count > 0)
+        List<Player> kickoffPlayers = kickoffTeam.players;
+        if (kickoffPlayers.Count > 0)
         {
-            Player kickOffPlayer = kickOffPlayers[kickOffTeam.Formation.KickOff];
-            kickOffPlayer.transform.position = centerKickOffPosition;
-            PossessionManager.Instance.Gain(kickOffPlayer);
+            Player kickoffPlayer = kickoffPlayers[kickoffTeam.Formation.Kickoff];
+            kickoffPlayer.transform.position = centerKickoffPosition;
+            PossessionManager.Instance.Gain(kickoffPlayer);
         }
     }
 
@@ -417,7 +404,7 @@ private void OfflineSpawn() {
         StartCoroutine(GoalSequence(scoredTeam));
     }
 
-    private IEnumerator GoalSequence(Team kickOffTeam)
+    private IEnumerator GoalSequence(Team kickoffTeam)
     {
         float duration = 2f;
         IsTimeFrozen = true;
@@ -428,7 +415,7 @@ private void OfflineSpawn() {
         yield return new WaitForSeconds(duration);
         panelGoalMessage.SetActive(false);
         IsTimeFrozen = false;
-        StartKickOff(kickOffTeam);
+        StartKickoff(kickoffTeam);
     }
 
     private IEnumerator TimeSequence()

@@ -11,12 +11,12 @@ public class Formation
     public string FormationId => formationId;
     public string FormationName => formationName;
     public List<Coord> Coords => coords;
-    public int KickOff => kickOff;
+    public int Kickoff => kickoff;
 
     [SerializeField] private string formationId;
     [SerializeField] private string formationName;
     [SerializeField] private List<Coord> coords = new List<Coord>(4);
-    [SerializeField] private int kickOff;
+    [SerializeField] private int kickoff;
     [SerializeField] private string tableCollectionName = "FormationNames";
 
 
@@ -56,7 +56,7 @@ public class Formation
             coords.Add(new Coord (coordData.coordId, auxPosition, new Vector3 (coordData.x, coordData.y, coordData.z))); 
         }
 
-        kickOff = formationData.kickOff;
+        kickoff = formationData.kickoff;
 
         SetName();
     }

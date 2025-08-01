@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum AiDifficulty { Easy, Normal, Hard }
-public enum AiState { Idle, KickOff, ChaseBall, Attack, Defend, Keeper, Pass, Shoot }
+public enum AiState { Idle, Kickoff, KickoffPass, ChaseBall, Attack, Defend, Keeper, Pass, Shoot }
 
 public class PlayerAi : MonoBehaviour
 {
@@ -29,9 +29,10 @@ public class PlayerAi : MonoBehaviour
     [SerializeField] private float attackDistance = 1f;
     [SerializeField] private float defendDistance = 1.2f;
 
+    [SerializeField] private bool needsPostKickoffPass = false;
     private float closeDistanceOpponent;
     private float closeDistanceBall;
-    //private float closeDistanceOppGoal = 1.5f;
+    private float closeDistanceOppGoal = 1.5f;
     //private float closeDistanceAllyGoal = 0.8f;
 
     #endregion
@@ -117,7 +118,13 @@ public class PlayerAi : MonoBehaviour
     private void UpdateCurrentAiState()
     {
         var gm = GameManager.Instance;
-        if (gm.CurrentPhase == GamePhase.KickOff) { currentState = AiState.KickOff; return; }
+        if (!KickoffManager.Instance.IsKickoffReady) { currentState = AiState.Kickoff; return; }
+
+        if (needsPostKickoffPass)
+        {
+            currentState = AiState.KickoffPass; return;
+        }
+
         if (IsFrozenOrLockedOut()) { currentState = AiState.Idle; return; }
         if (IsInUnresolvedDuel()) { currentState = AiState.Idle; return; }
 
@@ -125,6 +132,7 @@ public class PlayerAi : MonoBehaviour
         {
             if (HasValidPassTarget()) currentState = AiState.Pass;
             else if (IsInShootingRange()) currentState = AiState.Shoot;
+            else if (player.Coord.Position == Position.Gk) currentState = AiState.Keeper;
             else currentState = AiState.Attack;
         }
         else if (player.Coord.Position == Position.Gk)
@@ -199,7 +207,8 @@ public class PlayerAi : MonoBehaviour
         switch (currentState)
         {
             case AiState.Idle:      break;
-            case AiState.KickOff:   ActKickOff(); break;
+            case AiState.Kickoff:   ActKickoff(); break;
+            case AiState.KickoffPass:   ActKickoffPass(); break;
             case AiState.ChaseBall: MoveTowards(ballTransform?.position ?? player.transform.position); break;
             case AiState.Attack:    ActAttack(); break;
             case AiState.Pass:      PerformPass(); break;
@@ -209,19 +218,43 @@ public class PlayerAi : MonoBehaviour
         }
     }
 
-    private void ActKickOff()
+    private void ActKickoff()
     {
-        if (!IsKickOffPlayer() || !GameManager.Instance.IsKickOffReady)
+        if (!KickoffManager.Instance.IsAiReady) 
+        {
+            KickoffManager.Instance.SetTeamReady(player.TeamIndex);   
+            KickoffManager.Instance.IsAiReady = true;
+        }
+
+        if (IsKickoffPlayer())
+            needsPostKickoffPass = true;
+
+
+        /*
+        if (!IsKickoffPlayer() || !KickoffManager.Instance.IsKickoffReady)
             return;
-        var target = GetKickOffPassTarget();
-        GameManager.Instance.SetGamePhase(GamePhase.Battle);
-        GameManager.Instance.UnfreezeGame();
+
+        var target = GetKickoffPassTarget();
         if (target) BallBehavior.Instance.KickBall(target.transform.position);
+        */
     }
 
-    private bool IsKickOffPlayer() => player.IsPossession;
+    private void ActKickoffPass()
+    {
+        if (!IsKickoffPlayer())
+            return;
 
-    private Player GetKickOffPassTarget()
+        var target = GetKickoffPassTarget();
+        if (target) 
+        {
+            needsPostKickoffPass = false;
+            BallBehavior.Instance.KickBall(target.transform.position);
+        }
+    }
+
+    private bool IsKickoffPlayer() => player.IsPossession;
+
+    private Player GetKickoffPassTarget()
     {
         Player best = null; float minDist = float.MaxValue;
         foreach (var mate in teammates)
@@ -243,6 +276,11 @@ public class PlayerAi : MonoBehaviour
     private void ActAttack()
     {
         // Move toward opp goal; separate if crowded
+    
+
+        if (Vector3.Distance(player.transform.position, oppGoalTransform.position) < closeDistanceOppGoal)
+            return;        
+        
         Vector3 baseTarget = oppGoalTransform ? oppGoalTransform.position : player.DefaultPosition;
         Vector3 separation = Vector3.zero;
         int closeTeammates = 0;
