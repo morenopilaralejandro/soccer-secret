@@ -78,7 +78,8 @@ public class PauseManager : MonoBehaviour
         _isTeamReady[0] = false;
         _isTeamReady[1] = false;
         _actionTimer = 10f;
-        // Insert your pause-game logic here (e.g., set Time.timeScale = 0)
+
+        DuelLogManager.Instance.AddMatchPause(GameManager.Instance.GetLocalTeamIndex());
         GameManager.Instance.FreezeGame();
         GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Pause);
         if (GameManager.Instance.IsMultiplayer)

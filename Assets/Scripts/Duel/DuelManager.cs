@@ -111,6 +111,7 @@ public class DuelManager : MonoBehaviour
     private void StartDuel_Internal(DuelMode mode)
     {
         GameLogger.Info("[DuelManager] Duel started", this);
+        DuelLogManager.Instance.AddDuel();
 
         StopAndCleanupUnlockStatus();
         UIManager.Instance.LockStatus();
@@ -155,6 +156,7 @@ public class DuelManager : MonoBehaviour
 
     private void CancelDuel_Internal()
     {
+        DuelLogManager.Instance.AddDuelCancel();
         GameLogger.Warning("[DuelManager] Duel cancelled", this);
 
         currentDuel.IsResolved = true;
@@ -239,6 +241,7 @@ public class DuelManager : MonoBehaviour
                 currentDuel.AttackPressure += directBonus;
             currentDuel.LastOffense = participant;
             OnSetStatusPlayerAndCommand?.Invoke(participant, currentDuel.AttackPressure);
+            DuelLogManager.Instance.AddActionCommand(participant.Player, participant.Command, participant.Secret, participant.Action, participant.Damage);
             GameLogger.DebugLog($"[DuelManager] Offense action increases attack pressure +{participant.Damage}", this);
         }
         else
@@ -257,6 +260,8 @@ public class DuelManager : MonoBehaviour
 
         currentDuel.LastDefense = defender;
 
+        DuelLogManager.Instance.AddActionCommand(defender.Player, defender.Command, defender.Secret, defender.Action, defender.Damage);
+
         ApplyElementalEffectiveness(currentDuel.LastOffense, defender);
 
         if (defender.Category == Category.Block && defender.Player.IsKeeper && GameManager.Instance.GetDistanceToAllyGoal(defender.Player) < KeeperGoalDistance)
@@ -271,6 +276,7 @@ public class DuelManager : MonoBehaviour
                 AudioManager.Instance.PlaySfx("SfxCatch");
 
             OnSetStatusPlayerAndCommand?.Invoke(defender, 0f);
+            DuelLogManager.Instance.AddActionStop(defender.Player);
             GameLogger.Info($"[DuelManager] {defender.Player.PlayerName} stopped the attack! (-{defender.Damage})", this);
 
             EndDuel(winningParticipant: defender, winnerAction: DuelAction.Defense);
@@ -304,6 +310,7 @@ public class DuelManager : MonoBehaviour
         if (elements.IsEffective(defense.CurrentElement, offense.CurrentElement))
         {
             defense.Damage *= 2f;
+            DuelLogManager.Instance.AddElementDefense(defense.Category);
             GameLogger.Info("[DuelManager] Defense element is effective!", this);
         }
         else if (elements.IsEffective(offense.CurrentElement, defense.CurrentElement))
@@ -312,6 +319,7 @@ public class DuelManager : MonoBehaviour
             offense.Damage *= 2;
             currentDuel.AttackPressure += offense.Damage;
             OnSetStatusPlayerAndCommand?.Invoke(offense, currentDuel.AttackPressure);
+            DuelLogManager.Instance.AddElementOffense(offense.Category);
             GameLogger.Info("[DuelManager] Offense element is effective!", this);
         }
     }
@@ -353,10 +361,12 @@ public class DuelManager : MonoBehaviour
 
         if (winningParticipant.Player.ControlType == ControlType.LocalHuman)
         {
+            DuelLogManager.Instance.AddDuelWin(winningParticipant.Player.TeamIndex);
             AudioManager.Instance.PlaySfx("SfxDuelWin");
         }
         else
         {
+            DuelLogManager.Instance.AddDuelLose(winningParticipant.Player.TeamIndex);
             AudioManager.Instance.PlaySfx("SfxDuelLose");
             BallBehavior.Instance.ResetPendingInputs();
         }

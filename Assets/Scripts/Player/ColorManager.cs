@@ -87,6 +87,18 @@ public static class ColorManager
         return teamIndicatorColors["ally"];
     }
 
+    public static Color GetTeamIndicatorColor(int teamIndex)
+    {
+        int localTeamIndex = GameManager.Instance.GetLocalTeamIndex();
+        if (teamIndex == localTeamIndex) 
+        {
+            return teamIndicatorColors["ally"];
+        } else 
+        {
+            return teamIndicatorColors["opp"];
+        }
+    }
+
     public static Color GetDuelOutcomeColor(string duelOutcomeColor)
     {
         if(duelOutcomeColors.TryGetValue(duelOutcomeColor.ToLower(), out var color))
@@ -94,10 +106,35 @@ public static class ColorManager
         return duelOutcomeColors["win"];
     }
 
+    public static Color GetDuelOutcomeColor(int teamIndex)
+    {
+        int localTeamIndex = GameManager.Instance.GetLocalTeamIndex();
+        if (teamIndex == localTeamIndex) 
+        {
+            return duelOutcomeColors["win"];
+        } else 
+        {
+            return duelOutcomeColors["lose"];
+        }
+    }
+
     public static Color GetDebuffColor(string debuffColor)
     {
         if(debuffColors.TryGetValue(debuffColor.ToLower(), out var color))
             return color;
         return debuffColors["speed"];
+    }
+
+    public static string ColorToHex(Color color, bool includeAlpha = false)
+    {
+        int r = Mathf.RoundToInt(color.r * 255f);
+        int g = Mathf.RoundToInt(color.g * 255f);
+        int b = Mathf.RoundToInt(color.b * 255f);
+        int a = Mathf.RoundToInt(color.a * 255f);
+
+        if (includeAlpha)
+            return $"#{r:X2}{g:X2}{b:X2}{a:X2}";
+        else
+            return $"#{r:X2}{g:X2}{b:X2}";
     }
 }

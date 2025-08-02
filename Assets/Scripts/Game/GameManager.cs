@@ -89,25 +89,25 @@ public class GameManager : MonoBehaviour
                        topOffset, bottomOffset, leftOffset, rightOffset, TouchAreaOffset);
     }
 
-void Start()
-{
-    // 1. SPAWN (instantiate) players. This should only be called ONCE per match!
+    void Start()
+    {
+        // 1. SPAWN (instantiate) players. This should only be called ONCE per match!
 
-        if (IsMultiplayer) {
-            #if PHOTON_UNITY_NETWORKING
-            SpawnMyPlayers_Multiplayer();
-            #endif
-        }
-        else {
-            OfflineSpawn();
-            InitializeTeamPlayers(); 
-        }
+            if (IsMultiplayer) {
+                #if PHOTON_UNITY_NETWORKING
+                SpawnMyPlayers_Multiplayer();
+                #endif
+            }
+            else {
+                OfflineSpawn();
+                InitializeTeamPlayers(); 
+            }
 
-    // 4. Start the game!
-    SetCameraForMyTeam(GetLocalTeamIndex(), mainCamera);
+        // 4. Start the game!
+        SetCameraForMyTeam(GetLocalTeamIndex(), mainCamera);
 
-    StartBattle();
-}
+        StartBattle();
+    }
 
     void Update()
     {
@@ -189,6 +189,9 @@ void Start()
     public void StartBattle()
     {
         // (Optionally, network this StartBattle in multiplayer!)
+        DuelLogManager.Instance.Clear();
+        DuelLogManager.Instance.AddCondition();
+        DuelLogManager.Instance.AddMatchStart();
         Reset();
         StartKickoff(teams[0]);
     }
@@ -200,10 +203,10 @@ void Start()
         StartBattle();
     }
 
-private void OfflineSpawn() {
-    SpawnMyPlayers_Singleplayer();
-    SpawnAiPlayers_Singleplayer();
-}
+    private void OfflineSpawn() {
+        SpawnMyPlayers_Singleplayer();
+        SpawnAiPlayers_Singleplayer();
+    }
 
     private void SpawnMyPlayers_Multiplayer()
     {
@@ -390,6 +393,8 @@ private void OfflineSpawn() {
 
     public void OnGoalScored(Team scoredTeam)
     {
+        DuelLogManager.Instance.AddActionScore(PossessionManager.Instance.LastPlayer);
+
         // (Optional: sync via network if needed)
         for (int i = 0; i < teams.Count; i++) {
             Team team = teams[i];
@@ -426,6 +431,7 @@ private void OfflineSpawn() {
         AudioManager.Instance.PlayBgm("BgmTimeUp");
         UpdateTimerDisplay(timeRemaining);
         panelTimeMessage.SetActive(true);
+        DuelLogManager.Instance.AddMatchEnd();
 
         yield return new WaitForSeconds(duration);
         panelTimeMessage.SetActive(false);
@@ -466,10 +472,12 @@ private void OfflineSpawn() {
         // If either team reaches winScore
         if (scores[0] >= winScore)
         {
+            DuelLogManager.Instance.AddMatchEnd();
             SceneManager.LoadScene("BattleResult");
         }
         else if (scores[1] >= winScore)
         {
+            DuelLogManager.Instance.AddMatchEnd();
             SceneManager.LoadScene("GameOver");
         }
         else if (timeRemaining <= 0)

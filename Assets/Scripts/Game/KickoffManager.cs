@@ -35,6 +35,7 @@ public class KickoffManager : MonoBehaviour
         if (_isTeamReady[0] && _isTeamReady[1]) 
         {
             IsKickoffReady = true;
+            DuelLogManager.Instance.AddMatchResume();
             GameManager.Instance.SetGamePhase(GamePhase.Battle);
             GameManager.Instance.UnfreezeGame();
         }

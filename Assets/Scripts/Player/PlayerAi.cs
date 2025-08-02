@@ -27,7 +27,7 @@ public class PlayerAi : MonoBehaviour
     [SerializeField] private AiState currentState = AiState.Idle;
     [SerializeField] private float shootGoalDistance = 2f;
     [SerializeField] private float attackDistance = 1f;
-    [SerializeField] private float defendDistance = 1.2f;
+    [SerializeField] private float defendDistance = 0.8f;
 
     [SerializeField] private bool needsPostKickoffPass = false;
     private float closeDistanceOpponent;
@@ -59,6 +59,17 @@ public class PlayerAi : MonoBehaviour
         AssignGameReferences();
         InitializeDistances();
     }
+
+    private void OnEnable()
+    {
+        PossessionManager.Instance?.Subscribe(OnPossessionGained, null);
+    }
+
+    private void OnDisable()
+    {
+        PossessionManager.Instance?.Unsubscribe(OnPossessionGained, null);
+    }
+
 
     private void Update()
     {
@@ -443,4 +454,10 @@ public class PlayerAi : MonoBehaviour
     }
 
     #endregion
+
+    private void OnPossessionGained(Player player) 
+    {
+        if (player == this.player)
+            DuelLogManager.Instance.AddGainPossession(player);
+    }
 }

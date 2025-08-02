@@ -227,6 +227,7 @@ public class BallBehavior : MonoBehaviour
         rb.AddTorque(Vector3.right * spinAmount, ForceMode.Impulse);
         GameLogger.Info($"[BallBehavior] Ball kicked with force {force} towards {dir.normalized}", this);
 
+        DuelLogManager.Instance.AddActionPass(PossessionManager.Instance.CurrentPlayer);
         PossessionManager.Instance.Release();
     }
 
@@ -388,6 +389,7 @@ public class BallBehavior : MonoBehaviour
         }
 
         ResetPendingInputs();
+        DuelLogManager.Instance.AddGainPossession(player);
         player.Control();
         GameLogger.DebugLog("[BallBehavior] Player is now controlling the ball.", this);
     }
