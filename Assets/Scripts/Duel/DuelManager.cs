@@ -156,7 +156,6 @@ public class DuelManager : MonoBehaviour
 
     private void CancelDuel_Internal()
     {
-        DuelLogManager.Instance.AddDuelCancel();
         GameLogger.Warning("[DuelManager] Duel cancelled", this);
 
         currentDuel.IsResolved = true;

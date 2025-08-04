@@ -67,6 +67,7 @@ public class BallCollider : MonoBehaviour
 
         if (BallTravelController.Instance.IsTraveling && hitObj.CompareTag("Bound"))
         {
+            DuelLogManager.Instance.AddDuelCancel();
             BallTravelController.Instance.CancelTravel();
         }
     }
