@@ -38,7 +38,9 @@ public class DuelLogManager : MonoBehaviour
     {
         DuelLogEntry entry = new DuelLogEntry(localizedString, logLevel);
         DuelLogEntries.Add(entry);
-        OnNewEntry?.Invoke(entry);
+        GameLogger.Verbose("[DuelLogManager] Shown: " + (logLevel == GameLogger.LogLevel.Info) + ". String: " + entry.LocalizedString.GetLocalizedString());
+        if (logLevel == GameLogger.LogLevel.Info)
+            OnNewEntry?.Invoke(entry);
     }
 
     public void AddMatchStart()
@@ -58,13 +60,14 @@ public class DuelLogManager : MonoBehaviour
     public void AddMatchPause(int teamIndex)
     {
         var localizedString = new LocalizedString("DuelLogTexts", "MatchPause");
+        localizedString.Arguments = new object[] { new { teamColor = GetTeamColor(teamIndex), teamName = GetTeamName(teamIndex) } };
         var logLevel = GameLogger.LogLevel.Info;
         AddEntry(localizedString, logLevel);
     }
 
     public void AddMatchResume()
     {
-        if (DuelLogEntries.Count > 4) 
+        if (DuelLogEntries.Count > 3) 
         {
             var localizedString = new LocalizedString("DuelLogTexts", "MatchResume");
             var logLevel = GameLogger.LogLevel.Info;
@@ -88,7 +91,7 @@ public class DuelLogManager : MonoBehaviour
         AddEntry(localizedString, logLevel);
     }
 
-    public void AddActionCommand(Player player, DuelCommand command, Secret secret, DuelAction action, float damage)
+    public void AddActionCommand(Player player, DuelCommand command, Secret secret)
     {
         string teamColor = GetTeamColor(player.TeamIndex);
         string playerName = GetPlayerName(player);
@@ -107,23 +110,33 @@ public class DuelLogManager : MonoBehaviour
             commandColor = ColorManager.ColorToHex(Color.white);
         }
 
+        var localizedString = new LocalizedString("DuelLogTexts", "ActionCommand");
+        localizedString.Arguments = new object[] { new { 
+            teamColor = teamColor,
+            playerName = playerName,
+            commandColor = commandColor,
+            commandName = commandName
+        }};
+
+        var logLevel = GameLogger.LogLevel.Info;
+        AddEntry(localizedString, logLevel);
+    }
+
+    public void AddActionDamage(DuelAction action, float damage)
+    {
         string actionSymbol = (action == DuelAction.Offense)
             ? new LocalizedString("UITexts", "SymbolPlus").GetLocalizedString()
             : new LocalizedString("UITexts", "SymbolMinus").GetLocalizedString();
 
         string damageNumber = Mathf.RoundToInt(damage).ToString();
 
-        var localizedString = new LocalizedString("DuelLogTexts", "ActionCommand");
+        var localizedString = new LocalizedString("DuelLogTexts", "ActionDamage");
         localizedString.Arguments = new object[] { new { 
-            teamColor = teamColor,
-            playerName = playerName,
-            commandColor = commandColor,
-            commandName = commandName,
             actionSymbol = actionSymbol,
             damageNumber = damageNumber
         }};
 
-        var logLevel = GameLogger.LogLevel.Info;
+        var logLevel = GameLogger.LogLevel.Verbose;
         AddEntry(localizedString, logLevel);
     }
 
@@ -185,7 +198,7 @@ public class DuelLogManager : MonoBehaviour
     public void AddDuelCancel()
     {
         var localizedString = new LocalizedString("DuelLogTexts", "DuelCancel");
-        var logLevel = GameLogger.LogLevel.Info;
+        var logLevel = GameLogger.LogLevel.Verbose;
         AddEntry(localizedString, logLevel);
     }
 

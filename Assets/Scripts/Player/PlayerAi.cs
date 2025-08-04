@@ -27,7 +27,7 @@ public class PlayerAi : MonoBehaviour
     [SerializeField] private AiState currentState = AiState.Idle;
     [SerializeField] private float shootGoalDistance = 2f;
     [SerializeField] private float attackDistance = 1f;
-    [SerializeField] private float defendDistance = 0.8f;
+    [SerializeField] private float defendDistance = 0.6f;
 
     [SerializeField] private bool needsPostKickoffPass = false;
     private float closeDistanceOpponent;
@@ -436,13 +436,32 @@ public class PlayerAi : MonoBehaviour
     private Secret GetBestAffordableSecret(Category cat)
     {
         int sp = player.GetStat(PlayerStats.Sp);
-        Secret best = null; int bestPower = int.MinValue;
+        Secret bestMatchingElement = null;
+        int bestElementPower = int.MinValue;
+        Secret bestAny = null;
+        int bestAnyPower = int.MinValue;
+
         foreach (var s in player.CurrentSecret)
-            if (s && s.Category == cat && s.Cost <= sp && s.Power > bestPower)
+        {
+            if (s && s.Category == cat && s.Cost <= sp)
             {
-                best = s; bestPower = s.Power;
+                // Prioritize Secrets whose Element matches the player's Element
+                if (s.Element == player.Element && s.Power > bestElementPower)
+                {
+                    bestMatchingElement = s;
+                    bestElementPower = s.Power;
+                }
+                // Always track highest-power Secret, regardless of element
+                if (s.Power > bestAnyPower)
+                {
+                    bestAny = s;
+                    bestAnyPower = s.Power;
+                }
             }
-        return best;
+        }
+
+        // Prefer element match, otherwise fallback to best overall
+        return bestMatchingElement ? bestMatchingElement : bestAny;
     }
 
     public void RegisterAiSelections(int teamIdx, Category cat)

@@ -241,7 +241,8 @@ public class DuelManager : MonoBehaviour
                 currentDuel.AttackPressure += directBonus;
             currentDuel.LastOffense = participant;
             OnSetStatusPlayerAndCommand?.Invoke(participant, currentDuel.AttackPressure);
-            DuelLogManager.Instance.AddActionCommand(participant.Player, participant.Command, participant.Secret, participant.Action, participant.Damage);
+            DuelLogManager.Instance.AddActionCommand(participant.Player, participant.Command, participant.Secret);
+            DuelLogManager.Instance.AddActionDamage(participant.Action, participant.Damage);
             GameLogger.DebugLog($"[DuelManager] Offense action increases attack pressure +{participant.Damage}", this);
         }
         else
@@ -260,7 +261,8 @@ public class DuelManager : MonoBehaviour
 
         currentDuel.LastDefense = defender;
 
-        DuelLogManager.Instance.AddActionCommand(defender.Player, defender.Command, defender.Secret, defender.Action, defender.Damage);
+        DuelLogManager.Instance.AddActionCommand(defender.Player, defender.Command, defender.Secret);
+        DuelLogManager.Instance.AddActionDamage(defender.Action, defender.Damage);
 
         ApplyElementalEffectiveness(currentDuel.LastOffense, defender);
 

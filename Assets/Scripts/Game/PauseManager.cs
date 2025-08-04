@@ -12,6 +12,7 @@ public class PauseManager : MonoBehaviour
     private float _lastPauseTime = -Mathf.Infinity;
     private bool _isPaused = false;
     private float pauseCooldown = 15f;
+    private float _pauseCooldownRemaining = 0f;
 
     private void Awake()
     {
@@ -33,18 +34,28 @@ public class PauseManager : MonoBehaviour
         InputManager.Instance.KeyboardDetector.OnPauseKey -= HandlePauseKey;
     }
 
+
+    private void Update()
+    {
+        if (_pauseCooldownRemaining > 0f && !GameManager.Instance.IsTimeFrozen)
+        {
+            _pauseCooldownRemaining -= Time.deltaTime;
+            if (_pauseCooldownRemaining < 0f)
+                _pauseCooldownRemaining = 0f;
+        }
+    }
+
     public bool CanPause()
     {
         return GameManager.Instance.CurrentPhase == GamePhase.Battle &&
             !GameManager.Instance.IsTimeFrozen &&
-            Time.time - _lastPauseTime >= pauseCooldown && !_isPaused;
+            _pauseCooldownRemaining <= 0f && !_isPaused;
     }
 
     public bool TryPause()
     {
         if (CanPause())
         {
-            _lastPauseTime = Time.time; // Only 1 value
             PauseGame();
             return true;
         }
@@ -92,7 +103,9 @@ public class PauseManager : MonoBehaviour
         _isPaused = false;
         _isTeamReady[0] = false;
         _isTeamReady[1] = false;
+        _pauseCooldownRemaining = pauseCooldown; // Start cooldown
         // Insert your resume-game logic here (e.g., set Time.timeScale = 1)
+        DuelLogManager.Instance.AddMatchResume();
         GameManager.Instance.SetGamePhase(GamePhase.Battle);
         GameManager.Instance.UnfreezeGame();
     }
@@ -101,6 +114,7 @@ public class PauseManager : MonoBehaviour
     {
         if (InputManager.Instance.IsDragging) return;
         if (InputManager.Instance.SwipeDetector.WasConsumedThisFrame()) return;
+        if (UIManager.Instance.IsDuelLogMenuOpen()) return;
 
         GameLogger.Log("[PauseManager] swipe");
 
@@ -131,6 +145,8 @@ public class PauseManager : MonoBehaviour
 
     private void HandlePauseKey() 
     {
+        if (UIManager.Instance.IsDuelLogMenuOpen()) return;
+
         if (!IsPaused)
         {
             if (!TryPause())

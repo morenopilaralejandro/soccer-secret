@@ -29,6 +29,7 @@ public class UIManager : MonoBehaviourPun
     [SerializeField] private PanelStatusSide panelStatusSideAlly;
     [SerializeField] private PanelStatusSide panelStatusSideOpp;
     [SerializeField] private GameObject panelWaitingForOpponent;
+    [SerializeField] private GameObject panelDuelLogMenu;
     [SerializeField] private GameObject buttonDuelToggle;
     [SerializeField] private GameObject buttonSwap;
     [SerializeField] private GameObject textWin;
@@ -161,6 +162,11 @@ public class UIManager : MonoBehaviourPun
                && duelUiVisibleForLocal && IsPanelActive(panelSecret) || IsPanelActive(panelCommand);
     }
 
+    public bool IsDuelLogMenuOpen() 
+    {
+        return panelDuelLogMenu.activeSelf;
+    }
+
     private void ToggleDuelMenu()
     {
         if (CanOpenDuelMenu())
@@ -239,6 +245,8 @@ public class UIManager : MonoBehaviourPun
     {
         if (InputManager.Instance.IsDragging) return;
         if (InputManager.Instance.SwipeDetector.WasConsumedThisFrame()) return;
+        if (IsDuelLogMenuOpen()) return;
+
         switch (dir) 
         {
             case SwipeDetector.SwipeDirection.Up:
@@ -259,6 +267,7 @@ public class UIManager : MonoBehaviourPun
     private void HandleActionKey() 
     {
         if (InputManager.Instance.KeyboardDetector.WasActionKeyConsumedThisFrame()) return;
+        if (IsDuelLogMenuOpen()) return;
         OnButtonDuelToggleTapped();
     }
 
