@@ -173,12 +173,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 2968101766863181003}
-  teammates: []
-  bestTeammate: {fileID: 0}
   ballTransform: {fileID: 0}
   allyGoalTransform: {fileID: 0}
   oppGoalTransform: {fileID: 0}
+  teammates: []
+  opponents: []
   aiDifficulty: 1
   currentState: 0
-  closeDistance: 0
   shootGoalDistance: 1.5
+  attackDistance: 1
+  defendDistance: 0.4
+  needsPostKickoffPass: 0

@@ -234,7 +234,7 @@ public class DuelLogManager : MonoBehaviour
 
     private string GetTeamColor(int teamIndex)
     {
-        Color auxColor = ColorManager.GetTeamIndicatorColor(teamIndex);
+        Color auxColor = ColorManager.GetTeamIndicatorTextColor(teamIndex);
         string hexColor = ColorManager.ColorToHex(auxColor);
         return hexColor;
     }

@@ -402,7 +402,7 @@ public class DuelManager : MonoBehaviour
         }
     }
 
-    private void StopAndCleanupUnlockStatus()
+    public void StopAndCleanupUnlockStatus()
     {
         if (unlockStatusCoroutine != null)
         {

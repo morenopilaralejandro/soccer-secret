@@ -44,13 +44,19 @@ public static class ColorManager
     static Dictionary<string, Color> teamIndicatorColors = new Dictionary<string, Color>()
     {
         {"ally",    Color.blue},
-        {"opp",     Color.red},
+        {"opp",     Color.red}
+    };
+
+    static Dictionary<string, Color> teamIndicatorTextColors = new Dictionary<string, Color>()
+    {
+        {"ally",    new Color(0.00f, 1.00f, 1.00f)},
+        {"opp",     new Color(1.0f, 0.10f, 0.10f)}
     };
 
     static Dictionary<string, Color> duelOutcomeColors = new Dictionary<string, Color>()
     {
         {"win",     new Color(0.98f, 0.84f, 0.09f)},
-        {"lose",    new Color(0.61f, 0.61f, 1.00f)},
+        {"lose",    new Color(0.61f, 0.61f, 1.00f)}
     };
 
     
@@ -96,6 +102,25 @@ public static class ColorManager
         } else 
         {
             return teamIndicatorColors["opp"];
+        }
+    }
+
+    public static Color GetTeamIndicatorTextColor(string teamIndicatorTextColor)
+    {
+        if(teamIndicatorTextColors.TryGetValue(teamIndicatorTextColor.ToLower(), out var color))
+            return color;
+        return teamIndicatorTextColors["ally"];
+    }
+
+    public static Color GetTeamIndicatorTextColor(int teamIndex)
+    {
+        int localTeamIndex = GameManager.Instance.GetLocalTeamIndex();
+        if (teamIndex == localTeamIndex) 
+        {
+            return teamIndicatorTextColors["ally"];
+        } else 
+        {
+            return teamIndicatorTextColors["opp"];
         }
     }
 

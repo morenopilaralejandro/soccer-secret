@@ -35,7 +35,7 @@ public class Player : MonoBehaviour
     public bool IsStunned => isStunned;
     public bool IsKicking => isKicking;
     public bool IsControlling => isControlling;
-    public int Lv;
+    public int Lv;    
     public List<Secret> CurrentSecret => currentSecret;
     public List<Secret> LearnedSecret => learnedSecret;
     public Sprite SpritePlayerPortrait => spritePlayerPortrait;
@@ -354,25 +354,25 @@ public class Player : MonoBehaviour
         stunRoutine = null;
     }
 
-private void SetAllCollidersEnabled(bool enabled)
-{
-    foreach (var col in colliders)
+    private void SetAllCollidersEnabled(bool enabled)
     {
-        // If this collider is keeperCollider and we are NOT keeper, don't enable it.
-        if (col == keeperCollider && !IsKeeper)
+        foreach (var col in colliders)
         {
-            col.enabled = false; // Always disable regardless of argument
-        }
-        else
-        {
-            if (touchArea && col == touchArea) {
-                col.enabled = true;
-            } else {
-                col.enabled = enabled;
+            // If this collider is keeperCollider and we are NOT keeper, don't enable it.
+            if (col == keeperCollider && !IsKeeper)
+            {
+                col.enabled = false; // Always disable regardless of argument
+            }
+            else
+            {
+                if (touchArea && col == touchArea) {
+                    col.enabled = true;
+                } else {
+                    col.enabled = enabled;
+                }
             }
         }
     }
-}
 
 private IEnumerator BlinkEffect(float duration)
 {

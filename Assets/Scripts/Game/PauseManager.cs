@@ -9,10 +9,11 @@ public class PauseManager : MonoBehaviour
 
     private bool[] _isTeamReady = new bool[2]; 
     private float _actionTimer = 10f;
-    private float _lastPauseTime = -Mathf.Infinity;
     private bool _isPaused = false;
     private float pauseCooldown = 15f;
     private float _pauseCooldownRemaining = 0f;
+
+    [SerializeField] private Sprite pauseIcon;
 
     private void Awake()
     {
@@ -93,6 +94,9 @@ public class PauseManager : MonoBehaviour
         DuelLogManager.Instance.AddMatchPause(GameManager.Instance.GetLocalTeamIndex());
         GameManager.Instance.FreezeGame();
         GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Pause);
+        DuelManager.Instance.StopAndCleanupUnlockStatus();
+        UIManager.Instance.SetCategorySprite(pauseIcon);
+        UIManager.Instance.SetCategoryVisible(true);
         if (GameManager.Instance.IsMultiplayer)
             StartCoroutine(MultiplayerActionTimerRoutine());
     }
@@ -108,6 +112,7 @@ public class PauseManager : MonoBehaviour
         DuelLogManager.Instance.AddMatchResume();
         GameManager.Instance.SetGamePhase(GamePhase.Battle);
         GameManager.Instance.UnfreezeGame();
+        UIManager.Instance.SetCategoryVisible(false);
     }
 
     private void HandleSwipe(SwipeDetector.SwipeDirection dir)

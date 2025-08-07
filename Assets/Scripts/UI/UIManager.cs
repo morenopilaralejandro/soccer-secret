@@ -30,10 +30,10 @@ public class UIManager : MonoBehaviourPun
     [SerializeField] private PanelStatusSide panelStatusSideOpp;
     [SerializeField] private GameObject panelWaitingForOpponent;
     [SerializeField] private GameObject panelDuelLogMenu;
-    [SerializeField] private GameObject buttonDuelToggle;
-    [SerializeField] private GameObject buttonSwap;
+    [SerializeField] private Button buttonCommand0;
     [SerializeField] private GameObject textWin;
     [SerializeField] private GameObject textLose;
+    [SerializeField] private GameObject panelCategory;    
     [SerializeField] private Image imageCategory;
 
     #endregion
@@ -113,32 +113,41 @@ public class UIManager : MonoBehaviourPun
 
     #region Panel & Button Visibility
 
-    public void SetImageCategoryVisible(bool visible)
+    public void SetCategoryVisible(bool visible)
     {
-        SetActiveSafe(imageCategory.gameObject, visible);
+        SetActiveSafe(panelCategory, visible);
     }
+
+    public void SetCategorySprite(Sprite sprite)
+    {
+        imageCategory.sprite = sprite;
+    }
+
     public void SetPanelSecretVisible(bool visible)
     {
         SetActiveSafe(panelSecret, visible);
     }
+
     public void SetPanelCommandVisible(bool visible)
     {
         SetActiveSafe(panelCommand, visible);
     }
+
     public void SetButtonDuelToggleVisible(bool visible)
     {
-        SetActiveSafe(buttonDuelToggle, visible);
-        SetActiveSafe(buttonSwap, visible);
-        SetImageCategoryVisible(true);
+        //SetActiveSafe(buttonDuelToggle, visible);
+        //SetActiveSafe(buttonSwap, visible);
+        SetCategoryVisible(true);
         imageCategory.sprite = SecretManager.Instance.GetCategoryIcon(GetLocalCategory());
     }
+
     public void HideDuelUi()
     {
         duelUiVisibleForLocal = false;
         SetPanelSecretVisible(false);
         SetPanelCommandVisible(false);
         SetButtonDuelToggleVisible(false);
-        SetImageCategoryVisible(false);
+        SetCategoryVisible(false);
     }
 
     #endregion
@@ -210,7 +219,7 @@ public class UIManager : MonoBehaviourPun
         {
             var secretPanel = panelSecret.GetComponent<SecretPanel>();
             if (secretPanel != null)
-                secretPanel.UpdateSecretSlots(localSel.Player.CurrentSecret, localSel.Category);
+                secretPanel.UpdateSecretSlots(localSel.Player.CurrentSecret, localSel.Player.GetStat(PlayerStats.Sp), localSel.Category);
         }
     }
 
@@ -224,6 +233,7 @@ public class UIManager : MonoBehaviourPun
         AudioManager.Instance.PlaySfx("SfxMenuTap");
         DuelSelectionMade(GameManager.Instance.GetLocalTeamIndex(), DuelCommand.Skill, null);
     }
+
     public void OnSecretCommandSlotTapped(SecretCommandSlot secretCommandSlot)
     {
         if (secretCommandSlot?.Secret == null) return;
@@ -477,11 +487,12 @@ public class UIManager : MonoBehaviourPun
     private void ShowDuelUIForLocal()
     {
         duelUiVisibleForLocal = true;
-        SetButtonDuelToggleVisible(true);
+        SetCategorySprite(SecretManager.Instance.GetCategoryIcon(GetLocalCategory()));
+        SetCategoryVisible(true);
         if (DuelManager.Instance.IsKeeperDuel && GetLocalCategory() == Category.Dribble) {
-            SetActiveSafe(buttonSwap, false);
+            buttonCommand0.interactable = false;
         } else {
-            SetActiveSafe(buttonSwap, true);
+            buttonCommand0.interactable = true;
         }
     }
 

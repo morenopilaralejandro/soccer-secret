@@ -27,7 +27,7 @@ public class PlayerAi : MonoBehaviour
     [SerializeField] private AiState currentState = AiState.Idle;
     [SerializeField] private float shootGoalDistance = 2f;
     [SerializeField] private float attackDistance = 1f;
-    [SerializeField] private float defendDistance = 0.6f;
+    [SerializeField] private float defendDistance = 0.4f;
 
     [SerializeField] private bool needsPostKickoffPass = false;
     private float closeDistanceOpponent;
