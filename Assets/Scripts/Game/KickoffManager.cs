@@ -1,5 +1,8 @@
-using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using TMPro;
+using UnityEngine.Localization;
 
 public class KickoffManager : MonoBehaviour
 {
@@ -9,6 +12,7 @@ public class KickoffManager : MonoBehaviour
     public bool IsAiReady { get;  set; } = false;
 
     private bool[] _isTeamReady = new bool[2];
+    private LocalizedString kickoffHint = new LocalizedString("UITexts", "TextKickOff");
 
     private void Awake()
     {
@@ -23,6 +27,9 @@ public class KickoffManager : MonoBehaviour
         IsKickoffReady = false;
         IsAiReady = false;
         BallBehavior.Instance.ResetPendingInputs();
+        PauseManager.Instance.ResetCooldown();
+        UIManager.Instance.SetHintText(kickoffHint.GetLocalizedString());
+        UIManager.Instance.SetHintVisible(true);
         GameManager.Instance.FreezeGame();
         GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Kickoff);
     }
@@ -35,6 +42,7 @@ public class KickoffManager : MonoBehaviour
         if (_isTeamReady[0] && _isTeamReady[1]) 
         {
             IsKickoffReady = true;
+            UIManager.Instance.SetHintVisible(false);
             DuelLogManager.Instance.AddMatchResume();
             GameManager.Instance.SetGamePhase(GamePhase.Battle);
             GameManager.Instance.UnfreezeGame();

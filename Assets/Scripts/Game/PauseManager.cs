@@ -1,5 +1,9 @@
-using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using TMPro;
+using UnityEngine.Localization;
 
 public class PauseManager : MonoBehaviour
 {
@@ -7,13 +11,15 @@ public class PauseManager : MonoBehaviour
 
     public bool IsPaused => _isPaused;
 
+    [SerializeField] private Sprite pauseIcon;
+    [SerializeField] private TextMeshProUGUI textTimerPause;
+
     private bool[] _isTeamReady = new bool[2]; 
     private float _actionTimer = 10f;
     private bool _isPaused = false;
     private float pauseCooldown = 15f;
     private float _pauseCooldownRemaining = 0f;
-
-    [SerializeField] private Sprite pauseIcon;
+    private LocalizedString textCooldownPause = new LocalizedString("UITexts", "TextCooldownPause");
 
     private void Awake()
     {
@@ -44,6 +50,27 @@ public class PauseManager : MonoBehaviour
             if (_pauseCooldownRemaining < 0f)
                 _pauseCooldownRemaining = 0f;
         }
+
+        UpdateText();
+    }
+
+    private void UpdateText()
+    {
+        if (textTimerPause == null) return;
+
+        if (_pauseCooldownRemaining > 0f)
+        {
+            textTimerPause.text = Mathf.Ceil(_pauseCooldownRemaining).ToString();
+        }
+        else
+        {
+            textTimerPause.text = textCooldownPause.GetLocalizedString();
+        }
+    }
+
+    public void ResetCooldown()
+    {
+        _pauseCooldownRemaining = 0f;
     }
 
     public bool CanPause()

@@ -114,26 +114,6 @@ public class SecretManager : MonoBehaviour
         }
     }
 
-    /*
-    public void PlaySecretEffect(string secretId, Vector3 position)
-    {
-        SecretData secretData = GetSecretDataById(secretId);
-        if (secretData != null && !string.IsNullOrEmpty(secretData.effectPrefabPath))
-        {
-            // If using Resources folder:
-            GameObject effectPrefab = Resources.Load<GameObject>(secretData.effectPrefabPath);
-            if (effectPrefab != null)
-                Instantiate(effectPrefab, position, Quaternion.identity);
-            else
-                Debug.LogWarning("Effect prefab not found at: " + secretData.effectPrefabPath);
-        }
-        else
-        {
-            Debug.LogWarning("Effect prefab path not assigned for secretId: " + secretId);
-        }
-    }
-    */
-
     public void PlaySecretEffect(Secret secret, Vector3 position)
     {
         if (secret != null && !string.IsNullOrEmpty(effectPrefabPath))

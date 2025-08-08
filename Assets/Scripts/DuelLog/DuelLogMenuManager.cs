@@ -7,8 +7,13 @@ public class DuelLogMenuManager : MonoBehaviour
     [SerializeField] private DuelLogPopup popupPrefab;
     [SerializeField] private Transform contentParent; // ScrollView content
     [SerializeField] private GameObject panelDuelLogMenu; // ScrollView content
+    [SerializeField] private Animator animator;
     [SerializeField] private ScrollRect scrollRect;
+    
+    void Awake()
+    {
 
+    }
 
     private void OnEnable()
     {
@@ -39,11 +44,13 @@ public class DuelLogMenuManager : MonoBehaviour
             popup.ShowStatic(entry);
         }
         panelDuelLogMenu.SetActive(true);
+        animator.SetTrigger("ShowMenu");
     }
 
     private void HideMenu()
     {
-        panelDuelLogMenu.SetActive(false);
+        animator.SetTrigger("HideMenu");
+        //panelDuelLogMenu.SetActive(false);
     }
 
     private bool IsMenuOpen() 

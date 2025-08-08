@@ -73,7 +73,19 @@ public class ShootTriangle : MonoBehaviour
         vertex0.y = coordY;
         vertex1.y = coordY;
         vertex2.y = coordY;
+
         Vector3[] vertices = { vertex0, vertex1, vertex2 };
+
+        // Ensure consistent winding order for culling
+        // If vertex0.z is negative, swap vertex1 and vertex2
+        if (vertex0.z < 0)
+        {
+            // Swap vertex1 and vertex2
+            Vector3 tmp = vertex1;
+            vertices[1] = vertex2;
+            vertices[2] = tmp;
+        }
+
         int[] triangles = { 0, 1, 2 };
 
         triangleMesh.Clear();

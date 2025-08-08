@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 
 #if PHOTON_UNITY_NETWORKING
 using Photon.Pun;
@@ -31,6 +32,7 @@ public class UIManager : MonoBehaviourPun
     [SerializeField] private GameObject panelWaitingForOpponent;
     [SerializeField] private GameObject panelDuelLogMenu;
     [SerializeField] private Button buttonCommand0;
+    [SerializeField] private TextMeshProUGUI textHint;
     [SerializeField] private GameObject textWin;
     [SerializeField] private GameObject textLose;
     [SerializeField] private GameObject panelCategory;    
@@ -112,6 +114,16 @@ public class UIManager : MonoBehaviourPun
     #endregion
 
     #region Panel & Button Visibility
+
+    public void SetHintVisible(bool visible)
+    {
+        SetActiveSafe(textHint.gameObject, visible);
+    }
+
+    public void SetHintText(string text)
+    {
+        textHint.text = text;
+    }
 
     public void SetCategoryVisible(bool visible)
     {

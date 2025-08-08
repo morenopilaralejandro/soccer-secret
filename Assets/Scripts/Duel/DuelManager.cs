@@ -24,6 +24,8 @@ public class DuelManager : MonoBehaviour
     public float KeeperGoalDistance = 0.7f;
     public bool IsKeeperDuel = false;
 
+    [SerializeField] private ParticleSystem duelCircleEffectPrefab;
+
     private List<DuelParticipantData> stagedParticipants = new List<DuelParticipantData>();
     private Duel currentDuel = new Duel();
     private Coroutine unlockStatusCoroutine;
@@ -110,6 +112,8 @@ public class DuelManager : MonoBehaviour
 
     private void StartDuel_Internal(DuelMode mode)
     {
+        PlayDuelEffect();
+
         GameLogger.Info("[DuelManager] Duel started", this);
         DuelLogManager.Instance.AddDuel();
 
@@ -425,6 +429,12 @@ public class DuelManager : MonoBehaviour
         StopAndCleanupUnlockStatus();
 
         UIManager.Instance.UnlockStatus();
+    }
+
+    private void PlayDuelEffect() 
+    {
+        Vector3 effectPosition = PossessionManager.Instance.CurrentPlayer.transform.position;
+        Instantiate(duelCircleEffectPrefab, effectPosition, Quaternion.identity);
     }
 
     #endregion
