@@ -9,6 +9,8 @@ public class DuelLogMenuManager : MonoBehaviour
     [SerializeField] private GameObject panelDuelLogMenu; // ScrollView content
     [SerializeField] private Animator animator;
     [SerializeField] private ScrollRect scrollRect;
+
+    private bool isMenuOpen = false;
     
     void Awake()
     {
@@ -43,24 +45,34 @@ public class DuelLogMenuManager : MonoBehaviour
             // Use a special method or overload that doesn't start a timer
             popup.ShowStatic(entry);
         }
-        panelDuelLogMenu.SetActive(true);
-        animator.SetTrigger("ShowMenu");
+
+        StartCoroutine(ScrollToBottomNextFrame()); // <-- Fix here
+        isMenuOpen = true;
+        animator.SetTrigger("ShowMenu");       
+        AudioManager.Instance.PlaySfx("SfxMenuTap");
+    }
+
+    private IEnumerator ScrollToBottomNextFrame()
+    {
+        yield return new WaitForEndOfFrame(); // Wait one frame for UI to rebuild
+        scrollRect.verticalNormalizedPosition = 0f;
     }
 
     private void HideMenu()
     {
+        isMenuOpen = false;
         animator.SetTrigger("HideMenu");
-        //panelDuelLogMenu.SetActive(false);
+        AudioManager.Instance.PlaySfx("SfxMenuTap");
     }
 
-    private bool IsMenuOpen() 
+    public bool IsMenuOpen() 
     {
-        return panelDuelLogMenu.activeSelf;
+        return isMenuOpen;
     }
 
     private bool CanOpenMenu() 
     {
-        return GameManager.Instance.IsTimeFrozen;
+        return GameManager.Instance.IsTimeFrozen && !IsMenuOpen();
     }
 
     private bool CanCloseMenu() 
@@ -70,9 +82,8 @@ public class DuelLogMenuManager : MonoBehaviour
 
     private void OpenMenu() 
     {
-        if (CanOpenMenu())
-            PopulateLog();  
-            scrollRect.verticalNormalizedPosition = 0f;
+        if (CanOpenMenu()) 
+            PopulateLog();
     }
 
     private void CloseMenu() 

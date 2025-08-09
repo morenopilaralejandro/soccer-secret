@@ -8,7 +8,7 @@ public class BulkWearImporter : EditorWindow
     private WearLibrary wearLibrary;
     private string baseFolder = "Assets/Sprites/Wear";
 
-    [MenuItem("Tools/Import Wear Sprites/Bulk Import Wears")]
+    [MenuItem("Tools/Import Sprites/Bulk Import Wears")]
     public static void ShowWindow()
     {
         EditorWindow.GetWindow(typeof(BulkWearImporter));

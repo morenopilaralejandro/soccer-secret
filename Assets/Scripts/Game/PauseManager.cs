@@ -124,6 +124,7 @@ public class PauseManager : MonoBehaviour
         DuelManager.Instance.StopAndCleanupUnlockStatus();
         UIManager.Instance.SetCategorySprite(pauseIcon);
         UIManager.Instance.SetCategoryVisible(true);
+        AudioManager.Instance.PlaySfx("SfxMenuTap");
         if (GameManager.Instance.IsMultiplayer)
             StartCoroutine(MultiplayerActionTimerRoutine());
     }
@@ -140,6 +141,7 @@ public class PauseManager : MonoBehaviour
         GameManager.Instance.SetGamePhase(GamePhase.Battle);
         GameManager.Instance.UnfreezeGame();
         UIManager.Instance.SetCategoryVisible(false);
+        AudioManager.Instance.PlaySfx("SfxMenuTap");
     }
 
     private void HandleSwipe(SwipeDetector.SwipeDirection dir)

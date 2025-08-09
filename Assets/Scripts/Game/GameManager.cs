@@ -92,6 +92,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         // 1. SPAWN (instantiate) players. This should only be called ONCE per match!
+        UIManager.Instance.SetCrestSprite(teams);
 
             if (IsMultiplayer) {
                 #if PHOTON_UNITY_NETWORKING

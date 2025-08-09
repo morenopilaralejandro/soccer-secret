@@ -8,7 +8,7 @@ public class BulkPlayerPortraitImporter : EditorWindow
     private PlayerPortraitLibrary playerPortraitLibrary;
     private string baseFolder = "Assets/Sprites/PlayerPortrait";
 
-    [MenuItem("Tools/Import Player Sprites/Bulk Import PlayerPortraits")]
+    [MenuItem("Tools/Import Sprites/Bulk Import PlayerPortraits")]
     public static void ShowWindow()
     {
         EditorWindow.GetWindow(typeof(BulkPlayerPortraitImporter));

@@ -915,6 +915,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 216235be216eb9fba8044faf40d6e211, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  crestLibrary: {fileID: 11400000, guid: 5c8541cb10eaadded8113e6f53361b3c, type: 2}
   pathScriptableObjects: ScriptableObjects/
   pathTeam: Team
   pathFormation: Formation
@@ -1213,9 +1214,9 @@ RectTransform:
   m_Father: {fileID: 1946596582}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -17, y: -17}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &268869484
 MonoBehaviour:
@@ -1301,7 +1302,7 @@ RectTransform:
   m_Father: {fileID: 378424659}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -3447,7 +3448,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 40}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &805757937
 MonoBehaviour:
@@ -3524,9 +3525,9 @@ RectTransform:
   m_Father: {fileID: 1946596582}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 20, y: -17}
+  m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &836581763
 MonoBehaviour:
@@ -3886,7 +3887,7 @@ GameObject:
   - component: {fileID: 926249780}
   - component: {fileID: 926249779}
   m_Layer: 5
-  m_Name: TeamIcon0
+  m_Name: ImageCrest0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3931,7 +3932,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: c802b738b12ea0d14bded3ba6d2ef786, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 393a116ca3eb0b1ddb700ff0fa2b0183, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -5086,7 +5087,7 @@ RectTransform:
   m_Father: {fileID: 1023964908}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -6938,7 +6939,7 @@ GameObject:
   - component: {fileID: 1624550082}
   - component: {fileID: 1624550081}
   m_Layer: 5
-  m_Name: TeamIcon1
+  m_Name: ImageCrest1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6983,7 +6984,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 70b689bb60907eaa2afc72585a1aa923, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 50386537b32a34721868308a4acdb351, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -7381,7 +7382,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1655568862
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7399,7 +7400,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -382.5}
+  m_AnchoredPosition: {x: -811, y: -382.5}
   m_SizeDelta: {x: 0, y: -765}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1655568863
@@ -7923,9 +7924,9 @@ RectTransform:
   m_Father: {fileID: 1946596582}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -17, y: 20}
+  m_SizeDelta: {x: 0, y: 20}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1758449224
 MonoBehaviour:
@@ -8264,6 +8265,9 @@ MonoBehaviour:
   textLose: {fileID: 1644642975}
   panelCategory: {fileID: 503699854}
   imageCategory: {fileID: 1573267850}
+  imageCrest0: {fileID: 926249779}
+  imageCrest1: {fileID: 1624550081}
+  duelLogMenuManager: {fileID: 355936987}
 --- !u!4 &1811193080
 Transform:
   m_ObjectHideFlags: 0

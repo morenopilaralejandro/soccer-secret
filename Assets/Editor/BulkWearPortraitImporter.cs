@@ -8,7 +8,7 @@ public class BulkWearPortraitImporter : EditorWindow
     private WearPortraitLibrary wearPortraitLibrary;
     private string baseFolder = "Assets/Sprites/WearPortrait";
 
-    [MenuItem("Tools/Import Wear Sprites/Bulk Import WearPortraits")]
+    [MenuItem("Tools/Import Sprites/Bulk Import WearPortraits")]
     public static void ShowWindow()
     {
         EditorWindow.GetWindow(typeof(BulkWearPortraitImporter));

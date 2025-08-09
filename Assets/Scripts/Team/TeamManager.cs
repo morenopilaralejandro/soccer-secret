@@ -7,6 +7,8 @@ public class TeamManager : MonoBehaviour
 {
     public static TeamManager Instance { get; private set; }
 
+    public CrestLibrary crestLibrary;
+
     [SerializeField] private string pathScriptableObjects = "ScriptableObjects/";
     [SerializeField] private string pathTeam = "Team";
     [SerializeField] private string pathFormation = "Formation";
@@ -135,6 +137,13 @@ public class TeamManager : MonoBehaviour
             return coordData;
         Debug.LogWarning("CoordData not found: " + id);
         return null;
+    }
+
+    // === Crest ===
+
+    public Sprite GetCrestSprite(string teamId)
+    {
+        return crestLibrary.GetCrestSprite(teamId);
     }
 
 }

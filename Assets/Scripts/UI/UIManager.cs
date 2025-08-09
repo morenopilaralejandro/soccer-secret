@@ -37,6 +37,10 @@ public class UIManager : MonoBehaviourPun
     [SerializeField] private GameObject textLose;
     [SerializeField] private GameObject panelCategory;    
     [SerializeField] private Image imageCategory;
+    [SerializeField] private Image imageCrest0;
+    [SerializeField] private Image imageCrest1;
+
+    [SerializeField] private DuelLogMenuManager duelLogMenuManager;
 
     #endregion
 
@@ -114,6 +118,11 @@ public class UIManager : MonoBehaviourPun
     #endregion
 
     #region Panel & Button Visibility
+    public void SetCrestSprite(List<Team> teams)
+    {
+        imageCrest0.sprite = TeamManager.Instance.GetCrestSprite(teams[0].TeamId);
+        imageCrest1.sprite = TeamManager.Instance.GetCrestSprite(teams[1].TeamId);;
+    }
 
     public void SetHintVisible(bool visible)
     {
@@ -185,7 +194,7 @@ public class UIManager : MonoBehaviourPun
 
     public bool IsDuelLogMenuOpen() 
     {
-        return panelDuelLogMenu.activeSelf;
+        return duelLogMenuManager.IsMenuOpen();
     }
 
     private void ToggleDuelMenu()
