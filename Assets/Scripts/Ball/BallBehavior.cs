@@ -34,6 +34,9 @@ public class BallBehavior : MonoBehaviour
     private bool _isPossessed;
     private bool _wasMovementFrozen;
 
+    private Vector3 pausedVelocity;
+    private Vector3 pausedAngularVelocity;
+
     public static event Action<Player> OnSetStatusPlayer;
 
 #if PHOTON_UNITY_NETWORKING
@@ -229,6 +232,29 @@ public class BallBehavior : MonoBehaviour
 
         DuelLogManager.Instance.AddActionPass(PossessionManager.Instance.CurrentPlayer);
         PossessionManager.Instance.Release();
+    }
+
+    public void PauseBall()
+    {
+        // Only if not possessed by a player!
+        if (!rb.isKinematic)
+        {
+            pausedVelocity = rb.velocity;
+            pausedAngularVelocity = rb.angularVelocity;
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true;
+        }
+    }
+
+    public void ResumeBall()
+    {
+        if (!_isPossessed) // Only resume physics if not dribbling/player controlled
+        {
+            rb.isKinematic = false;
+            rb.velocity = pausedVelocity;
+            rb.angularVelocity = pausedAngularVelocity;
+        }
     }
 
     #endregion

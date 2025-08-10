@@ -119,12 +119,14 @@ public class PauseManager : MonoBehaviour
         _actionTimer = 10f;
 
         DuelLogManager.Instance.AddMatchPause(GameManager.Instance.GetLocalTeamIndex());
+        BallBehavior.Instance.PauseBall();
         GameManager.Instance.FreezeGame();
         GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Pause);
         DuelManager.Instance.StopAndCleanupUnlockStatus();
         UIManager.Instance.SetCategorySprite(pauseIcon);
         UIManager.Instance.SetCategoryVisible(true);
         AudioManager.Instance.PlaySfx("SfxMenuTap");
+        UIManager.Instance.SetHintVisible(true);
         if (GameManager.Instance.IsMultiplayer)
             StartCoroutine(MultiplayerActionTimerRoutine());
     }
@@ -138,10 +140,12 @@ public class PauseManager : MonoBehaviour
         _pauseCooldownRemaining = pauseCooldown; // Start cooldown
         // Insert your resume-game logic here (e.g., set Time.timeScale = 1)
         DuelLogManager.Instance.AddMatchResume();
+        BallBehavior.Instance.ResumeBall();
         GameManager.Instance.SetGamePhase(GamePhase.Battle);
         GameManager.Instance.UnfreezeGame();
         UIManager.Instance.SetCategoryVisible(false);
         AudioManager.Instance.PlaySfx("SfxMenuTap");
+        UIManager.Instance.SetHintVisible(false);
     }
 
     private void HandleSwipe(SwipeDetector.SwipeDirection dir)
@@ -160,6 +164,7 @@ public class PauseManager : MonoBehaviour
             GameLogger.Log("[PauseManager] swipe up");
             if (IsPaused) {
                 GameLogger.Log("[PauseManager] swipe pause");
+                InputManager.Instance.SwipeDetector.Consume();
                 SetTeamReady(GameManager.Instance.GetLocalTeamIndex());
             }
         }

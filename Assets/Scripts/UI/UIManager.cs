@@ -32,6 +32,7 @@ public class UIManager : MonoBehaviourPun
     [SerializeField] private GameObject panelWaitingForOpponent;
     [SerializeField] private GameObject panelDuelLogMenu;
     [SerializeField] private Button buttonCommand0;
+    [SerializeField] private GameObject panelHint;
     [SerializeField] private TextMeshProUGUI textHint;
     [SerializeField] private GameObject textWin;
     [SerializeField] private GameObject textLose;
@@ -126,7 +127,7 @@ public class UIManager : MonoBehaviourPun
 
     public void SetHintVisible(bool visible)
     {
-        SetActiveSafe(textHint.gameObject, visible);
+        SetActiveSafe(panelHint, visible);
     }
 
     public void SetHintText(string text)
@@ -197,6 +198,16 @@ public class UIManager : MonoBehaviourPun
         return duelLogMenuManager.IsMenuOpen();
     }
 
+    public bool IsDuelMenuOpen() 
+    {
+        return IsPanelActive(panelCommand);
+    }
+
+    public bool IsSecretMenuOpen() 
+    {
+        return IsPanelActive(panelSecret);
+    }
+
     private void ToggleDuelMenu()
     {
         if (CanOpenDuelMenu())
@@ -211,6 +222,7 @@ public class UIManager : MonoBehaviourPun
             return;
         AudioManager.Instance.PlaySfx("SfxMenuTap");
         SetPanelCommandVisible(true);
+        SetHintVisible(false);
     }
 
     private void HideDuelMenu()
@@ -220,6 +232,7 @@ public class UIManager : MonoBehaviourPun
         AudioManager.Instance.PlaySfx("SfxMenuTap");
         SetPanelCommandVisible(false);
         SetPanelSecretVisible(false);
+        SetHintVisible(true);
     }
 
 
@@ -510,6 +523,7 @@ public class UIManager : MonoBehaviourPun
         duelUiVisibleForLocal = true;
         SetCategorySprite(SecretManager.Instance.GetCategoryIcon(GetLocalCategory()));
         SetCategoryVisible(true);
+        SetHintVisible(true);
         if (DuelManager.Instance.IsKeeperDuel && GetLocalCategory() == Category.Dribble) {
             buttonCommand0.interactable = false;
         } else {

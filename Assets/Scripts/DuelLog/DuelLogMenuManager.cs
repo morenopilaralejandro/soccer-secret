@@ -1,6 +1,7 @@
 using UnityEngine;     // For MonoBehaviour, GameObject, etc.
 using UnityEngine.UI;  // For ScrollRect
 using System.Collections; // For IEnumerator and Coroutines
+using UnityEngine.Localization;
 
 public class DuelLogMenuManager : MonoBehaviour
 {
@@ -9,6 +10,10 @@ public class DuelLogMenuManager : MonoBehaviour
     [SerializeField] private GameObject panelDuelLogMenu; // ScrollView content
     [SerializeField] private Animator animator;
     [SerializeField] private ScrollRect scrollRect;
+    
+    private LocalizedString textSwipeUp = new LocalizedString("UITexts", "TextSwipeUp");
+    private LocalizedString textSwipeLeft = new LocalizedString("UITexts", "TextSwipeLeft");
+    private LocalizedString textKickOff = new LocalizedString("UITexts", "TextKickOff");
 
     private bool isMenuOpen = false;
     
@@ -50,6 +55,8 @@ public class DuelLogMenuManager : MonoBehaviour
         isMenuOpen = true;
         animator.SetTrigger("ShowMenu");       
         AudioManager.Instance.PlaySfx("SfxMenuTap");
+        UIManager.Instance.SetHintVisible(true);
+        UIManager.Instance.SetHintText(textSwipeLeft.GetLocalizedString());
     }
 
     private IEnumerator ScrollToBottomNextFrame()
@@ -63,6 +70,16 @@ public class DuelLogMenuManager : MonoBehaviour
         isMenuOpen = false;
         animator.SetTrigger("HideMenu");
         AudioManager.Instance.PlaySfx("SfxMenuTap");
+        //if game phase is kickoff -> text tap : else -> textSwipeUp
+        if (GameManager.Instance.CurrentPhase == GamePhase.Kickoff) 
+        {
+            UIManager.Instance.SetHintText(textKickOff.GetLocalizedString());        
+        } else {
+            UIManager.Instance.SetHintText(textSwipeUp.GetLocalizedString());
+        }
+
+        if (UIManager.Instance.IsDuelMenuOpen() || UIManager.Instance.IsSecretMenuOpen() || PauseManager.Instance.IsPaused)
+            UIManager.Instance.SetHintVisible(false);
     }
 
     public bool IsMenuOpen() 

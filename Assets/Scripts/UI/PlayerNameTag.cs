@@ -6,13 +6,17 @@ public class PlayerNameTag : MonoBehaviour
 {
     [Header("Assign these in the inspector")]
     [SerializeField] private Player player;
-    [SerializeField] private PlayerNameTag playerNameTag;
     [SerializeField] private Image panel;
     [SerializeField] private Image imageElement;
     [SerializeField] private TextMeshProUGUI textName;
 
     void OnDisable()
     {
+        if (player != null)
+            player.OnPlayerNameChanged -= UpdatePlayer;
+    }
+
+    void OnDestroy() {
         if (player != null)
             player.OnPlayerNameChanged -= UpdatePlayer;
     }
@@ -40,28 +44,40 @@ public class PlayerNameTag : MonoBehaviour
 
     public void SetPlayer(Player player)
     {
+        // Unsubscribe from old player's event!
+        if (this.player != null)
+            this.player.OnPlayerNameChanged -= UpdatePlayer;
+
         this.player = player;
-        this.player.OnPlayerNameChanged += UpdatePlayer;
-        if (player != null)
+
+        if (this.player != null)
         {
-            SetElement(ElementManager.Instance.GetElementIcon(player.Element));   
+            this.player.OnPlayerNameChanged += UpdatePlayer;
+
+            if (this == null || !this.isActiveAndEnabled)
+                return;
+
+            SetElement(ElementManager.Instance.GetElementIcon(player.Element));
             SetName(player.PlayerName);
-            if (player.TeamIndex == 0) 
-            {
+
+            if (player.TeamIndex == 0)
                 SetBackgroundColor(ColorManager.GetTeamIndicatorColor("ally"));
-            } else {
+            else
                 SetBackgroundColor(ColorManager.GetTeamIndicatorColor("opp"));
-            }
         }
         else
         {
-            textName.text = "";
-            playerNameTag.enabled = false;
+            if (textName != null)
+                textName.text = "";
+            if (this != null) 
+                enabled = false;
         }
     }
 
     public void UpdatePlayer()
     {
+        if (this == null || !this.isActiveAndEnabled || player == null)
+            return;
         SetPlayer(player);
     }
 

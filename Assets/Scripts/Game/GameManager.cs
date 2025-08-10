@@ -228,6 +228,7 @@ public class GameManager : MonoBehaviour
     {
             int teamIndex = 0;
             Team team = teams[teamIndex];
+            team.players.Clear();
             for (int i = 0; i < team.PlayerDataList.Count; i++)
             {
                 Coord coord = team.Formation.Coords[i];
@@ -242,6 +243,7 @@ public class GameManager : MonoBehaviour
     {
             int teamIndex = 1;
             Team team = teams[teamIndex];
+            team.players.Clear();
             for (int i = 0; i < team.PlayerDataList.Count; i++)
             {
                 Coord coord = team.Formation.Coords[i];
@@ -499,7 +501,6 @@ public class GameManager : MonoBehaviour
         return 0;
     #endif
     }
-
 
     private void AssignGoals() 
     {

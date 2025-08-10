@@ -12,7 +12,8 @@ public class KickoffManager : MonoBehaviour
     public bool IsAiReady { get;  set; } = false;
 
     private bool[] _isTeamReady = new bool[2];
-    private LocalizedString kickoffHint = new LocalizedString("UITexts", "TextKickOff");
+    private LocalizedString textKickOff = new LocalizedString("UITexts", "TextKickOff");
+    private LocalizedString textSwipeUp = new LocalizedString("UITexts", "TextSwipeUp");
 
     private void Awake()
     {
@@ -28,10 +29,10 @@ public class KickoffManager : MonoBehaviour
         IsAiReady = false;
         BallBehavior.Instance.ResetPendingInputs();
         PauseManager.Instance.ResetCooldown();
-        UIManager.Instance.SetHintText(kickoffHint.GetLocalizedString());
-        UIManager.Instance.SetHintVisible(true);
         GameManager.Instance.FreezeGame();
         GameManager.Instance.SetGamePhaseNetworkSafe(GamePhase.Kickoff);
+        UIManager.Instance.SetHintVisible(true);
+        UIManager.Instance.SetHintText(textKickOff.GetLocalizedString());
     }
 
     public void SetTeamReady(int teamIndex)
@@ -42,10 +43,11 @@ public class KickoffManager : MonoBehaviour
         if (_isTeamReady[0] && _isTeamReady[1]) 
         {
             IsKickoffReady = true;
-            UIManager.Instance.SetHintVisible(false);
             DuelLogManager.Instance.AddMatchResume();
             GameManager.Instance.SetGamePhase(GamePhase.Battle);
             GameManager.Instance.UnfreezeGame();
+            UIManager.Instance.SetHintText(textSwipeUp.GetLocalizedString());
+            UIManager.Instance.SetHintVisible(false);
         }
     }
 

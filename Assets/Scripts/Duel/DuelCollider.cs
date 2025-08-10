@@ -16,8 +16,10 @@ public class DuelCollider : MonoBehaviour
 
     #region Private Fields
 
+    private int duelColliderLayer = -1;
     private float _nextDuelAllowedTime = 0f;
     private Player _cachedPlayer;
+
 
     #endregion
 
@@ -34,6 +36,10 @@ public class DuelCollider : MonoBehaviour
         _cachedPlayer = GetComponentInParent<Player>();
         if (_cachedPlayer == null)
             GameLogger.Error("[DuelCollider] Could not find attached Player component in parent.", this);
+
+        duelColliderLayer = LayerMask.NameToLayer("PlayerDuelCollider");
+        if (duelColliderLayer == -1)
+            GameLogger.Error("[DuelCollider] 'PlayerDuelCollider' layer is not defined in project settings.", this);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -53,6 +59,9 @@ public class DuelCollider : MonoBehaviour
     private void TryStartDuel(Collider otherCollider)
     {
         if (!CanStartDuel()) return;
+
+        if (otherCollider.gameObject.layer != duelColliderLayer)
+            return;
 
         Player otherPlayer = otherCollider.GetComponentInParent<Player>();
         if (otherPlayer == null || otherPlayer == _cachedPlayer)

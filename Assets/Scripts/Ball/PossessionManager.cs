@@ -33,7 +33,7 @@ public class PossessionManager : MonoBehaviour
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+        //DontDestroyOnLoad(gameObject);
     }
 
     public void Subscribe(Action<Player> onGained, Action<Player> onLost)
