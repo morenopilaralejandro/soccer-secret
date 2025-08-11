@@ -117,10 +117,10 @@ public class PlayerLineRenderer : MonoBehaviour
         }
         else if (awaitingFirstSegment)
         {
-            if (Vector3.Distance(linePoints[linePoints.Count - 1], worldPosition) >= minSegmentDistance)
+            if (HasDraggedFarEnough(worldPosition)) {
                 AddInitialLine(player.transform.position, worldPosition);
-
-            awaitingFirstSegment = false;
+                awaitingFirstSegment = false;
+            }
         }
         else if (CanAddPoint(worldPosition) && IsFarEnough(worldPosition))
         {
@@ -247,6 +247,13 @@ public class PlayerLineRenderer : MonoBehaviour
     {
         if (linePoints.Count == 0) return true;
         return Vector3.Distance(linePoints[^1], newPoint) >= minSegmentDistance;
+    }
+
+    private bool HasDraggedFarEnough(Vector3 point)
+    {
+        if (linePoints.Count == 0)
+            return false; // Or throw/log, depending on how you handle no points
+        return Vector3.Distance(linePoints[linePoints.Count - 1], point) >= minSegmentDistance;
     }
 
     public void ResetLine()

@@ -22,8 +22,11 @@ public class CrestLibrary : ScriptableObject
         if (_crestsDict != null && _crestsDict.TryGetValue(teamId, out Sprite sprite))
         {
             return sprite;
+        } else if (_crestsDict != null && _crestsDict.TryGetValue("default", out Sprite spriteDefault))
+        {
+            return spriteDefault;
         }
-        //change this for default crest
+        
         return null;
     }
 }

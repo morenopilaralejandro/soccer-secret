@@ -137,6 +137,7 @@ public class DuelManager : MonoBehaviour
     public void ResetDuel()
     {
         stagedParticipants.Clear();
+        IsKeeperDuel = false;
         currentDuel.Reset();
     }
 
@@ -242,6 +243,8 @@ public class DuelManager : MonoBehaviour
             currentDuel.AttackPressure += participant.Damage;
             if (participant.Category == Category.Shoot && participant.IsDirect)
                 currentDuel.AttackPressure += directBonus;
+            if (participant.Category == Category.Shoot)
+                PossessionManager.Instance.SetLastPlayer(participant.Player);
             currentDuel.LastOffense = participant;
             OnSetStatusPlayerAndCommand?.Invoke(participant, currentDuel.AttackPressure);
             DuelLogManager.Instance.AddActionCommand(participant.Player, participant.Command, participant.Secret);
@@ -281,7 +284,8 @@ public class DuelManager : MonoBehaviour
                 AudioManager.Instance.PlaySfx("SfxCatch");
 
             OnSetStatusPlayerAndCommand?.Invoke(defender, 0f);
-            DuelLogManager.Instance.AddActionStop(defender.Player);
+            if (currentDuel.Mode == DuelMode.Shoot)
+                DuelLogManager.Instance.AddActionStop(defender.Player);
             GameLogger.Info($"[DuelManager] {defender.Player.PlayerName} stopped the attack! (-{defender.Damage})", this);
 
             EndDuel(winningParticipant: defender, winnerAction: DuelAction.Defense);

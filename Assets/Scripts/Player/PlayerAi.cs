@@ -99,7 +99,7 @@ public class PlayerAi : MonoBehaviour
             int opponentTeamIndex = gm.GetLocalTeamIndex();
             opponents = gm.Teams[opponentTeamIndex].players;
 
-            aiDifficulty = AiDifficulty.Hard;
+            SetAiDifficultyByTeam(gm.Teams[player.TeamIndex]);
         }
     }
 
@@ -387,8 +387,45 @@ public class PlayerAi : MonoBehaviour
 
     public void SetAiDifficulty(AiDifficulty diff) => aiDifficulty = diff;
 
+    private void SetAiDifficulty(Team team)
+    {
+        if (team.Lv >= 0 && team.Lv <= 35) 
+        {
+            aiDifficulty = AiDifficulty.Easy;
+        } 
+        else if (team.Lv > 35 && team.Lv <= 65)
+        {
+            aiDifficulty = AiDifficulty.Normal;
+        }
+        else if (team.Lv > 65 && team.Lv <= 99)
+        {
+            aiDifficulty = AiDifficulty.Hard;
+        }
+    }
+
+    private void SetAiDifficultyByTeam(Team team)
+    {
+        switch (team.TeamId) 
+        {
+            case "T3":
+                aiDifficulty = AiDifficulty.Easy;
+                break;
+            case "T6":
+            case "T4":
+            case "T5":
+                aiDifficulty = AiDifficulty.Normal;
+                break;
+            case "T2":
+                aiDifficulty = AiDifficulty.Hard;
+                break;
+        }
+    }
+
     public DuelCommand GetCommandByCategory(Category category)
     {
+        if (DuelManager.Instance.IsKeeperDuel && category == Category.Dribble)
+            return GetBasicCommand();
+
         switch (aiDifficulty)
         {
             case AiDifficulty.Easy:

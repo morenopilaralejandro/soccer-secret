@@ -27,7 +27,7 @@ public class ElementManager : MonoBehaviour
         new Color(0.2f, 0.8f, 0.2f, 1f),
         new Color(0.6f, 0.4f, 0.2f, 1f),
         new Color(1f, 0.92f, 0.016f, 1f),
-        new Color(0f, 0f, 1f, 1f)
+        new Color(0.18f, 0.44f, 1f, 1f)
     };
 
     [SerializeField] private Sprite[] elementIcons; // assign in Inspector, matches elementOrder
@@ -69,7 +69,6 @@ public class ElementManager : MonoBehaviour
 
     public Sprite GetElementIcon(Element element)
     {
-        //iconRenderer = transform.Find("ElementIcon").GetComponent<SpriteRenderer>();
         int index = (int)element; // enum to int index
         if (elementIcons != null &&
             elementIcons.Length > index &&
@@ -85,7 +84,6 @@ public class ElementManager : MonoBehaviour
 
     public Sprite GetGenderIcon(Gender gender)
     {
-        //iconRenderer = transform.Find("ElementIcon").GetComponent<SpriteRenderer>();
         int index = (int)gender; // enum to int index
         if (genderIcons != null &&
             genderIcons.Length > index &&

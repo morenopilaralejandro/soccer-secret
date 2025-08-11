@@ -35,6 +35,7 @@ public class GameManager : MonoBehaviour
     public float TouchAreaOffset = 0.1f;
 
     [SerializeField] private List<Team> teams;
+    [SerializeField] private MeshRenderer pitch; 
     [SerializeField] private Transform ball;
     [SerializeField] private Vector3 initialBallPosition;
     [SerializeField] private Vector3 centerKickoffPosition = Vector3.zero;
@@ -64,6 +65,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float rightOffset = 0.25f;
 
     private bool isActiveScene = true;
+    private bool hasMatchTime;
+    private bool hasWinScore;
 
 #if PHOTON_UNITY_NETWORKING
     // Helper for safe network mode
@@ -82,8 +85,15 @@ public class GameManager : MonoBehaviour
         Instance = this;
 
         teams = new List<Team>();
-        teams.Add(TeamManager.Instance.GetTeamById("T1"));
-        teams.Add(TeamManager.Instance.GetTeamById("T2"));
+        teams.Add(TeamManager.Instance.GetTeamById(BattleArgs.TeamId0));
+        teams.Add(TeamManager.Instance.GetTeamById(BattleArgs.TeamId1));
+
+        SetPitchMaterial(BattleArgs.PitchMaterial);
+        SetMatchTime(BattleArgs.MatchTime);
+        SetWinScore(BattleArgs.WinScore);
+
+        GameLogger.Verbose("[GameManager] hasMatchTime: " + hasMatchTime, this);
+        GameLogger.Verbose("[GameManager] hasWinScore: " + hasWinScore, this);
 
         BoundsClamp.Setup(boundTop, boundBottom, boundLeft, boundRight, 
                        topOffset, bottomOffset, leftOffset, rightOffset, TouchAreaOffset);
@@ -329,7 +339,7 @@ public class GameManager : MonoBehaviour
     public void StartKickoff(Team kickoffTeam)
     {
         CheckEndGame();
-        AudioManager.Instance.PlayBgm("BgmBattle");
+        PlayBattleBgm();
         KickoffManager.Instance.ResetReady();
         ResetDefaultPositions();
         List<Player> kickoffPlayers = kickoffTeam.players;
@@ -509,4 +519,54 @@ public class GameManager : MonoBehaviour
             goals[i].Team = teams[i];
         }
     }
+
+    private void SetPitchMaterial(PitchMaterial pitchMaterial)
+    {
+        pitch.material = PitchManager.Instance.GetPitchMaterial(pitchMaterial);
+    }
+
+    private void SetMatchTime(MatchTime matchTime)
+    {
+        hasMatchTime = true;
+        switch (matchTime) 
+        {
+            case MatchTime.Endless:
+                hasMatchTime = false;
+                break;
+            case MatchTime.Short:
+                timeDefault = 60f;
+                break;
+            case MatchTime.Long:
+                timeDefault = 180f;
+                break;
+        }
+    }
+
+    private void SetWinScore(WinScore winScore)
+    {
+        hasWinScore = true;
+        switch (winScore) 
+        {
+            case WinScore.None:
+                hasWinScore = false;
+                break;
+            case WinScore.One:
+                this.winScore = 1;
+                break;
+            case WinScore.Three:
+                this.winScore = 3;
+                break;
+        }
+    }
+
+    public void PlayBattleBgm() 
+    {
+        if (teams[1].TeamId == "T2") 
+        {
+            AudioManager.Instance.PlayBgm("BgmBattleCrimson");
+        } else {
+            AudioManager.Instance.PlayBgm("BgmBattle");
+        }
+    }
+
 }

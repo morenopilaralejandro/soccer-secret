@@ -132,6 +132,11 @@ public class PossessionManager : MonoBehaviour
         CurrentPlayer = null;
     }
 
+    public void SetLastPlayer(Player player) 
+    {
+        LastPlayer = player;
+    }
+
     public void ResetState()
     {
         CurrentPlayer = null;

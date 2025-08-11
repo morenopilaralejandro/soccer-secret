@@ -4515,10 +4515,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TouchAreaOffset: 0.1
+  pitch: {fileID: 413444356}
   ball: {fileID: 1819152895}
   initialBallPosition: {x: 0, y: 0, z: 0}
   centerKickoffPosition: {x: 0, y: 0, z: 0}
-  timeDefault: 2
+  timeDefault: 180
   timeRemaining: 180
   timerText: {fileID: 1666240352}
   panelTimeMessage: {fileID: 800951741}
@@ -8037,8 +8038,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 297153233}
   m_HandleRect: {fileID: 297153232}
   m_Direction: 0
-  m_Value: 0
-  m_Size: 1
+  m_Value: 1
+  m_Size: 0.99999994
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -10118,6 +10119,74 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 29030932836306407}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1830119957817929420
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 494562649485026629, guid: 0b80b3f784ea8e0a48ddffa303e4c8bb,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 494562649485026629, guid: 0b80b3f784ea8e0a48ddffa303e4c8bb,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 494562649485026629, guid: 0b80b3f784ea8e0a48ddffa303e4c8bb,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 494562649485026629, guid: 0b80b3f784ea8e0a48ddffa303e4c8bb,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 494562649485026629, guid: 0b80b3f784ea8e0a48ddffa303e4c8bb,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 494562649485026629, guid: 0b80b3f784ea8e0a48ddffa303e4c8bb,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 494562649485026629, guid: 0b80b3f784ea8e0a48ddffa303e4c8bb,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 494562649485026629, guid: 0b80b3f784ea8e0a48ddffa303e4c8bb,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 494562649485026629, guid: 0b80b3f784ea8e0a48ddffa303e4c8bb,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 494562649485026629, guid: 0b80b3f784ea8e0a48ddffa303e4c8bb,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5692245491785238178, guid: 0b80b3f784ea8e0a48ddffa303e4c8bb,
+        type: 3}
+      propertyPath: m_Name
+      value: PitchManager
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0b80b3f784ea8e0a48ddffa303e4c8bb, type: 3}
 --- !u!1001 &2294384151428355311
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10570,6 +10639,7 @@ SceneRoots:
   - {fileID: 21105622}
   - {fileID: 459335730}
   - {fileID: 2141147932}
+  - {fileID: 1830119957817929420}
   - {fileID: 2360793203448776537}
   - {fileID: 2294384151428355311}
   - {fileID: 1343351441}
