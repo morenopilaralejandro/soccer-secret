@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
-    // Singleton instance
     public static AudioManager Instance { get; private set; }
 
     [Header("References")]
@@ -12,7 +11,6 @@ public class AudioManager : MonoBehaviour
 
     void Awake()
     {
-        // Implement singleton pattern
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -22,7 +20,27 @@ public class AudioManager : MonoBehaviour
         //DontDestroyOnLoad(gameObject);
     }
 
-    // -- BGM --
+    void Start()
+    {
+        ApplyVolumesFromSettings();
+    }
+
+    public void ApplyVolumesFromSettings()
+    {
+        sourceBgm.volume = SettingsManager.GetBgmVolume();
+        sourceSfx.volume = SettingsManager.GetSfxVolume();
+    }
+
+    public void SetBgmVolume(float volume)
+    {
+        sourceBgm.volume = volume;
+    }
+
+    public void SetSfxVolume(float volume)
+    {
+        sourceSfx.volume = volume;
+    }
+
     public void PlayBgm(string name)
     {
         AudioClip clip = audioLibrary.GetBgm(name);
@@ -35,7 +53,6 @@ public class AudioManager : MonoBehaviour
         sourceBgm.Play();
     }
 
-    // -- SFX --
     public void PlaySfx(string name)
     {
         AudioClip clip = audioLibrary.GetSfx(name);

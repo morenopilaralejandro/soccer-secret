@@ -37,6 +37,8 @@ public class BallBehavior : MonoBehaviour
     private Vector3 pausedVelocity;
     private Vector3 pausedAngularVelocity;
 
+    private bool isShootOnSwipeUp;
+
     public static event Action<Player> OnSetStatusPlayer;
 
 #if PHOTON_UNITY_NETWORKING
@@ -54,6 +56,8 @@ public class BallBehavior : MonoBehaviour
         }
         Instance = this;
         GameLogger.Info("[BallBehavior] Instance created.", this);
+
+        isShootOnSwipeUp = SettingsManager.GetIsShootOnSwipeUp();
     }
 
     private void OnEnable()
@@ -158,6 +162,7 @@ public class BallBehavior : MonoBehaviour
 
     private void HandleSwipe(SwipeDetector.SwipeDirection dir)
     {
+        if (!isShootOnSwipeUp) return;
         if (InputManager.Instance.IsDragging) return;
         if (PauseManager.Instance.IsPaused) return; 
         if (GameManager.Instance.CurrentPhase != GamePhase.Battle) return; 

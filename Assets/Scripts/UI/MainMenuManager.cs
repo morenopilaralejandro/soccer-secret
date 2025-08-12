@@ -1,140 +1,169 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class MainMenuManager : MonoBehaviour
 {
-    public GameObject PanelMain;
-    public GameObject PanelCpu;
-    public GameObject PanelSettings;
-    public GameObject PanelCredits;
+    [SerializeField] private GameObject panelMain;
+    [SerializeField] private GameObject panelCpu;
+    [SerializeField] private GameObject panelSettings;
+    [SerializeField] private GameObject panelCredits;
 
-    public DropdownLanguage dropdownLanguage;
+    [SerializeField] private DropdownLanguage dropdownLanguage;
+    [SerializeField] private Toggle toggleShootOnSwipeUp;
+    [SerializeField] private Slider sliderBgm;
+    [SerializeField] private Slider sliderSfx;
+
+    [SerializeField] private Button[] cpuStageButtons;
 
     void Start()
     {
+        dropdownLanguage.InitializeDropdown();
+        toggleShootOnSwipeUp.isOn = SettingsManager.GetIsShootOnSwipeUp();
+        sliderBgm.value = SettingsManager.GetBgmVolume();
+        sliderSfx.value = SettingsManager.GetSfxVolume();
+
         AudioManager.Instance.PlayBgm("BgmMainTheme");
+        EnableStageButtons();
         HideCpu();
         HideCredits();
         HideSettings();
     }
 
-    public void ButtonCpu()
+    public void OnButtonCpuTapped()
     {
         AudioManager.Instance.PlaySfx("SfxMenuTap");
         ShowCpu();
     }
 
-    public void ButtonCpuStage1()
+    private void LoadSceneBattle(string teamId1)
     {
         BattleArgs.Clear();
         BattleArgs.TeamId0 = "T1";
-        BattleArgs.TeamId1 = "T3";
+        BattleArgs.TeamId1 = teamId1;
         AudioManager.Instance.PlaySfx("SfxMenuTap");
         SceneManager.LoadScene("Battle");
     }
 
-    public void ButtonCpuStage2()
+    private void EnableStageButtons()
     {
-        BattleArgs.Clear();
-        BattleArgs.TeamId0 = "T1";
-        BattleArgs.TeamId1 = "T6";
-        AudioManager.Instance.PlaySfx("SfxMenuTap");
-        SceneManager.LoadScene("Battle");
+        for (int i = 1; i <= cpuStageButtons.Length; i++)
+        {
+            bool unlocked = SettingsManager.IsStageUnlocked(i);
+            cpuStageButtons[i-1].gameObject.SetActive(unlocked);
+        }
     }
 
-    public void ButtonCpuStage3()
+    public void OnButtonCpuStage1Tapped()
     {
-        BattleArgs.Clear();
-        BattleArgs.TeamId0 = "T1";
-        BattleArgs.TeamId1 = "T4";
-        AudioManager.Instance.PlaySfx("SfxMenuTap");
-        SceneManager.LoadScene("Battle");
+        LoadSceneBattle("T3");
     }
 
-    public void ButtonCpuStage4()
+    public void OnButtonCpuStage2Tapped()
     {
-        BattleArgs.Clear();
-        BattleArgs.TeamId0 = "T1";
-        BattleArgs.TeamId1 = "T5";
-        AudioManager.Instance.PlaySfx("SfxMenuTap");
-        SceneManager.LoadScene("Battle");
+        LoadSceneBattle("T6");
     }
 
-    public void ButtonCpuStage5()
+    public void OnButtonCpuStage3Tapped()
     {
-        BattleArgs.Clear();
-        BattleArgs.TeamId0 = "T1";
-        BattleArgs.TeamId1 = "T2";
-        AudioManager.Instance.PlaySfx("SfxMenuTap");
-        SceneManager.LoadScene("Battle");
+        LoadSceneBattle("T4");
     }
 
-    public void ButtonOnline()
+    public void OnButtonCpuStage4Tapped()
+    {
+        LoadSceneBattle("T5");
+    }
+
+    public void OnButtonCpuStage5Tapped()
+    {
+        LoadSceneBattle("T2");
+    }
+
+    public void OnButtonOnlineTapped()
     {
         AudioManager.Instance.PlaySfx("SfxMenuTap");
         SceneManager.LoadScene("OnlineMenu");
     }
 
-    public void ButtonQuit()
+    public void OnButtonQuitTapped()
     {
         AudioManager.Instance.PlaySfx("SfxMenuTap");
         Application.Quit();
         Debug.Log("Game is exiting");
     }
 
-    public void ButtonSettings()
+    public void OnButtonSettingsTapped()
     {
         AudioManager.Instance.PlaySfx("SfxMenuTap");
         ShowSettings();
     }
 
-    public void ButtonCredits()
+    public void OnButtonCreditsTapped()
     {
         AudioManager.Instance.PlaySfx("SfxMenuTap");
         ShowCredits();
     }
 
+    public void OnBgmVolumeChanged(float volume)
+    {
+        AudioManager.Instance.SetBgmVolume(volume);
+    }
+
+    public void OnSfxVolumeChanged(float volume)
+    {
+        AudioManager.Instance.SetSfxVolume(volume);
+    }
+
     public void ShowCpu()
     {
-        PanelMain.SetActive(false);
-        PanelCpu.SetActive(true);
+        panelMain.SetActive(false);
+        panelCpu.SetActive(true);
     }
 
     public void HideCpu()
     {
-        PanelMain.SetActive(true);
-        PanelCpu.SetActive(false);
+        panelMain.SetActive(true);
+        panelCpu.SetActive(false);
     }
 
 
     public void ShowSettings()
     {
-        PanelMain.SetActive(false);
-        PanelSettings.SetActive(true);
+        panelMain.SetActive(false);
+        panelSettings.SetActive(true);
     }
 
     public void HideSettings()
     {
-        PanelMain.SetActive(true);
-        PanelSettings.SetActive(false);
+        panelMain.SetActive(true);
+        panelSettings.SetActive(false);
     }
 
     public void ShowCredits()
     {
-        PanelMain.SetActive(false);
-        PanelCredits.SetActive(true);
+        panelMain.SetActive(false);
+        panelCredits.SetActive(true);
     }
 
     public void HideCredits()
     {
-        PanelMain.SetActive(true);
-        PanelCredits.SetActive(false);
+        panelMain.SetActive(true);
+        panelCredits.SetActive(false);
     }
 
     public void ConfirmSettings()
     {
         AudioManager.Instance.PlaySfx("SfxMenuConfirm");
         dropdownLanguage.ConfirmLanguage();
+        SettingsManager.SetIsShootOnSwipeUp(toggleShootOnSwipeUp.isOn);
+        SettingsManager.SetBgmVolume(sliderBgm.value);
+        SettingsManager.SetSfxVolume(sliderSfx.value);
+        SettingsManager.Save();
+
+        ShowCpu();
+        HideCpu();
+        ShowCredits();
+        HideCredits();
         HideSettings();
     }
 
