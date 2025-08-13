@@ -36,11 +36,13 @@ public class MainMenuManager : MonoBehaviour
         ShowCpu();
     }
 
-    private void LoadSceneBattle(string teamId1)
+    private void LoadSceneBattle(string teamId1, PitchMaterial pitchMaterial, WinScore winScore)
     {
         BattleArgs.Clear();
         BattleArgs.TeamId0 = "T1";
         BattleArgs.TeamId1 = teamId1;
+        BattleArgs.PitchMaterial = pitchMaterial;
+        BattleArgs.WinScore = winScore;
         AudioManager.Instance.PlaySfx("SfxMenuTap");
         SceneManager.LoadScene("Battle");
     }
@@ -56,27 +58,27 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnButtonCpuStage1Tapped()
     {
-        LoadSceneBattle("T3");
+        LoadSceneBattle("T3", PitchMaterial.Grass, WinScore.Three);
     }
 
     public void OnButtonCpuStage2Tapped()
     {
-        LoadSceneBattle("T6");
+        LoadSceneBattle("T6", PitchMaterial.Grass, WinScore.Three);
     }
 
     public void OnButtonCpuStage3Tapped()
     {
-        LoadSceneBattle("T4");
+        LoadSceneBattle("T4", PitchMaterial.Dirt, WinScore.Three);
     }
 
     public void OnButtonCpuStage4Tapped()
     {
-        LoadSceneBattle("T5");
+        LoadSceneBattle("T5", PitchMaterial.Ice, WinScore.Three);
     }
 
     public void OnButtonCpuStage5Tapped()
     {
-        LoadSceneBattle("T2");
+        LoadSceneBattle("T2", PitchMaterial.Fire, WinScore.Five);
     }
 
     public void OnButtonOnlineTapped()

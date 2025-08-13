@@ -220,10 +220,10 @@ public class DuelLogManager : MonoBehaviour
         }
     }
 
-    public void AddCondition()
+    public void AddCondition(string condition)
     {
         var localizedString = new LocalizedString("DuelLogTexts", "Condition");
-        localizedString.Arguments = new object[] { new { condition = new LocalizedString("UITexts", "ConditionScore3").GetLocalizedString() } };
+        localizedString.Arguments = new object[] { new { condition = condition } };
         var logLevel = GameLogger.LogLevel.Info;
         AddEntry(localizedString, logLevel);
     }

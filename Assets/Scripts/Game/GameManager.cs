@@ -201,7 +201,7 @@ public class GameManager : MonoBehaviour
     {
         // (Optionally, network this StartBattle in multiplayer!)
         DuelLogManager.Instance.Clear();
-        DuelLogManager.Instance.AddCondition();
+        DuelLogManager.Instance.AddCondition(ConditionManager.GetConditionByWinScore(BattleArgs.WinScore));
         DuelLogManager.Instance.AddMatchStart();
         Reset();
         StartKickoff(teams[0]);
@@ -555,6 +555,9 @@ public class GameManager : MonoBehaviour
                 break;
             case WinScore.Three:
                 this.winScore = 3;
+                break;
+            case WinScore.Five:
+                this.winScore = 5;
                 break;
         }
     }

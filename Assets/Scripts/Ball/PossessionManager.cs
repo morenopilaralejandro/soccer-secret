@@ -117,6 +117,7 @@ public class PossessionManager : MonoBehaviour
 
         CurrentPlayer = player;
         player.IsPossession = true;
+        CurrentPlayer.ToggleArrowPossesion(true);
         GameLogger.Info($"[PossessionManager] Possession gained by {player.PlayerName}", this);
         OnGained?.Invoke(player);
     }
@@ -127,6 +128,7 @@ public class PossessionManager : MonoBehaviour
         LastKickTime = Time.time;
 
         CurrentPlayer.IsPossession = false;
+        CurrentPlayer.ToggleArrowPossesion(false);
         GameLogger.Info($"[PossessionManager] Possession released by {LastPlayer.PlayerName}", this);
         OnLost?.Invoke(CurrentPlayer);
         CurrentPlayer = null;

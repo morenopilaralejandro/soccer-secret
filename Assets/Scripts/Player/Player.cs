@@ -45,6 +45,7 @@ public class Player : MonoBehaviour
     [SerializeField] private DebuffIcon debuffIcon;
     [SerializeField] private Bubble bubble;
     [SerializeField] private PlayerNameTag playerNameTag;
+    [SerializeField] private SpriteRenderer arrowPossesion;
     [SerializeField] private SpriteRenderer spriteRendererPigment;
     [SerializeField] private SpriteRenderer spriteRendererHair;
     [SerializeField] private SpriteRenderer spriteRendererAccessory;
@@ -374,50 +375,55 @@ public class Player : MonoBehaviour
         }
     }
 
-private IEnumerator BlinkEffect(float duration)
-{
-    float elapsed = 0f;
-    float blinkInterval = 0.2f;
-    bool visible = true;
-    float blinkElapsed = 0f;
-
-    // Helper to set renderers enabled/disabled
-    void SetSpriteRenderersVisible(bool isVisible)
+    private IEnumerator BlinkEffect(float duration)
     {
-        if (spriteRendererPigment != null)
-            spriteRendererPigment.enabled = isVisible;
-        if (spriteRendererHair != null)
-            spriteRendererHair.enabled = isVisible;
-        if (spriteRendererAccessory != null)
-            spriteRendererAccessory.enabled = isVisible;
-        if (spriteRendererWear != null)
-            spriteRendererWear.enabled = isVisible;
-    }
+        float elapsed = 0f;
+        float blinkInterval = 0.2f;
+        bool visible = true;
+        float blinkElapsed = 0f;
 
-    while (elapsed < duration)
-    {
-        if (!GameManager.Instance.IsTimeFrozen)
+        // Helper to set renderers enabled/disabled
+        void SetSpriteRenderersVisible(bool isVisible)
         {
-            elapsed += Time.deltaTime;
-            blinkElapsed += Time.deltaTime;
+            if (spriteRendererPigment != null)
+                spriteRendererPigment.enabled = isVisible;
+            if (spriteRendererHair != null)
+                spriteRendererHair.enabled = isVisible;
+            if (spriteRendererAccessory != null)
+                spriteRendererAccessory.enabled = isVisible;
+            if (spriteRendererWear != null)
+                spriteRendererWear.enabled = isVisible;
+        }
 
-            if (blinkElapsed >= blinkInterval)
+        while (elapsed < duration)
+        {
+            if (!GameManager.Instance.IsTimeFrozen)
             {
-                SetSpriteRenderersVisible(visible);
-                visible = !visible;
-                blinkElapsed = 0f;
+                elapsed += Time.deltaTime;
+                blinkElapsed += Time.deltaTime;
+
+                if (blinkElapsed >= blinkInterval)
+                {
+                    SetSpriteRenderersVisible(visible);
+                    visible = !visible;
+                    blinkElapsed = 0f;
+                }
             }
+            else
+            {
+                // Always visible if paused
+                SetSpriteRenderersVisible(true);
+            }
+            yield return null;
         }
-        else
-        {
-            // Always visible if paused
-            SetSpriteRenderersVisible(true);
-        }
-        yield return null;
+        // Always end with visible renderers
+        SetSpriteRenderersVisible(true);
     }
-    // Always end with visible renderers
-    SetSpriteRenderersVisible(true);
-}
+
+    public void ToggleArrowPossesion(bool isActive) 
+    {
+        arrowPossesion.enabled = isActive;
+    }
 
     public void Kick()
     {

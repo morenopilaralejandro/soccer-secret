@@ -3,7 +3,7 @@ public enum PitchMaterial
     Grass,
     Dirt,
     Ice,
-    Lava
+    Fire
 }
 
 public enum MatchTime
@@ -17,7 +17,8 @@ public enum WinScore
 {
     None,
     One,
-    Three
+    Three,
+    Five
 }
 
 public static class BattleArgs
