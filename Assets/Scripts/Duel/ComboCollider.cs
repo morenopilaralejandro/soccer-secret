@@ -93,7 +93,7 @@ public class ComboCollider : MonoBehaviour
             OnSetStatusPlayer?.Invoke(_cachedPlayer);
 
             Category selectedCategory = isSameTeam ? Category.Shoot : Category.Block;
-
+            AudioManager.Instance.PlaySfx("SfxDuelShoot");
             if (GameManager.Instance.IsMultiplayer)
             {
 #if PHOTON_UNITY_NETWORKING
