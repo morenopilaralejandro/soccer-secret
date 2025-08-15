@@ -122,10 +122,15 @@ public class SecretManager : MonoBehaviour
             AudioManager.Instance.PlaySfx(sfxPath + secret.Element);
             // Particle
             GameObject effectPrefab = Resources.Load<GameObject>(effectPrefabPath + secret.Element);
-            if (effectPrefab != null)
-                Instantiate(effectPrefab, position, Quaternion.identity);
-            else
+            if (effectPrefab != null) {
+                // This will set the rotation to -90 degrees on the X axis
+                Quaternion rotation = Quaternion.Euler(-90, 0, 0);
+                Instantiate(effectPrefab, position, rotation);
+            }
+            else 
+            {
                 Debug.LogWarning("Effect prefab not found at: " + effectPrefabPath + secret.Element);
+            }
         }
         else
         {

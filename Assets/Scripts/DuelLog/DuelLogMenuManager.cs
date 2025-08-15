@@ -78,7 +78,7 @@ public class DuelLogMenuManager : MonoBehaviour
             UIManager.Instance.SetHintText(textSwipeUp.GetLocalizedString());
         }
 
-        if (UIManager.Instance.IsDuelMenuOpen() || UIManager.Instance.IsSecretMenuOpen() || PauseManager.Instance.IsPaused)
+        if (UIManager.Instance.IsDuelMenuOpen() || UIManager.Instance.IsSecretMenuOpen())
             UIManager.Instance.SetHintVisible(false);
     }
 
