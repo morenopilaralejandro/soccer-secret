@@ -241,24 +241,35 @@ public class BallBehavior : MonoBehaviour
 
     public void PauseBall()
     {
-        // Only if not possessed by a player!
-        if (!rb.isKinematic)
+        if (BallTravelController.Instance.IsTraveling) 
         {
-            pausedVelocity = rb.velocity;
-            pausedAngularVelocity = rb.angularVelocity;
-            rb.velocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            rb.isKinematic = true;
+            BallTravelController.Instance.PauseTravel();
+        } else 
+        {
+            if (!rb.isKinematic) // Only if not possessed by a player!
+            {
+                pausedVelocity = rb.velocity;
+                pausedAngularVelocity = rb.angularVelocity;
+                rb.velocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                rb.isKinematic = true;
+            }
         }
     }
 
     public void ResumeBall()
     {
-        if (!_isPossessed) // Only resume physics if not dribbling/player controlled
+        if (BallTravelController.Instance.IsPaused) 
         {
-            rb.isKinematic = false;
-            rb.velocity = pausedVelocity;
-            rb.angularVelocity = pausedAngularVelocity;
+            BallTravelController.Instance.ResumeTravel();
+        } else 
+        {
+            if (!_isPossessed) // Only resume physics if not dribbling/player controlled
+            {
+                rb.isKinematic = false;
+                rb.velocity = pausedVelocity;
+                rb.angularVelocity = pausedAngularVelocity;
+            }
         }
     }
 
