@@ -31,6 +31,7 @@ public class UIManager : MonoBehaviourPun
     [SerializeField] private PanelStatusSide panelStatusSideOpp;
     [SerializeField] private GameObject panelWaitingForOpponent;
     [SerializeField] private GameObject panelDuelLogMenu;
+    [SerializeField] private GameObject panelExit;
     [SerializeField] private Button buttonCommand0;
     [SerializeField] private GameObject panelHint;
     [SerializeField] private TextMeshProUGUI textHint;
@@ -208,6 +209,11 @@ public class UIManager : MonoBehaviourPun
         return IsPanelActive(panelSecret);
     }
 
+    public bool IsExitMenuOpen() 
+    {
+        return IsPanelActive(panelExit);
+    }
+
     private void ToggleDuelMenu()
     {
         if (CanOpenDuelMenu())
@@ -235,6 +241,33 @@ public class UIManager : MonoBehaviourPun
         SetHintVisible(true);
     }
 
+    private void ShowExitMenu()
+    {
+        SetActiveSafe(panelExit, true);
+    }
+
+    private void HideExitMenu()
+    {
+        SetActiveSafe(panelExit, false);
+    }
+
+    public void OnButtonExitTapped()
+    {
+        AudioManager.Instance.PlaySfx("SfxMenuTap");
+        ShowExitMenu();
+    }
+
+    public void OnButtonExitConfirmTapped()
+    {
+        AudioManager.Instance.PlaySfx("SfxMenuConfirm");
+        GameManager.Instance.ExitBattle();   
+    }
+
+    public void OnButtonExitCancelTapped()
+    {
+        AudioManager.Instance.PlaySfx("SfxMenuCancel");
+        HideExitMenu();
+    }
 
     public void OnButtonBackTapped()
     {

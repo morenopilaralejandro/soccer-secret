@@ -13,6 +13,7 @@ public class PauseManager : MonoBehaviour
 
     [SerializeField] private Sprite pauseIcon;
     [SerializeField] private TextMeshProUGUI textTimerPause;
+    [SerializeField] private GameObject buttonExit;
 
     private bool[] _isTeamReady = new bool[2]; 
     private float _actionTimer = 10f;
@@ -127,6 +128,7 @@ public class PauseManager : MonoBehaviour
         UIManager.Instance.SetCategoryVisible(true);
         AudioManager.Instance.PlaySfx("SfxMenuTap");
         UIManager.Instance.SetHintVisible(true);
+        buttonExit.SetActive(true);
         if (GameManager.Instance.IsMultiplayer)
             StartCoroutine(MultiplayerActionTimerRoutine());
     }
@@ -146,6 +148,7 @@ public class PauseManager : MonoBehaviour
         UIManager.Instance.SetCategoryVisible(false);
         AudioManager.Instance.PlaySfx("SfxMenuTap");
         UIManager.Instance.SetHintVisible(false);
+        buttonExit.SetActive(false);
     }
 
     private void HandleSwipe(SwipeDetector.SwipeDirection dir)
@@ -153,6 +156,7 @@ public class PauseManager : MonoBehaviour
         if (InputManager.Instance.IsDragging) return;
         if (InputManager.Instance.SwipeDetector.WasConsumedThisFrame()) return;
         if (UIManager.Instance.IsDuelLogMenuOpen()) return;
+        if (UIManager.Instance.IsExitMenuOpen()) return;
 
         GameLogger.Log("[PauseManager] swipe");
 

@@ -113,6 +113,7 @@ public class DuelLogMenuManager : MonoBehaviour
     private void HandleSwipe(SwipeDetector.SwipeDirection dir)
     {
         if (InputManager.Instance.IsDragging) return;
+        if (UIManager.Instance.IsExitMenuOpen()) return;
         if (InputManager.Instance.SwipeDetector.WasConsumedThisFrame()) return;
 
         if (dir == SwipeDetector.SwipeDirection.Right) 

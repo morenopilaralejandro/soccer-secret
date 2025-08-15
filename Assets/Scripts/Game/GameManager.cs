@@ -499,6 +499,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void ExitBattle() 
+    {
+        SceneManager.LoadScene("MainMenu");
+    }
+
     public int GetLocalTeamIndex()
     {
     #if PHOTON_UNITY_NETWORKING
