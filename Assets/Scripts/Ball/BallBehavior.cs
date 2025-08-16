@@ -164,6 +164,7 @@ public class BallBehavior : MonoBehaviour
     {
         if (!isShootOnSwipeUp) return;
         if (InputManager.Instance.IsDragging) return;
+        if (InputManager.Instance.SwipeDetector.WasConsumedThisFrame()) return;
         if (PauseManager.Instance.IsPaused) return; 
         if (GameManager.Instance.CurrentPhase != GamePhase.Battle) return; 
 
