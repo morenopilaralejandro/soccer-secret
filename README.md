@@ -18,11 +18,23 @@
 - **Image Generation:** DALL·E 3  
 - **Music Generation:** [Enzostvs Ai-jukebox](https://huggingface.co/spaces/enzostvs/ai-jukebox)
 
-![Screenshot](Assets/Screenshots/chatgpt.png)
+### Example Prompt (Image Generation)  
+
+Create a single pixel art image featuring a 2x2 grid of four distinct team crests for a soccer game. Each crest should be in a shield shape with a bold golden-yellow border and a solid dark background, drawn in a retro pixel art style.  
+
+- **Top left crest:** a soccer ball with angel wings, blue background.  
+- **Top right crest:** a flower on a pink background, feminine style.  
+- **Bottom left crest:** a crimson cross representing an evil organization.  
+- **Bottom right crest:** a spooky ghost on a purple background.  
+
+Each crest should have its own unique subject and color palette for clarity, but all should match the overall pixel art, shield-shaped video game style, similar to classic sports emblems. The crests should be evenly spaced in a visible 2x2 grid within the single image.
 
 ---
 
 ## Changelog
+
+### Version 0.2
+- Improved "VS CPU" game mode
 
 ### Version 0.1
 - Added touch gameplay
