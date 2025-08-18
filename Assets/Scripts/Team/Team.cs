@@ -22,15 +22,12 @@ public class Team
     [SerializeField] private List<PlayerData> playerDataList = new List<PlayerData>();
     [SerializeField] private string tableCollectionName = "TeamNames";
 
+    private LocalizedString localizedName;
+
+
     void Start()
     {
-        UnityEngine.Localization.Settings.LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;   
-    }
 
-    private void OnLocaleChanged(UnityEngine.Localization.Locale obj)
-    {
-        // Update the text whenever the language changes
-        SetName();
     }
 
     public void Initialize(TeamData teamData)
@@ -50,22 +47,14 @@ public class Team
                 Debug.LogWarning($"PlayerData not found for ID: {playerId}");
         }
 
-        SetName();
-    }
-
-    private async void SetName()
-    {
-        var handle = LocalizationSettings.StringDatabase.GetTableAsync(tableCollectionName);
-        await handle.Task;
-
-        var table = handle.Result;
-        teamName = teamId;
-        if (table != null)
+        localizedName = new LocalizedString(tableCollectionName, teamId);
+        localizedName.StringChanged += (value) =>
         {
-            var entry = table.GetEntry(teamId);
-            if (entry != null)
-                teamName = entry.GetLocalizedString();
-        }
+            teamName = value;
+        };
+
+        // trigger first update
+        teamName = localizedName.GetLocalizedString();
     }
 
 }
