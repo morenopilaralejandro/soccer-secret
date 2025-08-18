@@ -58,7 +58,7 @@ public class CSVFormationImporter
         int coord1Index    = System.Array.IndexOf(headers, "coord1");
         int coord2Index    = System.Array.IndexOf(headers, "coord2");
         int coord3Index    = System.Array.IndexOf(headers, "coord3");
-        int kickOffIndex   = System.Array.IndexOf(headers, "kick-off");
+        int kickoffIndex   = System.Array.IndexOf(headers, "kick-off");
 
         for (int i = 1; i < lines.Length; i++)
         {
@@ -77,7 +77,7 @@ public class CSVFormationImporter
                 values[coord2Index].Trim(),
                 values[coord3Index].Trim()
             };
-            formationData.kickOff = int.Parse(values[kickOffIndex].Trim());
+            formationData.kickoff = int.Parse(values[kickoffIndex].Trim());
 
             string safeName = formationData.formationId.Replace(" ", "_").Replace("/", "_");
             string assetPath = $"{assetFolder}/{safeName}.asset";

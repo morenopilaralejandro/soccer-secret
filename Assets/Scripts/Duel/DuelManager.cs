@@ -3,30 +3,45 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
 
 public enum DuelMode { Field, Shoot }
 public enum DuelAction { Offense, Defense }
 public enum DuelCommand { Phys, Skill, Secret }
 
 public class DuelManager : MonoBehaviour
+#if PHOTON_UNITY_NETWORKING
+    , IPunObservable
+#endif
 {
     public static DuelManager Instance { get; private set; }
 
+    public static event Action<Player> OnSetStatusPlayer;
     public static event Action<DuelParticipant, float> OnSetStatusPlayerAndCommand;
+
+    public float KeeperGoalDistance = 0.7f;
+    public bool IsKeeperDuel = false;
+
+    [SerializeField] private ParticleSystem duelCircleEffectPrefab;
 
     private List<DuelParticipantData> stagedParticipants = new List<DuelParticipantData>();
     private Duel currentDuel = new Duel();
     private Coroutine unlockStatusCoroutine;
-    private float hpMultiplier = 0.1f;
+    private int hpAmount = 10;
     private float directBonus = 20f;
-    private float keeperBonus = 50f;
-    private float keeperGoalDistance = 0.5f;
+    private float keeperBonus = 10f;
+
+#if PHOTON_UNITY_NETWORKING
+    private PhotonView photonView => PhotonView.Get(this);
+#endif
 
     #region Unity Lifecycle
 
     private void Awake()
     {
-        // Standard Unity Singleton pattern:
+        // Standard Unity Singleton pattern
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -36,41 +51,27 @@ public class DuelManager : MonoBehaviour
         currentDuel.IsResolved = true;
     }
 
-    #endregion
-
-    #region Duel Flow
-
-    public void StartDuel(DuelMode mode)
+    private void OnEnable()
     {
-        Debug.Log("Duel started");
-        StopAndCleanupUnlockStatus();
-        UIManager.Instance.LockStatus();
-        ResetDuel();
-        currentDuel.Mode = mode;
-        switch (mode) 
+        if (BallTravelController.Instance != null)
         {
-            case DuelMode.Shoot:
-                AudioManager.Instance.PlaySfx("SfxDuelShoot");
-                break;
-            default:
-                AudioManager.Instance.PlaySfx("SfxDuelField");                
-                break;
+            BallTravelController.Instance.OnTravelEnd += HandleTravelEnd;
+            BallTravelController.Instance.OnTravelCancel += CancelDuel;
         }
     }
 
-    public void ResetDuel()
+    private void OnDisable()
     {
-        stagedParticipants.Clear();
-        currentDuel.Reset();
+        if (BallTravelController.Instance != null)
+        {
+            BallTravelController.Instance.OnTravelEnd -= HandleTravelEnd;
+            BallTravelController.Instance.OnTravelCancel -= CancelDuel;
+        }
     }
 
-    public void CancelDuel()
-    {
-        currentDuel.IsResolved = true;
-        ShootTriangle.Instance.SetTriangleVisible(false);    
-        BallTrail.Instance.SetTrailVisible(false);
-        unlockStatusCoroutine = StartCoroutine(UnlockStatusRoutine());    
-    }
+    #endregion
+
+    #region Duel Flow
 
     public bool IsDuelResolved() => currentDuel.IsResolved;
     public DuelMode GetDuelMode() => currentDuel.Mode;
@@ -78,13 +79,94 @@ public class DuelManager : MonoBehaviour
     public DuelParticipant GetLastOffense() => currentDuel.LastOffense;
     public DuelParticipant GetLastDefense() => currentDuel.LastDefense;
 
-    public DuelAction GetActionByCategory(Category category) 
+    public void SetIsKeeperDuel(bool isKeeperDuel) 
     {
-        if (category == Category.Block || category == Category.Catch) {
-            return DuelAction.Defense;
-        } else {
-            return DuelAction.Offense;
+        IsKeeperDuel = isKeeperDuel;
+    }
+
+    public DuelAction GetActionByCategory(Category category)
+    {
+        return (category == Category.Block || category == Category.Catch)
+            ? DuelAction.Defense
+            : DuelAction.Offense;
+    }
+
+    public void StartDuel(DuelMode mode)
+    {
+        // Only authority may start duel, everyone else only updates by RPC!
+        if (GameManager.Instance.IsMultiplayer)
+        {
+#if PHOTON_UNITY_NETWORKING
+            if (PhotonNetwork.IsMasterClient)
+                photonView.RPC(nameof(RPC_StartDuel), RpcTarget.All, (int)mode);
+#endif
+            return;
         }
+        StartDuel_Internal(mode);
+    }
+
+#if PHOTON_UNITY_NETWORKING
+    [PunRPC]
+    private void RPC_StartDuel(int modeInt) => StartDuel_Internal((DuelMode)modeInt);
+#endif
+
+    private void StartDuel_Internal(DuelMode mode)
+    {
+        PlayDuelEffect();
+
+        GameLogger.Info("[DuelManager] Duel started", this);
+        DuelLogManager.Instance.AddDuel();
+
+        StopAndCleanupUnlockStatus();
+        UIManager.Instance.LockStatus();
+        ResetDuel();
+        currentDuel.Mode = mode;
+
+        switch (mode)
+        {
+            case DuelMode.Shoot:
+                AudioManager.Instance.PlaySfx("SfxDuelShoot");
+                OnSetStatusPlayer?.Invoke(GameManager.Instance.GetOppKeeper(PossessionManager.Instance.CurrentPlayer));
+                break;
+            default:
+                AudioManager.Instance.PlaySfx("SfxDuelField");
+                break;
+        }
+    }
+
+    public void ResetDuel()
+    {
+        stagedParticipants.Clear();
+        IsKeeperDuel = false;
+        currentDuel.Reset();
+    }
+
+    public void CancelDuel()
+    {
+        if (GameManager.Instance.IsMultiplayer)
+        {
+#if PHOTON_UNITY_NETWORKING
+            if (PhotonNetwork.IsMasterClient)
+                photonView.RPC(nameof(RPC_CancelDuel), RpcTarget.All);
+#endif
+            return;
+        }
+        CancelDuel_Internal();
+    }
+
+#if PHOTON_UNITY_NETWORKING
+    [PunRPC]
+    private void RPC_CancelDuel() => CancelDuel_Internal();
+#endif
+
+    private void CancelDuel_Internal()
+    {
+        GameLogger.Warning("[DuelManager] Duel cancelled", this);
+
+        currentDuel.IsResolved = true;
+        ShootTriangle.Instance.SetTriangleVisible(false);
+        BallTrail.Instance.SetTrailVisible(false);
+        unlockStatusCoroutine = StartCoroutine(UnlockStatusRoutine());
     }
 
     #endregion
@@ -93,48 +175,81 @@ public class DuelManager : MonoBehaviour
 
     public void AddParticipantToDuel(DuelParticipant participant)
     {
-        BallBehavior.Instance.ResumeTravel();
+        // This call should only be made by the master client in multiplayer
+        if (GameManager.Instance.IsMultiplayer)
+        {
+#if PHOTON_UNITY_NETWORKING
+            if (PhotonNetwork.IsMasterClient)
+                photonView.RPC(nameof(RPC_AddParticipant), RpcTarget.All, DuelParticipantNet.Serialize(participant));
+#endif
+            return;
+        }
+        AddParticipantToDuel_Internal(participant);
+    }
+
+#if PHOTON_UNITY_NETWORKING
+    [PunRPC]
+    private void RPC_AddParticipant(object[] netData)
+    {
+        var participant = DuelParticipantNet.Deserialize(netData);
+        AddParticipantToDuel_Internal(participant);
+    }
+#endif
+
+    private void AddParticipantToDuel_Internal(DuelParticipant participant)
+    {
+        BallTravelController.Instance.ResumeTravel();
 
         if (currentDuel.IsResolved)
             return;
 
-        if (participant.Category == Category.Shoot) {
+        if (participant.Category == Category.Shoot)
+        {
             if (!currentDuel.Participants.Any())
-                StartBallTravel();
+            {
+                PossessionManager.Instance.Release();
+                BallTravelController.Instance.StartTravel(ShootTriangle.Instance.GetRandomPoint());
+            }
         }
 
         currentDuel.Participants.Add(participant);
 
-
+        // Handle secret moves and SFX
         if (participant.Secret != null)
         {
-            Vector3 playerPos = participant.Player.transform.position; // Or however you get the player's position
+            Vector3 playerPos = participant.Player.transform.position;
             SecretManager.Instance.PlaySecretEffect(participant.Secret, playerPos);
             participant.Player.ReduceSp(participant.Secret.Cost);
-            if (participant.Category == Category.Shoot) 
+            if (participant.Category == Category.Shoot)
             {
                 AudioManager.Instance.PlaySfx("SfxShootSpecial");
                 BallTrail.Instance.SetTrailVisible(true);
                 BallTrail.Instance.SetTrailMaterial(participant.Secret.Element);
             }
-        } else {
-            if (participant.Category == Category.Shoot) 
+        }
+        else
+        {
+            if (participant.Category == Category.Shoot)
             {
                 AudioManager.Instance.PlaySfx("SfxShootRegular");
                 BallTrail.Instance.SetTrailVisible(false);
             }
         }
 
-        participant.Player.ReduceHp(Mathf.RoundToInt(participant.Player.Lv * hpMultiplier));
+        participant.Player.ReduceHp(hpAmount);
 
         if (participant.Action == DuelAction.Offense)
         {
             currentDuel.AttackPressure += participant.Damage;
-            if (participant.Category == Category.Shoot && participant.IsDirect) 
+            if (participant.Category == Category.Shoot && participant.IsDirect)
                 currentDuel.AttackPressure += directBonus;
+            if (participant.Category == Category.Shoot)
+                PossessionManager.Instance.SetLastPlayer(participant.Player);
             currentDuel.LastOffense = participant;
             OnSetStatusPlayerAndCommand?.Invoke(participant, currentDuel.AttackPressure);
-            Debug.Log($"Offense action increases attack pressure +{participant.Damage}");
+            DuelLogManager.Instance.AddActionCommand(participant.Player, participant.Command, participant.Secret);
+            DuelLogManager.Instance.AddActionDamage(participant.Action, participant.Damage);
+            GameLogger.DebugLog($"[DuelManager] Offense action increases attack pressure +{participant.Damage}", this);
         }
         else
         {
@@ -146,42 +261,51 @@ public class DuelManager : MonoBehaviour
     {
         if (currentDuel.LastOffense == null)
         {
-            Debug.LogWarning("No offense present before defense.");
+            GameLogger.Warning("[DuelManager] No offense present before defense.", this);
             return;
         }
 
         currentDuel.LastDefense = defender;
 
+        DuelLogManager.Instance.AddActionCommand(defender.Player, defender.Command, defender.Secret);
+        DuelLogManager.Instance.AddActionDamage(defender.Action, defender.Damage);
+
         ApplyElementalEffectiveness(currentDuel.LastOffense, defender);
-        if (defender.Category == Category.Block && defender.Player.IsKeeper && GameManager.Instance.GetDistanceToAllyGoal(defender.Player) < keeperGoalDistance)
+
+        if (defender.Category == Category.Block && defender.Player.IsKeeper && GameManager.Instance.GetDistanceToAllyGoal(defender.Player) < KeeperGoalDistance)
         {
             defender.Damage *= keeperBonus;
-            Debug.Log("Keeper gets a block bonus!");
+            GameLogger.Info("[DuelManager] Keeper gets a block bonus!", this);
         }
 
         if (defender.Damage >= currentDuel.AttackPressure)
         {
             if (defender.Category == Category.Catch)
-                AudioManager.Instance.PlaySfx("SfxCatch");            
+                AudioManager.Instance.PlaySfx("SfxCatch");
 
             OnSetStatusPlayerAndCommand?.Invoke(defender, 0f);
-            Debug.Log($"{defender.Player.name} stopped the attack! (-{defender.Damage})");
+            if (currentDuel.Mode == DuelMode.Shoot)
+                DuelLogManager.Instance.AddActionStop(defender.Player);
+            GameLogger.Info($"[DuelManager] {defender.Player.PlayerName} stopped the attack! (-{defender.Damage})", this);
+
             EndDuel(winningParticipant: defender, winnerAction: DuelAction.Defense);
         }
         else
         {
             currentDuel.AttackPressure -= defender.Damage;
             OnSetStatusPlayerAndCommand?.Invoke(defender, 0f);
-            Debug.Log($"Partial block. Attack pressure now {currentDuel.AttackPressure}");
+
+            GameLogger.Info($"[DuelManager] Partial block. Attack pressure now {currentDuel.AttackPressure}", this);
 
             defender.Player.Stun();
 
             if (currentDuel.Mode == DuelMode.Field || defender.Category == Category.Catch)
             {
                 if (defender.Category == Category.Catch)
-                    AudioManager.Instance.PlaySfx("SfxKeeperScream");   
+                    AudioManager.Instance.PlaySfx("SfxKeeperScream");
 
-                Debug.Log("Partial block ends the duel.");
+                GameLogger.Info("[DuelManager] Partial block ends the duel.", this);
+
                 EndDuel(winningParticipant: currentDuel.LastOffense, winnerAction: DuelAction.Offense);
             }
             // Else: duel continues for next defense
@@ -190,12 +314,13 @@ public class DuelManager : MonoBehaviour
 
     private void ApplyElementalEffectiveness(DuelParticipant offense, DuelParticipant defense)
     {
-        var elements = ElementManager.Instance; // Singleton assumed
+        var elements = ElementManager.Instance;
 
         if (elements.IsEffective(defense.CurrentElement, offense.CurrentElement))
         {
             defense.Damage *= 2f;
-            Debug.Log("Defense element is effective!");
+            DuelLogManager.Instance.AddElementDefense(defense.Category);
+            GameLogger.Info("[DuelManager] Defense element is effective!", this);
         }
         else if (elements.IsEffective(offense.CurrentElement, defense.CurrentElement))
         {
@@ -203,57 +328,100 @@ public class DuelManager : MonoBehaviour
             offense.Damage *= 2;
             currentDuel.AttackPressure += offense.Damage;
             OnSetStatusPlayerAndCommand?.Invoke(offense, currentDuel.AttackPressure);
-            Debug.Log("Offense element is effective!");
+            DuelLogManager.Instance.AddElementOffense(offense.Category);
+            GameLogger.Info("[DuelManager] Offense element is effective!", this);
         }
     }
 
     private void EndDuel(DuelParticipant winningParticipant, DuelAction winnerAction)
     {
-        if(winningParticipant.Player.IsAlly)
+        if (GameManager.Instance.IsMultiplayer)
         {
+#if PHOTON_UNITY_NETWORKING
+            if (PhotonNetwork.IsMasterClient)
+            {
+                // Instead of sending the full participant, send identifying info (PlayerId, etc.)
+                photonView.RPC(nameof(RPC_EndDuel), RpcTarget.All, winningParticipant.Player.PlayerId, winningParticipant.Player.TeamIndex, (int)winnerAction);
+            }
+#endif
+            return;
+        }
+        EndDuel_Internal(winningParticipant, winnerAction);
+    }
+
+#if PHOTON_UNITY_NETWORKING
+    [PunRPC]
+    private void RPC_EndDuel(string playerId, int teamIndex, int winnerActionInt)
+    {
+        // Find the winning DuelParticipant object from the ID/side:
+        DuelParticipant winPart = currentDuel.Participants.Find(
+            p => p.Player.PlayerId == playerId && p.Player.TeamIndex == teamIndex
+        );
+        EndDuel_Internal(winPart, (DuelAction)winnerActionInt);
+    }
+#endif
+
+    private void EndDuel_Internal(DuelParticipant winningParticipant, DuelAction winnerAction)
+    {
+        string outcomeDesc = $"[DuelManager] Duel Outcome: WINNER={winningParticipant.Player?.PlayerName ?? "null"} (Team {winningParticipant.Player?.TeamIndex}), " +
+                             $"Action={(winnerAction == DuelAction.Defense ? "Defense" : "Offense")}, " +
+                             $"Category={winningParticipant.Category}";
+        GameLogger.Info(outcomeDesc, this);
+
+        if (winningParticipant.Player.ControlType == ControlType.LocalHuman)
+        {
+            DuelLogManager.Instance.AddDuelWin(winningParticipant.Player.TeamIndex);
             AudioManager.Instance.PlaySfx("SfxDuelWin");
-        } else {
+        }
+        else
+        {
+            DuelLogManager.Instance.AddDuelLose(winningParticipant.Player.TeamIndex);
             AudioManager.Instance.PlaySfx("SfxDuelLose");
+            BallBehavior.Instance.ResetPendingInputs();
         }
 
-        winningParticipant.Player.ReduceHp(Mathf.RoundToInt(winningParticipant.Player.Lv * hpMultiplier));
+        winningParticipant.Player.ReduceHp(hpAmount);
         currentDuel.IsResolved = true;
         UIManager.Instance.ShowTextDuelResult(winningParticipant);
         ShootTriangle.Instance.SetTriangleVisible(false);
 
         if (winnerAction == DuelAction.Defense)
         {
-            BallBehavior.Instance.CancelTravel();
-            BallBehavior.Instance.GainPossession(winningParticipant.Player);
+            BallTravelController.Instance.CancelTravel();
+            PossessionManager.Instance.Gain(winningParticipant.Player);
             currentDuel.LastOffense.Player.Stun();
         }
 
         BallTrail.Instance.SetTrailVisible(false);
         unlockStatusCoroutine = StartCoroutine(UnlockStatusRoutine());
-        Debug.Log("Duel ended");
+
+        GameLogger.Info("[DuelManager] Duel ended", this);
     }
 
     #endregion
 
     #region Ball and Status Control
 
-    public void StartBallTravel()
+    private void HandleTravelEnd(Vector3 end)
     {
-        BallBehavior.Instance.ReleasePossession();
-        BallBehavior.Instance.StartTravelToPoint(ShootTriangle.Instance.GetRandomPoint());
+        if (!currentDuel.IsResolved)
+        {
+            CancelDuel();
+        }
     }
 
-    private void StopAndCleanupUnlockStatus()
+    public void StopAndCleanupUnlockStatus()
     {
         if (unlockStatusCoroutine != null)
         {
             StopCoroutine(unlockStatusCoroutine);
             unlockStatusCoroutine = null;
         }
-        if (currentDuel.IsResolved) {
+        if (currentDuel.IsResolved)
+        {
             UIManager.Instance.HideStatus();
-            if (BallBehavior.Instance.PossessionPlayer != null)
-                UIManager.Instance.SetStatusPlayer(BallBehavior.Instance.PossessionPlayer);
+            if (PossessionManager.Instance.CurrentPlayer != null)
+                UIManager.Instance.SetStatusPlayer(PossessionManager.Instance.CurrentPlayer);
         }
     }
 
@@ -262,9 +430,15 @@ public class DuelManager : MonoBehaviour
         const float unlockDelay = 2f;
         yield return new WaitForSeconds(unlockDelay);
 
-        StopAndCleanupUnlockStatus(); // <--- Now call it AFTER delay
+        StopAndCleanupUnlockStatus();
 
         UIManager.Instance.UnlockStatus();
+    }
+
+    private void PlayDuelEffect() 
+    {
+        Vector3 effectPosition = PossessionManager.Instance.CurrentPlayer.transform.position;
+        Instantiate(duelCircleEffectPrefab, effectPosition, Quaternion.identity);
     }
 
     #endregion
@@ -278,16 +452,19 @@ public class DuelManager : MonoBehaviour
         TryFinalizeParticipant(pd);
     }
 
-    public void RegisterUISelections(int index, Category category, DuelAction action, DuelCommand command, Secret secret)
+    public void RegisterSelection(int index, Category category, DuelCommand command, Secret secret)
     {
+        GameLogger.Info(
+            $"[DuelManager] RegisterSelection participantIndex={index}, category={category}, command={command}, secret={(secret != null ? secret.SecretName : "None")}, stagedCount={stagedParticipants.Count}",
+            this);
         if (index < 0 || index >= stagedParticipants.Count)
         {
-            Debug.LogError("Invalid participant index");
+            GameLogger.Error("[DuelManager] Invalid participant index", this);
             return;
         }
         var pd = stagedParticipants[index];
         pd.Category = category;
-        pd.Action = action;
+        pd.Action = GetActionByCategory(category);
         pd.Command = command;
         pd.Secret = secret;
         TryFinalizeParticipant(pd);
@@ -306,9 +483,26 @@ public class DuelManager : MonoBehaviour
             pd.IsDirect
         );
 
-        Debug.Log($"Created participant: {participant.Player.name}");
+        GameLogger.DebugLog($"[DuelManager] Created participant: {participant.Player.PlayerName}", this);
         AddParticipantToDuel(participant);
     }
 
+    public void ResolveDuelIfReady()
+    {
+        if (currentDuel.Participants.Count >= 2)
+        {
+            var offense = currentDuel.Participants.First(p => p.Action == DuelAction.Offense);
+            var defense = currentDuel.Participants.First(p => p.Action == DuelAction.Defense);
+            ResolveDefense(defense); // Your own logic
+        }
+    }
+
     #endregion
+
+#if PHOTON_UNITY_NETWORKING
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        // (No extra sync needed for logic; all state is managed by explicit RPCs)
+    }
+#endif
 }

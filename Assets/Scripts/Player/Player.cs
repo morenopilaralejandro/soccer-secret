@@ -6,51 +6,60 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
 
 public enum PlayerStats { Hp, Sp, Kick, Body, Control, Guard, Speed, Stamina, Courage }
 
-public enum Size { Small, MediumF, MediumM, Large }
+public enum ControlType { LocalHuman, RemoteHuman, Ai }
 
 public class Player : MonoBehaviour
+#if PHOTON_UNITY_NETWORKING
+    , IPunInstantiateMagicCallback
+#endif
 {   
     public string PlayerId => playerId;
     public string PlayerName => playerName;
-    public Size Size => size;
+    public PortraitSize PortraitSize => portraitSize;    
+    public PlayerSize PlayerSize => playerSize;
     public Gender Gender => gender;
     public Element Element => element;
     public Position Position => position;
-    public float DefaultYPosition => defaultYPosition;  
+    public int TeamIndex;  
+    public Coord Coord;
     public Vector3 DefaultPosition;
-    public bool IsAlly;
-    public bool IsAi;
+    public ControlType ControlType;
     public bool IsPossession;
     public bool IsKeeper;
     public bool IsStunned => isStunned;
     public bool IsKicking => isKicking;
     public bool IsControlling => isControlling;
-    public int Lv;
+    public int Lv;    
     public List<Secret> CurrentSecret => currentSecret;
     public List<Secret> LearnedSecret => learnedSecret;
     public Sprite SpritePlayerPortrait => spritePlayerPortrait;
     public Sprite SpriteWearPortrait => spriteWearPortrait;
 
+    [SerializeField] private GameObject stunIcon;
+    [SerializeField] private DebuffIcon debuffIcon;
+    [SerializeField] private Bubble bubble;
+    [SerializeField] private PlayerNameTag playerNameTag;
+    [SerializeField] private SpriteRenderer arrowPossesion;
     [SerializeField] private SpriteRenderer spriteRendererPigment;
     [SerializeField] private SpriteRenderer spriteRendererHair;
     [SerializeField] private SpriteRenderer spriteRendererAccessory;
     [SerializeField] private SpriteRenderer spriteRendererWear;
-    [SerializeField] private SpriteRenderer spriteRendererElement;
     [SerializeField] private Sprite spritePlayerPortrait;
     [SerializeField] private Sprite spriteWearPortrait;
-    [SerializeField] private string pathPigment = "Pigment/";
-    [SerializeField] private string pathHair = "Hair/";
-    [SerializeField] private string pathAccessory = "Accessory/";
-    [SerializeField] private string pathPlayerPortrait = "PlayerPortrait/";
+    [SerializeField] private string pathHairStyle = "HairStyle/";
+    [SerializeField] private string pathAccessoryStyle = "AccessoryStyle/";
     [SerializeField] private string tableCollectionName = "PlayerNames";
-
-    [SerializeField] private float defaultYPosition = 0f;    
+ 
     [SerializeField] private string playerId;
     [SerializeField] private string playerName;
-    [SerializeField] private Size size;
+    [SerializeField] private PortraitSize portraitSize;
+    [SerializeField] private PlayerSize playerSize;
     [SerializeField] private Gender gender;
     [SerializeField] private Element element;
     [SerializeField] private Position position;
@@ -74,20 +83,20 @@ public class Player : MonoBehaviour
     private int maxSp;
 
     private Collider[] colliders;
+    private Collider keeperCollider;
+    private Collider touchArea;
     private Coroutine stunRoutine;
     private Coroutine blinkRoutine;
 
     [Header("Movement Parameters")]
     [SerializeField] private float speedBase = 0.2f;
-    [SerializeField] private float speedMultiplierUser = 0.02f;
-    [SerializeField] private float speedMultiplierAi = 0.006f;
-    [SerializeField] private float speedDebuffDefault = 1f;
-    [SerializeField] private float speedDebuffLow = 0.5f;
-    [SerializeField] private float speedDebuffHigh = 0.2f;
-    [SerializeField] private int hpThresholdLow = 10;
-    [SerializeField] private int hpThresholdHigh = 30;
+    [SerializeField] private float speedMultiplierUser = 0.01f;
+    [SerializeField] private float speedMultiplierAi = 0.003f;
 
-    // Remember the last calculated speedDebuff for reuse
+    [SerializeField] private int hpDebuffThreshold = 20;    // Debuff triggers below this HP
+    [SerializeField] private float speedDebuff = 0.5f;     // Example: 50% speed
+    [SerializeField] private float speedNormal = 1.0f;     // Normal speed
+
     private float _lastSpeedDebuff = 1f;
     private int _lastHpChecked = int.MinValue;
 
@@ -144,18 +153,9 @@ public class Player : MonoBehaviour
             position = Position.Fw;
         }
 
-        auxString = playerData.size;
-        Size auxSize;
-        isValid = Enum.TryParse(auxString, true, out auxSize); // case-insensitive parse
-        if (isValid)
-        {
-            size = auxSize;
-        } else {
-            size = Size.Small;
-        }
+        portraitSize = WearManager.Instance.GetPortraitSizeByString(playerData.portraitSize);
+        playerSize = WearManager.Instance.GetPlayerSizeByString(playerData.playerSize);
 
-        IsAlly = true;
-        IsAi = false;
         IsPossession = false;
         isStunned = false;
         IsKeeper = false;
@@ -187,16 +187,15 @@ public class Player : MonoBehaviour
         //sprite
         Sprite spriteAux = null;
 
-        spriteAux = Resources.Load<Sprite>(pathPigment + playerData.pigment);
         if (spriteRendererPigment != null)
         {
-            if (spriteAux != null)
+            if (playerData.pigment != null)
             {
-                spriteRendererPigment.sprite = spriteAux;
+                spriteRendererPigment.color = ColorManager.GetPigmentColor(playerData.pigment);
             }
             else
             {
-                Debug.LogWarning($"Pigment sprite not found: {pathPigment}{playerData.pigment} for player {playerData.playerId}");
+                Debug.LogWarning($"Pigment color not found: {playerData.pigment} for player {playerData.playerId}");
             }
         }
         else
@@ -204,16 +203,17 @@ public class Player : MonoBehaviour
             Debug.LogWarning("SpriteRendererPigment reference is missing!");
         }
 
-        spriteAux = Resources.Load<Sprite>(pathHair + playerData.hair);
+        spriteAux = Resources.Load<Sprite>(pathHairStyle + playerData.hairStyle);
         if (spriteRendererHair != null)
         {
             if (spriteAux != null)
             {
                 spriteRendererHair.sprite = spriteAux;
+                spriteRendererHair.color = ColorManager.GetHairColor(playerData.hairColor);
             }
             else
             {
-                Debug.LogWarning($"Hair sprite not found: {pathHair}{playerData.hair} for player {playerData.playerId}");
+                Debug.LogWarning($"Hair sprite not found: {pathHairStyle}{playerData.hairStyle} for player {playerData.playerId}");
             }
         }
         else
@@ -221,17 +221,22 @@ public class Player : MonoBehaviour
             Debug.LogWarning("SpriteRendererHair reference is missing!");
         }
 
-        spriteAux = Resources.Load<Sprite>(pathAccessory + playerData.accessory);
+        spriteAux = Resources.Load<Sprite>(pathAccessoryStyle + playerData.accessoryStyle);
         if (spriteRendererAccessory != null)
         {
-            if (spriteAux != null && playerData.accessory != "none")
+            if (spriteAux != null && playerData.accessoryStyle != "none")
             {
                 spriteRendererAccessory.sprite = spriteAux;
+                spriteRendererAccessory.color = Color.red;
             }
             else
             {
                 spriteRendererAccessory.enabled = false;
-                Debug.LogWarning($"Accessory sprite not found: {pathAccessory}{playerData.accessory} for player {playerData.playerId}");
+                if (playerData.accessoryStyle == "none") {
+                    Debug.Log($"Accessory sprite not found: {pathAccessoryStyle}{playerData.accessoryStyle} for player {playerData.playerId}");
+                } else {
+                    Debug.LogWarning($"Accessory sprite not found: {pathAccessoryStyle}{playerData.accessoryStyle} for player {playerData.playerId}");
+                }
             }
         }
         else
@@ -239,33 +244,13 @@ public class Player : MonoBehaviour
             Debug.LogWarning("SpriteRendererAccessory reference is missing!");
         }
 
-
-        spriteAux = ElementManager.Instance.GetElementIcon(element);
-        if (spriteRendererElement != null)
-        {
-            if (spriteAux != null)
-            {
-                spriteRendererElement.sprite = spriteAux;
-            }
-            else
-            {
-                Debug.LogWarning($"Element sprite not found: {element} for player {playerData.playerId}");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("SpriteRendererElement reference is missing!");
-        }
-
-        spriteAux = Resources.Load<Sprite>(pathPlayerPortrait + playerData.playerId);
+        spriteAux = PlayerManager.Instance.GetPlayerPortraitSpriteById(playerData.playerId);
         if (spriteAux != null)
         {
             spritePlayerPortrait = spriteAux;
         }
         else
         {
-            spriteAux = Resources.Load<Sprite>(pathPlayerPortrait + "P1");
-            spritePlayerPortrait = spriteAux;
             Debug.LogWarning("SpritePlayerPortrait not found for player id: " + playerData.playerId);
         }
 
@@ -275,6 +260,8 @@ public class Player : MonoBehaviour
         UpdateStats();
         learnedSecret = GetLearnedSecretByLv();
         currentSecret.AddRange(learnedSecret);
+        playerNameTag.SetPlayer(this);
+        UpdateKeeperColliderState();
     }
 
     private async void SetName()
@@ -297,6 +284,9 @@ public class Player : MonoBehaviour
     {
         // Cache all colliders on self and children
         colliders = GetComponentsInChildren<Collider>(true);
+        keeperCollider = Array.Find(colliders, c => c.name == "KeeperCollider");
+        touchArea = Array.Find(colliders, c => c.name == "TouchArea");
+        // You may want to cache your PhotonView here if used frequently!
     }
     //stun
     public void Stun()
@@ -325,8 +315,9 @@ public class Player : MonoBehaviour
         }
 
         isStunned = false;
+        stunIcon.SetActive(false);
         SetAllCollidersEnabled(true);
-        SetYPosition(defaultYPosition);
+        SetYPosition(DefaultPosition.y);
     }
 
     public IEnumerator StunPlayer()
@@ -335,6 +326,8 @@ public class Player : MonoBehaviour
         if (isStunned)
             yield break;
         isStunned = true;
+        debuffIcon.HideDebuff();
+        stunIcon.SetActive(true);
         SetAllCollidersEnabled(false);
         // Start and remember the blink coroutine
         blinkRoutine = StartCoroutine(BlinkEffect(duration));
@@ -353,16 +346,33 @@ public class Player : MonoBehaviour
             StopCoroutine(blinkRoutine);
             blinkRoutine = null;
         }
+        stunIcon.SetActive(false);
+        if (_lastSpeedDebuff == speedDebuff)
+            debuffIcon.ShowSpeedDebuff();
         SetAllCollidersEnabled(true);
         isStunned = false;
-        SetYPosition(defaultYPosition);
+        SetYPosition(DefaultPosition.y);
         stunRoutine = null;
     }
 
     private void SetAllCollidersEnabled(bool enabled)
     {
         foreach (var col in colliders)
-            col.enabled = enabled;
+        {
+            // If this collider is keeperCollider and we are NOT keeper, don't enable it.
+            if (col == keeperCollider && !IsKeeper)
+            {
+                col.enabled = false; // Always disable regardless of argument
+            }
+            else
+            {
+                if (touchArea && col == touchArea) {
+                    col.enabled = true;
+                } else {
+                    col.enabled = enabled;
+                }
+            }
+        }
     }
 
     private IEnumerator BlinkEffect(float duration)
@@ -371,24 +381,48 @@ public class Player : MonoBehaviour
         float blinkInterval = 0.2f;
         bool visible = true;
         float blinkElapsed = 0f;
+
+        // Helper to set renderers enabled/disabled
+        void SetSpriteRenderersVisible(bool isVisible)
+        {
+            if (spriteRendererPigment != null)
+                spriteRendererPigment.enabled = isVisible;
+            if (spriteRendererHair != null)
+                spriteRendererHair.enabled = isVisible;
+            if (spriteRendererAccessory != null)
+                spriteRendererAccessory.enabled = isVisible;
+            if (spriteRendererWear != null)
+                spriteRendererWear.enabled = isVisible;
+        }
+
         while (elapsed < duration)
         {
             if (!GameManager.Instance.IsTimeFrozen)
             {
                 elapsed += Time.deltaTime;
                 blinkElapsed += Time.deltaTime;
+
                 if (blinkElapsed >= blinkInterval)
                 {
-                    SetYPosition(visible ? defaultYPosition : -1f);
+                    SetSpriteRenderersVisible(visible);
                     visible = !visible;
                     blinkElapsed = 0f;
                 }
-            } else {
-                SetYPosition(defaultYPosition);
+            }
+            else
+            {
+                // Always visible if paused
+                SetSpriteRenderersVisible(true);
             }
             yield return null;
         }
-        SetYPosition(defaultYPosition);
+        // Always end with visible renderers
+        SetSpriteRenderersVisible(true);
+    }
+
+    public void ToggleArrowPossesion(bool isActive) 
+    {
+        arrowPossesion.enabled = isActive;
     }
 
     public void Kick()
@@ -500,7 +534,27 @@ public class Player : MonoBehaviour
 
     public void ReduceHp(int amount)
     {
-        currStats[(int)PlayerStats.Hp] -= amount;
+        // Magic numbers as named constants
+        const float LvReductionPerLevel = 0.01f;
+        const float MaxLvReduction = 0.7f;
+        const float StaminaDivisor = 130f;
+        const float MaxStaminaReduction = 0.3f;
+        const float MinDamageTaken = 0f;
+
+        int lv = Lv;
+        float stamina = currStats[(int)PlayerStats.Stamina];
+
+        // Calculate reduction factors
+        float lvFactor = 1f - Mathf.Min(lv * LvReductionPerLevel, MaxLvReduction);
+        float staminaFactor = 1f - Mathf.Min(stamina / StaminaDivisor, MaxStaminaReduction);
+
+        // Combine both (multiplicative, so boosts "stack" in reducing damage)
+        float totalFactor = lvFactor * staminaFactor;
+
+        // Ensure damage never goes below a minimum (e.g., at least 1)
+        float damageTaken = Mathf.Max(MinDamageTaken, amount * totalFactor);
+
+        currStats[(int)PlayerStats.Hp] -= (int)damageTaken;
         currStats[(int)PlayerStats.Hp] = Mathf.Clamp(currStats[(int)PlayerStats.Hp], 0, maxHp);
     }
 
@@ -560,19 +614,19 @@ public class Player : MonoBehaviour
         if (playerHp == _lastHpChecked) return; // avoid unnecessary recalculation
 
         _lastHpChecked = playerHp;
-        if (playerHp <= hpThresholdLow)
-            _lastSpeedDebuff = speedDebuffLow;
-        else if (playerHp <= hpThresholdHigh)
-            _lastSpeedDebuff = speedDebuffHigh;
-        else
-            _lastSpeedDebuff = speedDebuffDefault;
+        _lastSpeedDebuff = (playerHp < hpDebuffThreshold) ? speedDebuff : speedNormal;
+        if (_lastSpeedDebuff == speedDebuff) {
+            debuffIcon.ShowSpeedDebuff();
+        } else {
+            debuffIcon.HideDebuff();
+        }
     }
 
     // Calculate final speed this frame (already includes deltaTime for direct use with MoveTowards)
     public float GetMoveSpeed()
     {
         UpdateSpeedDebuff();
-        float speedMultiplier = IsAi ? speedMultiplierAi : speedMultiplierUser; 
+        float speedMultiplier = ControlType == ControlType.Ai ? speedMultiplierAi : speedMultiplierUser; 
         return (GetStat(PlayerStats.Speed) * speedMultiplier + speedBase) * _lastSpeedDebuff * Time.deltaTime;
     }
 
@@ -607,28 +661,47 @@ public class Player : MonoBehaviour
         UpdateStats();
     }
 
-    public void SetWear(Team team, bool isHome) 
+    public void SetWear(string wearId, bool isHome) 
     {
         WearRole role = IsKeeper ? WearRole.Keeper : WearRole.Field;
         WearVariant variant = isHome ? WearVariant.Home : WearVariant.Away;
     
-        Sprite spriteAux = WearManager.Instance.GetWearSprite(team.TeamId, role, variant);
+        Sprite spriteAux = WearManager.Instance.GetWearSprite(wearId, role, variant);
         if (spriteRendererWear != null)
         {
             if (spriteAux != null)
                 spriteRendererWear.sprite = spriteAux;
             else
-                Debug.LogWarning("No matching wear sprite found for {role}/{variant}/{team.TeamId}");
+                Debug.LogWarning("No matching wear sprite found for {role}/{variant}/{wearId}");
         }
         else
         {
             Debug.LogWarning("SpriteRendererWear reference is missing!");
         }
 
-        spriteAux = WearManager.Instance.GetWearPortraitSprite(team.TeamId, size, role, variant);
+        spriteAux = WearManager.Instance.GetWearPortraitSprite(wearId, portraitSize, role, variant);
         if (spriteAux != null)
             spriteWearPortrait = spriteAux;
         else
             Debug.LogWarning("No matching wear portrait sprite found for {size}/{role}/{variant}/{team.TeamId}");
     }
+
+    #if PHOTON_UNITY_NETWORKING
+    public void OnPhotonInstantiate(Photon.Pun.PhotonMessageInfo info)
+    {
+        // You can leave this empty unless you want networked spawn logic
+    }
+    #endif
+
+public void UpdateKeeperColliderState()
+{
+    if (keeperCollider != null)
+        keeperCollider.enabled = IsKeeper;
+}
+
+public void ShowBubbleVoley() 
+{
+    if (bubble != null)
+        bubble.ShowBubble(BubbleType.Volley);
+}
 }

@@ -19,15 +19,24 @@ public class SecretPanel : MonoBehaviour
         
     }
 
-    public void UpdateSecretSlots(List<Secret> currentSecret, Category category)
+    public void UpdateSecretSlots(List<Secret> currentSecret, int currSp, Category category)
     {
         int slotIndex = 0;
 
         // Fill slots only with secrets matching the given category
         foreach (var secret in currentSecret)
         {
+            Debug.Log($"Slot {slotIndex} possible: {secret.SecretId} ({secret.Category})");
+
             if (secret.Category == category && slotIndex < slots.Count)
             {
+                if (currSp < secret.Cost) 
+                {
+                    slots[slotIndex].gameObject.GetComponent<Button>().interactable = false;
+                } else 
+                {
+                    slots[slotIndex].gameObject.GetComponent<Button>().interactable = true;
+                }
                 slots[slotIndex].SetSecret(secret);
                 slotIndex++;
             }

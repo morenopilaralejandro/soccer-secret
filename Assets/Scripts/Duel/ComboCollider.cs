@@ -1,89 +1,118 @@
 using UnityEngine;
 using System;
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
 
 [RequireComponent(typeof(Collider))]
 public class ComboCollider : MonoBehaviour
 {
-    private Player cachedPlayer;
+    #region Private Fields
+
+    private Player _cachedPlayer;
+
+    #endregion
+
+    #region Events
 
     public static event Action<Player> OnSetStatusPlayer;
 
+    #endregion
+
+    #region Unity Lifecycle
+
     private void Awake()
     {
-        cachedPlayer = GetComponentInParent<Player>();
-        if (cachedPlayer == null)
-            Debug.LogError($"{nameof(ComboCollider)} could not find Player in parent.");
+        _cachedPlayer = GetComponentInParent<Player>();
+        if (_cachedPlayer == null)
+            GameLogger.Error("[ComboCollider] Could not find Player in parent.", this);
+        else
+            GameLogger.Info($"[ComboCollider] Found Player: {_cachedPlayer.PlayerName}", this);
     }
 
-    private void OnTriggerEnter(Collider other) => TryHandleTrigger(other);
+    private void OnTriggerEnter(Collider other)
+    {
+        TryHandleTrigger(other);
+    }
+
+    #endregion
+
+    #region Combo Logic
 
     private void TryHandleTrigger(Collider otherCollider)
     {
-        Debug.Log("ComboCollider OnTriggerEnter");
+        GameLogger.DebugLog("[ComboCollider] TryHandleTrigger invoked.", this);
 
-        // Basic conditions before progressing
-        if (DuelManager.Instance.IsDuelResolved()
-            || GameManager.Instance.IsMovementFrozen
-            || cachedPlayer == null)
+        float distToGoal = GameManager.Instance.GetDistanceToAllyGoal(_cachedPlayer);
+        GameLogger.DebugLog($"Distance to ally goal: {distToGoal}", this);
+
+        bool keeperNearGoal = _cachedPlayer.IsKeeper && distToGoal < DuelManager.Instance.KeeperGoalDistance;
+        GameLogger.DebugLog($"Is keeper near goal? {keeperNearGoal}", this);
+
+        // Basic preconditions
+        if (DuelManager.Instance.IsDuelResolved())
+            return;
+
+        if (DuelManager.Instance.GetDuelMode() != DuelMode.Shoot)
+            return;
+
+        if (GameManager.Instance.IsMovementFrozen)
+            return;
+        
+        if (_cachedPlayer == null)
             return;
 
         DuelParticipant lastOffense = DuelManager.Instance.GetLastOffense();
         DuelParticipant lastDefense = DuelManager.Instance.GetLastDefense();
+        bool isSameTeam = lastOffense != null && (_cachedPlayer.TeamIndex == lastOffense.Player.TeamIndex);
 
         // Prevent repeat triggers by the same defense player
-        if (lastDefense != null && lastDefense.Player == cachedPlayer)
+        if (lastDefense != null && lastDefense.Player == _cachedPlayer)
             return;
 
-        if (lastOffense == null || cachedPlayer == lastOffense.Player)
+        if (lastOffense == null || _cachedPlayer == lastOffense.Player)
             return;
 
         // Only respond to ball collision
-        if (!otherCollider.transform.root.CompareTag("Ball"))
+        if (!otherCollider.transform.CompareTag("Ball"))
             return;
 
-        int participantIndex = DuelManager.Instance.GetDuelParticipants().Count;
-        DuelManager.Instance.RegisterTrigger(cachedPlayer.gameObject, false);
-        OnSetStatusPlayer?.Invoke(cachedPlayer);
+        if (_cachedPlayer.IsKeeper && (distToGoal < DuelManager.Instance.KeeperGoalDistance))
+            return;
 
-        // Role assignment based on previous play and ai/user
-        AssignComboRoles(lastOffense.Player, participantIndex);
-    }
-
-    private void AssignComboRoles(Player lastOffensePlayer, int idx)
-    {
-        bool isUser = !cachedPlayer.IsAi;
-
-        if (lastOffensePlayer.IsAlly)
+        // Network pattern: only game authority can register
+        if (!GameManager.Instance.IsMultiplayer
+#if PHOTON_UNITY_NETWORKING
+            || PhotonNetwork.IsMasterClient
+#endif
+            )
         {
-            // Allies were last offense; defense blocks, chain offense can be user or ai
-            if (cachedPlayer.IsAi)
+            int participantIndex = DuelManager.Instance.GetDuelParticipants().Count;
+
+            GameLogger.Info($"[ComboCollider] Registering trigger for {_cachedPlayer.PlayerName} as participant {participantIndex}.", this);
+            OnSetStatusPlayer?.Invoke(_cachedPlayer);
+
+            Category selectedCategory = isSameTeam ? Category.Shoot : Category.Block;
+            AudioManager.Instance.PlaySfx("SfxDuelShoot");
+            if (GameManager.Instance.IsMultiplayer)
             {
-                cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(idx, Category.Block);
+#if PHOTON_UNITY_NETWORKING
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    GameLogger.DebugLog("[ComboCollider] Multiplayer authority registering trigger.", this);
+                }
+#endif
             }
-            else
+            else // Singleplayer/offline
             {
-                HandleUserChain(idx, Category.Shoot, cachedPlayer);
+                // Register both participants before selections
+                DuelManager.Instance.RegisterTrigger(_cachedPlayer.gameObject, false);
+                UIManager.Instance.SetDuelSelection(_cachedPlayer.TeamIndex, selectedCategory, participantIndex, _cachedPlayer);
+                UIManager.Instance.SetShootTeamIndex(_cachedPlayer.TeamIndex); 
+                BallTravelController.Instance.PauseTravel();
+                UIManager.Instance.BeginDuelSelectionPhase();
             }
         }
-        else
-        {
-            // Opponent was last offense; so now chain or block
-            if (cachedPlayer.IsAi)
-            {
-                cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(idx, Category.Shoot);
-            }
-            else
-            {
-                HandleUserChain(idx, Category.Block, cachedPlayer);
-            }
-        }
     }
-
-    private void HandleUserChain(int index, Category category, Player cachedPlayer)
-    {
-        GameManager.Instance.FreezeGame();
-        BallBehavior.Instance.PauseTravel();
-        UIManager.Instance.SetUserRole(category, index, cachedPlayer);
-        UIManager.Instance.SetButtonDuelToggleVisible(true);
-    }
+    #endregion
 }

@@ -5,12 +5,15 @@ using System.Collections.Generic;
 public class PlayerData : ScriptableObject
 {
     public string playerId;
+    public string pigment;
+    public string hairStyle;
+    public string hairColor;
+    public string accessoryStyle;
+    public string accessoryColor;
+    public string portraitSize;
+    public string playerSize;
     public string playerNameEn;
     public string playerNameJa;
-    public string pigment;
-    public string hair;
-    public string accessory;
-    public string size;
     public string gender;
     public string element;
     public string position;

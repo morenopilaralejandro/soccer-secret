@@ -6,6 +6,8 @@ public class PlayerManager : MonoBehaviour
 {
     public static PlayerManager Instance { get; private set; }
 
+    public PlayerPortraitLibrary playerPortraitLibrary; // Drag your asset here in inspector
+
     private Dictionary<string, PlayerData> playerDataDict = new Dictionary<string, PlayerData>();
 
     void Awake()
@@ -46,6 +48,12 @@ public class PlayerManager : MonoBehaviour
 
         Debug.LogWarning("Player not found: " + playerId);
         return null;
+    }
+
+    public Sprite GetPlayerPortraitSpriteById(
+        string playerId)
+    {
+        return playerPortraitLibrary.GetPlayerPortraitSpriteById(playerId);
     }
 
 }

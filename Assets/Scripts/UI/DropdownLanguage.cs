@@ -24,8 +24,17 @@ public class DropdownLanguage : MonoBehaviour
         }
         dropdownLanguage.AddOptions(options);
 
-        initialLanguageIndex = LocalizationSettings.AvailableLocales.Locales.IndexOf(LocalizationSettings.SelectedLocale);
-        dropdownLanguage.value = initialLanguageIndex;
+        // Use SettingsManager to retrieve the language index
+        int defaultLanguageIndex = LocalizationSettings.AvailableLocales.Locales.IndexOf(LocalizationSettings.SelectedLocale);
+        int savedLanguageIndex = SettingsManager.GetLanguageIndex();
+
+        // Fallback: If saved index is out of bounds (e.g. localization changed), use default
+        if (savedLanguageIndex < 0 || savedLanguageIndex >= LocalizationSettings.AvailableLocales.Locales.Count)
+            savedLanguageIndex = defaultLanguageIndex;
+
+        dropdownLanguage.value = savedLanguageIndex;
+        LocalizationSettings.SelectedLocale = LocalizationSettings.AvailableLocales.Locales[savedLanguageIndex];
+        initialLanguageIndex = savedLanguageIndex;
     }
 
     public void ConfirmLanguage()
@@ -33,6 +42,7 @@ public class DropdownLanguage : MonoBehaviour
         int selected = dropdownLanguage.value;
         LocalizationSettings.SelectedLocale = LocalizationSettings.AvailableLocales.Locales[selected];
         initialLanguageIndex = selected;
+        SettingsManager.SetLanguageIndex(selected);
     }
 
     public void CancelLanguage()

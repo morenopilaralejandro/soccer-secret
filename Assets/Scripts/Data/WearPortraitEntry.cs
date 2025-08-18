@@ -3,9 +3,9 @@ using UnityEngine;
 [System.Serializable]
 public class WearPortraitEntry
 {
-    public string teamId;
-    public Size size;
-    public WearRole role;
-    public WearVariant variant;
+    public string wearId;  
+    public WearVariant wearVariant;
+    public WearRole wearRole;
+    public PortraitSize portraitSize;
     public Sprite sprite;
 }

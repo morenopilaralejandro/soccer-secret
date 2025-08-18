@@ -56,6 +56,7 @@ public class CSVTeamImporter
         int teamNameJaIndex    = System.Array.IndexOf(headers, "name-ja");
         int lvIndex    = System.Array.IndexOf(headers, "lv");
         int formationIndex = System.Array.IndexOf(headers, "formation");
+        int wearIdIndex = System.Array.IndexOf(headers, "wear-id");
         int player0Index   = System.Array.IndexOf(headers, "player0");
         int player1Index   = System.Array.IndexOf(headers, "player1");
         int player2Index   = System.Array.IndexOf(headers, "player2");
@@ -73,6 +74,7 @@ public class CSVTeamImporter
             teamData.teamNameJa = values[teamNameJaIndex].Trim();
             teamData.lv         = int.Parse(values[lvIndex]);
             teamData.formation = values[formationIndex].Trim();
+            teamData.wearId = values[wearIdIndex].Trim();
             teamData.playerIds = new string[4]
             {
                 values[player0Index].Trim(),

@@ -4,6 +4,7 @@ using UnityEngine;
 public class CoordData : ScriptableObject
 {
     public string coordId;
+    public string position;
     public float x;
     public float y;
     public float z;

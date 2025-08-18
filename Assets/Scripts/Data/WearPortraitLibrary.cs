@@ -6,24 +6,24 @@ using UnityEngine;
 public class WearPortraitLibrary : ScriptableObject
 {
     public List<WearPortraitEntry> wearPortraits;
-    private Dictionary<(string, Size, WearRole, WearVariant), Sprite> _wearPortraitsDict;
+    private Dictionary<(string, PortraitSize, WearRole, WearVariant), Sprite> _wearPortraitsDict;
 
     private void OnEnable()
     {
         // Build lookup dictionary when asset loads
         _wearPortraitsDict = wearPortraits.ToDictionary(
-            w => (w.teamId, w.size, w.role, w.variant),
-            w => w.sprite);
+            w => (w.wearId, w.portraitSize, w.wearRole, w.wearVariant),
+            w => w.sprite
+        );
     }
 
-    public Sprite GetWearPortraitSprite(string teamId, Size size, WearRole role, WearVariant variant)
+    public Sprite GetWearPortraitSprite(string wearId, PortraitSize portraitSize, WearRole wearRole, WearVariant wearVariant)
     {
-        WearPortraitEntry entry = wearPortraits.FirstOrDefault(w =>
-            w.teamId == teamId &&
-            w.size == size &&
-            w.role == role &&
-            w.variant == variant
-        );
-        return entry != null ? entry.sprite : null;
+        if (_wearPortraitsDict == null || _wearPortraitsDict.Count != wearPortraits.Count)
+            OnEnable(); // Rebuild if needed (e.g., on domain reload)
+
+        return _wearPortraitsDict.TryGetValue((wearId, portraitSize, wearRole, wearVariant), out var sprite)
+            ? sprite
+            : null;
     }
 }

@@ -1,18 +1,33 @@
 using UnityEngine;
 using System;
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
 
 [RequireComponent(typeof(Collider))]
 public class KeeperCollider : MonoBehaviour
 {
-    private Player cachedPlayer;
+    #region Private Fields
+
+    private Player _cachedPlayer;
+
+    #endregion
+
+    #region Events
 
     public static event Action<Player> OnSetStatusPlayer;
 
+    #endregion
+
+    #region Unity Lifecycle
+
     private void Awake()
     {
-        cachedPlayer = GetComponentInParent<Player>();
-        if (cachedPlayer == null)
-            Debug.LogError($"{nameof(KeeperCollider)} could not find Player in parent.");
+        _cachedPlayer = GetComponentInParent<Player>();
+        if (_cachedPlayer == null)
+            GameLogger.Error("[KeeperCollider] Could not find Player in parent.", this);
+        else
+            GameLogger.Info($"[KeeperCollider] Player found: {_cachedPlayer.PlayerName}", this);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -20,54 +35,78 @@ public class KeeperCollider : MonoBehaviour
         TryHandleTrigger(other);
     }
 
+    #endregion
+
+    #region Keeper Logic
+
     private void TryHandleTrigger(Collider otherCollider)
     {
-        Debug.Log("KeeperCollider OnTriggerEnter");
-
         // Only respond to ball collision
-        if (!otherCollider.transform.root.CompareTag("Ball"))
+        if (!otherCollider.transform.CompareTag("Ball"))
+            return;
+
+        if (DuelManager.Instance.GetDuelMode() != DuelMode.Shoot)
             return;
 
         // Pre-duel state checks
-        if (DuelManager.Instance.IsDuelResolved()
-            || GameManager.Instance.IsMovementFrozen
-            || cachedPlayer == null
-            || DuelManager.Instance.GetLastOffense() == null)
-        {
+        if (DuelManager.Instance.IsDuelResolved())
             return;
-        }
+        if (GameManager.Instance.IsMovementFrozen)
+            return;
+        if (_cachedPlayer == null)
+            return;
+        if (DuelManager.Instance.GetLastOffense() == null)
+            return;
 
-        // Avoid duplicate/circular defense from this player
         DuelParticipant lastDefense = DuelManager.Instance.GetLastDefense();
         DuelParticipant lastOffense = DuelManager.Instance.GetLastOffense();
-        if (lastDefense != null && lastDefense.Player == cachedPlayer)
+
+        // Prevent repeat triggers and self defense
+        if (lastDefense != null && lastDefense.Player == _cachedPlayer)
+            return;
+        if (lastOffense != null && _cachedPlayer == lastOffense.Player)
             return;
 
-        // Prevent self-trigger as offense
-        if (cachedPlayer == lastOffense.Player)
+        // Prevent catching friendly fire
+        if (lastOffense.Player.TeamIndex == _cachedPlayer.TeamIndex)
             return;
 
-        int participantIndex = DuelManager.Instance.GetDuelParticipants().Count;
-        DuelManager.Instance.RegisterTrigger(cachedPlayer.gameObject, false);
-        OnSetStatusPlayer?.Invoke(cachedPlayer);
+        // Only allow if close enough to own goal
+        float distanceToGoal = GameManager.Instance.GetDistanceToAllyGoal(_cachedPlayer);
+        if (distanceToGoal > DuelManager.Instance.KeeperGoalDistance)
+            return;
 
-        SetupKeeperDuelUI(participantIndex, lastOffense.Player);
+        // Only allow by authority/master client
+        if (!GameManager.Instance.IsMultiplayer
+#if PHOTON_UNITY_NETWORKING
+            || PhotonNetwork.IsMasterClient
+#endif
+        )
+        {
+            int participantIndex = DuelManager.Instance.GetDuelParticipants().Count;
+            GameLogger.Info($"[KeeperCollider] Registering trigger for {_cachedPlayer.PlayerName} as participant {participantIndex}.", this);
+            OnSetStatusPlayer?.Invoke(_cachedPlayer);
+
+            if (GameManager.Instance.IsMultiplayer)
+            {
+#if PHOTON_UNITY_NETWORKING
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    GameLogger.DebugLog("[KeeperCollider] Multiplayer authority registering trigger.", this);
+                }
+#endif
+            }
+            else // Singleplayer/offline
+            {
+                // Register both participants BEFORE selections
+                DuelManager.Instance.RegisterTrigger(_cachedPlayer.gameObject, false);
+                UIManager.Instance.SetDuelSelection(_cachedPlayer.TeamIndex, Category.Catch, participantIndex, _cachedPlayer);
+                UIManager.Instance.SetShootTeamIndex(_cachedPlayer.TeamIndex);
+                BallTravelController.Instance.PauseTravel();
+                UIManager.Instance.BeginDuelSelectionPhase();
+            }
+        }
     }
 
-    private void SetupKeeperDuelUI(int index, Player lastOffensePlayer)
-    {
-        if (lastOffensePlayer.IsAi)
-        {
-            // User must input "catch"
-            GameManager.Instance.FreezeGame();
-            BallBehavior.Instance.PauseTravel();
-            UIManager.Instance.SetUserRole(Category.Catch, index, cachedPlayer);
-            UIManager.Instance.SetButtonDuelToggleVisible(true);
-        }
-        else
-        {
-            // AI automatically "catch"
-            cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(index, Category.Catch);
-        }
-    }
+    #endregion
 }

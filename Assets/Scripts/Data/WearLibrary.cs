@@ -12,16 +12,16 @@ public class WearLibrary : ScriptableObject
     {
         // Build lookup dictionary when asset loads
         _wearsDict = wears.ToDictionary(
-            w => (w.teamId, w.role, w.variant),
+            w => (w.wearId, w.wearRole, w.wearVariant),
             w => w.sprite);
     }
 
-    public Sprite GetWearSprite(string teamId, WearRole role, WearVariant variant)
+    public Sprite GetWearSprite(string wearId, WearRole wearRole, WearVariant wearVariant)
     {
         WearEntry entry = wears.FirstOrDefault(w =>
-            w.teamId == teamId &&
-            w.role == role &&
-            w.variant == variant
+            w.wearId == wearId &&
+            w.wearRole == wearRole &&
+            w.wearVariant == wearVariant
         );
         return entry != null ? entry.sprite : null;
     }

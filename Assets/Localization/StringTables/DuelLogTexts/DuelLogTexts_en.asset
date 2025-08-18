@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: DuelLogTexts_en
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 88845a98536a9ed88859647d8b42fcce, type: 2}
+  m_Metadata:
+    m_Items:
+    - rid: 4295732638259085313
+  m_TableData:
+  - m_Id: 339468651077649
+    m_Localized: 'Condition: {condition}'
+    m_Metadata:
+      m_Items:
+      - rid: 4295732638259085313
+  - m_Id: 339468651077648
+    m_Localized: <color={teamColor}>{playerName}</color> takes control of the ball.
+    m_Metadata:
+      m_Items:
+      - rid: 4295732638259085313
+  - m_Id: 339468651077647
+    m_Localized: Goal!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 339468651077646
+    m_Localized: The duel ended.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 339468651077645
+    m_Localized: <color={outcomeColor}>You lose!</color>
+    m_Metadata:
+      m_Items:
+      - rid: 4295732638259085313
+  - m_Id: 339468651077644
+    m_Localized: <color={outcomeColor}>You win!</color>
+    m_Metadata:
+      m_Items:
+      - rid: 4295732638259085313
+  - m_Id: 339468651077643
+    m_Localized: Duel!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 339468651077642
+    m_Localized: <color={categoryColor}>Defense</color> power X2!
+    m_Metadata:
+      m_Items:
+      - rid: 4295732638259085313
+  - m_Id: 339468651077641
+    m_Localized: <color={categoryColor}>Offense</color> power X2!
+    m_Metadata:
+      m_Items:
+      - rid: 4295732638259085313
+  - m_Id: 339468651077640
+    m_Localized: <color={teamColor}>{playerName}</color> stops it.
+    m_Metadata:
+      m_Items:
+      - rid: 4295732638259085313
+  - m_Id: 339468651077639
+    m_Localized: <color={teamColor}>{playerName}</color> scores a goal!
+    m_Metadata:
+      m_Items:
+      - rid: 4295732638259085313
+  - m_Id: 339468651077638
+    m_Localized: <color={teamColor}>{playerName}</color> uses <color={commandColor}>{commandName}</color>!
+    m_Metadata:
+      m_Items:
+      - rid: 4295732638259085313
+  - m_Id: 339468651077637
+    m_Localized: <color={teamColor}>{playerName}</color> shoots!
+    m_Metadata:
+      m_Items:
+      - rid: 4295732638259085313
+  - m_Id: 339468651077636
+    m_Localized: <color={teamColor}>{playerName}</color> passes the ball.
+    m_Metadata:
+      m_Items:
+      - rid: 4295732638259085313
+  - m_Id: 339468651077634
+    m_Localized: <color={teamColor}>{teamName}</color> requests a Secret Stop.
+    m_Metadata:
+      m_Items:
+      - rid: 4295732638259085313
+  - m_Id: 339468651077633
+    m_Localized: The match is over!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 339468651077632
+    m_Localized: The match is starting!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 339468651077635
+    m_Localized: The match resumed.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 354037876400128
+    m_Localized: '{actionSymbol}{damageNumber} AP'
+    m_Metadata:
+      m_Items:
+      - rid: 4295732638259085313
+  references:
+    version: 2
+    RefIds:
+    - rid: 4295732638259085313
+      type: {class: SmartFormatTag, ns: UnityEngine.Localization.Metadata, asm: Unity.Localization}
+      data:
+        m_Entries: 
+        m_SharedEntries:
+        - id: 339468651077634
+        - id: 339468651077636
+        - id: 339468651077637
+        - id: 339468651077638
+        - id: 339468651077639
+        - id: 339468651077640
+        - id: 339468651077641
+        - id: 339468651077644
+        - id: 339468651077645
+        - id: 339468651077648
+        - id: 339468651077649
+        - id: 339468651077642
+        - id: 354037876400128

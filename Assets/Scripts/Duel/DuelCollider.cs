@@ -1,87 +1,139 @@
 using UnityEngine;
 using System;
+#if PHOTON_UNITY_NETWORKING
+using Photon.Pun;
+#endif
 
 [RequireComponent(typeof(Collider))]
 public class DuelCollider : MonoBehaviour
 {
-    [Header("Duel Settings")]
-    [SerializeField] private float duelCooldown = 0.2f;
+    #region Inspector Fields
 
-    private float nextDuelAllowedTime = 0f;
-    private Player cachedPlayer;
+    [Header("Duel Settings")]
+    [SerializeField] private float duelCooldown = 0.3f;
+
+    #endregion
+
+    #region Private Fields
+
+    private int duelColliderLayer = -1;
+    private float _nextDuelAllowedTime = 0f;
+    private Player _cachedPlayer;
+
+
+    #endregion
+
+    #region Events
 
     public static event Action<Player> OnSetStatusPlayer;
 
+    #endregion
+
+    #region Unity Lifecycle
+
     private void Awake()
     {
-        cachedPlayer = GetComponentInParent<Player>();
-        if (cachedPlayer == null)
-            Debug.LogError("DuelCollider could not find attached Player component in parent.");
+        _cachedPlayer = GetComponentInParent<Player>();
+        if (_cachedPlayer == null)
+            GameLogger.Error("[DuelCollider] Could not find attached Player component in parent.", this);
+
+        duelColliderLayer = LayerMask.NameToLayer("PlayerDuelCollider");
+        if (duelColliderLayer == -1)
+            GameLogger.Error("[DuelCollider] 'PlayerDuelCollider' layer is not defined in project settings.", this);
     }
 
-    private void OnTriggerEnter(Collider other) => TryStartDuel(other);
-    private void OnTriggerStay(Collider other) => TryStartDuel(other);
+    private void OnTriggerEnter(Collider other)
+    {
+        TryStartDuel(other);
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        TryStartDuel(other);
+    }
+
+    #endregion
+
+    #region Duel Logic
 
     private void TryStartDuel(Collider otherCollider)
     {
         if (!CanStartDuel()) return;
 
-        var otherPlayer = otherCollider.GetComponentInParent<Player>();
-        if (otherPlayer == null || otherPlayer == cachedPlayer)
+        if (otherCollider.gameObject.layer != duelColliderLayer)
             return;
 
-        // Tag logic: You could refactor these if you’re consistently using tags or layer masks elsewhere
-        string thisTag = CompareTag("Ally") ? "Ally" : (CompareTag("Opp") ? "Opp" : string.Empty);
-        string otherTag = otherCollider.CompareTag("Ally") ? "Ally" : (otherCollider.CompareTag("Opp") ? "Opp" : string.Empty);
+        Player otherPlayer = otherCollider.GetComponentInParent<Player>();
+        if (otherPlayer == null || otherPlayer == _cachedPlayer)
+            return;
 
-        if (
-            cachedPlayer.IsPossession &&
-            !string.IsNullOrEmpty(thisTag) &&
-            !string.IsNullOrEmpty(otherTag) &&
-            thisTag != otherTag &&
-            DuelManager.Instance.IsDuelResolved()
-        )
+        // Ensure different teams, possession, and duel not in progress
+        if (_cachedPlayer.IsPossession &&
+            _cachedPlayer.TeamIndex != otherPlayer.TeamIndex &&
+            DuelManager.Instance.IsDuelResolved())
         {
-            SetDuelCooldown();
+            GameLogger.DebugLog($"[DuelCollider]  Starting duel between {_cachedPlayer.PlayerName} (Team {_cachedPlayer.TeamIndex}) and {otherPlayer.PlayerName} (Team {otherPlayer.TeamIndex})", this);
 
-            GameManager.Instance.FreezeGame();
+            bool isKeeperDuel = otherPlayer.IsKeeper && GameManager.Instance.GetDistanceToAllyGoal(otherPlayer) < DuelManager.Instance.KeeperGoalDistance; 
+           
             DuelManager.Instance.StartDuel(DuelMode.Field);
-            DuelManager.Instance.RegisterTrigger(cachedPlayer.gameObject, false);
-            DuelManager.Instance.RegisterTrigger(otherPlayer.gameObject, false);
+            DuelManager.Instance.SetIsKeeperDuel(isKeeperDuel);
 
-            OnSetStatusPlayer?.Invoke(cachedPlayer);
+            // For UI status updates
+            OnSetStatusPlayer?.Invoke(_cachedPlayer);
             OnSetStatusPlayer?.Invoke(otherPlayer);
 
-            AssignUserAndAiRoles(otherPlayer);
-            UIManager.Instance.SetButtonDuelToggleVisible(true);
+            SetDuelCooldown();
+
+            // Assign duel roles — customize as needed!
+            Player playerA = _cachedPlayer;
+            Player playerB = otherPlayer;
+            Category categoryA = Category.Dribble; // Offense role
+            Category categoryB = Category.Block;   // Defense role
+
+            if (GameManager.Instance.IsMultiplayer)
+            {
+#if PHOTON_UNITY_NETWORKING
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    int[] teamIndices = { playerA.TeamIndex, playerB.TeamIndex };
+                    int[] categories = { (int)categoryA, (int)categoryB };
+                    int[] participantIndices = { 0, 1 };
+                    int[] playerViewIDs = {
+                        playerA.GetComponent<PhotonView>().ViewID,
+                        playerB.GetComponent<PhotonView>().ViewID
+                    };
+                    PhotonView.Get(UIManager.Instance).RPC(
+                        "RpcSetupFieldDuel", Photon.Pun.RpcTarget.All,
+                        teamIndices, categories, participantIndices, playerViewIDs
+                    );
+                }
+#endif
+            }
+            else // Singleplayer/offline
+            {
+                // Register both participants BEFORE selections.
+                DuelManager.Instance.RegisterTrigger(playerA.gameObject, false);
+                DuelManager.Instance.RegisterTrigger(playerB.gameObject, false);
+
+                UIManager.Instance.SetDuelSelection(playerA.TeamIndex, categoryA, 0, playerA);
+                UIManager.Instance.SetDuelSelection(playerB.TeamIndex, categoryB, 1, playerB);
+                UIManager.Instance.BeginDuelSelectionPhase();
+            }
         }
     }
 
     private bool CanStartDuel()
     {
-        return Time.time >= nextDuelAllowedTime && !GameManager.Instance.IsMovementFrozen;
+        return Time.time >= _nextDuelAllowedTime
+               && !GameManager.Instance.IsMovementFrozen
+               && DuelManager.Instance.IsDuelResolved();
     }
 
     private void SetDuelCooldown()
     {
-        nextDuelAllowedTime = Time.time + duelCooldown;
+        _nextDuelAllowedTime = Time.time + duelCooldown;
     }
 
-    /// <summary>
-    /// Assigns categories and roles for UI and Duel participants, depending on which is AI/user.
-    /// </summary>
-    private void AssignUserAndAiRoles(Player otherPlayer)
-    {
-        // If this player is AI, they're the offense, other is defense (human)
-        if (cachedPlayer.IsAi)
-        {
-            cachedPlayer.GetComponent<PlayerAi>().RegisterAiSelections(0, Category.Dribble);
-            UIManager.Instance.SetUserRole(Category.Block, 1, otherPlayer);
-        }
-        else
-        {
-            UIManager.Instance.SetUserRole(Category.Dribble, 0, cachedPlayer);
-            UIManager.Instance.SetAiRole(Category.Block, 1, otherPlayer);
-        }
-    }
+    #endregion
 }

@@ -39,10 +39,11 @@ public class CSVCoordImporter
         // Get CSV header index mapping
         string[] headers = lines[0].Split(',');
 
-        int coordIdIndex = System.Array.IndexOf(headers, "id");
-        int xIndex = System.Array.IndexOf(headers, "x");
-        int yIndex = System.Array.IndexOf(headers, "y");
-        int zIndex = System.Array.IndexOf(headers, "z");
+        int coordIdIndex    = System.Array.IndexOf(headers, "id");
+        int positionIndex   = System.Array.IndexOf(headers, "position");
+        int xIndex          = System.Array.IndexOf(headers, "x");
+        int yIndex          = System.Array.IndexOf(headers, "y");
+        int zIndex          = System.Array.IndexOf(headers, "z");
 
         for (int i = 1; i < lines.Length; i++)
         {
@@ -52,6 +53,7 @@ public class CSVCoordImporter
             CoordData coordData = ScriptableObject.CreateInstance<CoordData>();
 
             coordData.coordId = values[coordIdIndex].Trim();
+            coordData.position = values[positionIndex].Trim();
             coordData.x = float.Parse(values[xIndex]);
             coordData.y = float.Parse(values[yIndex]);
             coordData.z = float.Parse(values[zIndex]);
